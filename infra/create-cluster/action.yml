@@ -1,0 +1,53 @@
+name: Create Cluster
+description: Create a cluster on infra
+inputs:
+  INFRA_TOKEN:
+    description: Infra access token
+    required: true
+  flavor:
+    description: Flavor (`qa-demo`, `gke-default`, `openshift-4-demo`...)
+    required: true
+  name:
+    description: Cluster name
+    required: true
+  lifespan:
+    description: Cluster lifespan
+    default: 48h
+    required: false
+  args:
+    description: Comma separated flavor arguments. Ex. nodes=5,main-image=main:tag
+    required: false
+    default: ""
+  wait:
+    description: Whether to wait for the cluster readiness
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Download infractl
+      shell: bash
+      run: |
+        mkdir -p ~/.local/bin
+        curl --fail -sL https://infra.rox.systems/v1/cli/linux/amd64/upgrade \
+        | jq -r ".result.fileChunk" \
+        | base64 -d \
+        > ~/.local/bin/infractl
+        chmod +x ~/.local/bin/infractl
+        # Ensure that the binary works
+        infractl --version
+
+    - name: Create Cluster
+      shell: bash
+      run: |
+        INFRA_TOKEN="${{ inputs.INFRA_TOKEN }}"
+        echo "::add-mask::$INFRA_TOKEN"
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/create-cluster.sh" \
+          "${{ inputs.flavor }}" \
+          "${{ inputs.name }}" \
+          "${{ inputs.lifespan }}" \
+          "${{ inputs.wait }}" \
+          "${{ inputs.args }}"

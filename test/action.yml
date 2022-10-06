@@ -1,0 +1,17 @@
+name: Run a script
+description: Run a shell script with a given name with provided arguments
+inputs:
+  script:
+    description: Script name
+    required: true
+  params:
+    description: JSON array with script arguments
+    required: true
+runs:
+  using: composite
+  steps:
+    - run: |
+        eval "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/../../${{ inputs.script }}" \
+          $(echo '${{ inputs.params }}' | jq -r @sh)
+      shell: bash
