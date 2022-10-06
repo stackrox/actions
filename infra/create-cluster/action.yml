@@ -40,8 +40,9 @@ runs:
 
     - name: Create Cluster
       shell: bash
+      env:
+        INFRA_TOKEN: "${{ inputs.token }}"
       run: |
-        INFRA_TOKEN="${{ inputs.token }}"
         echo "::add-mask::$INFRA_TOKEN"
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
