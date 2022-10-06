@@ -11,7 +11,7 @@ runs:
   using: composite
   steps:
     - run: |
-        eval "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/../../${{ inputs.script }}" \
+        eval "${{ github.action_path }}/../common/common.sh" \
+          "${{ github.action_path }}/../${{ inputs.script }}" \
           $(echo '${{ inputs.params }}' | jq -r @sh)
       shell: bash
