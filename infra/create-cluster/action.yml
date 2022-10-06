@@ -1,7 +1,7 @@
 name: Create Cluster
 description: Create a cluster on infra
 inputs:
-  INFRA_TOKEN:
+  token:
     description: Infra access token
     required: true
   flavor:
@@ -41,7 +41,7 @@ runs:
     - name: Create Cluster
       shell: bash
       run: |
-        INFRA_TOKEN="${{ inputs.INFRA_TOKEN }}"
+        INFRA_TOKEN="${{ inputs.token }}"
         echo "::add-mask::$INFRA_TOKEN"
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
