@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-echo "Test script. Ref: $GITHUB_REF_NAME" >> "$GITHUB_STEP_SUMMARY"
+set -euo pipefail
 
-echo "Args:"
+gh_log notice "Test script called on ref $GITHUB_REF_NAME"
+gh_summary "Test script arguments:"
 for arg in "$@"; do
-    echo "..$arg..";
+    gh_summary "* \`$arg\`";
 done
