@@ -3,7 +3,8 @@ description: Run a shell script with a given name with provided arguments
 inputs:
   script:
     description: Script name
-    required: true
+    required: false
+    default: test/test.sh
   params:
     description: JSON array with script arguments
     required: true
