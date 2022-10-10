@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 #
 # Sets some necessary variables up for local testing.
-# JIRA_TOKEN still has to be set manually.
 #
 # Usage example:
-#     bash local-env.sh create-cluster flavor name ...
+#     test/local-env.sh test/test.sh args
 #
 export GITHUB_STEP_SUMMARY=/dev/stdout
 GITHUB_ACTOR=$(git config --get user.email)
