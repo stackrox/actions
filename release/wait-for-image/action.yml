@@ -1,0 +1,30 @@
+name: Wait for an image
+description: Poll Quay.io image registry for the given image tag
+inputs:
+  token:
+    description: Quay.io bearer token
+    required: false
+    default: ""
+  image:
+    description: Image name with the tag
+    required: true
+  interval:
+    description: The interval in seconds with which to check the registry
+    default: "30"
+  limit:
+    description: Time limit in seconds until give up waiting and fail
+    default: "2400"
+
+runs:
+  using: composite
+  steps:
+    - run: |
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/wait-for-image.sh" \
+          "${{ inputs.image }}" \
+          "${{ inputs.token }}" \
+          "${{ inputs.interval }}" \
+          "${{ inputs.limit }}"
+
+      shell: bash
