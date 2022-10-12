@@ -1,6 +1,7 @@
 # Various GitHub Actions
 
 * [Infra / Create Cluster](infra/create-cluster/README.md)
+* [Infra / Install `infractl`](infra/install-infractl/README.md)
 * [Test](test/README.md)
 
 ## Usage
