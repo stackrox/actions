@@ -1,6 +1,7 @@
 # Various GitHub Actions
 
 * [Infra / Create Cluster](infra/create-cluster/README.md)
+* [Release / Wait for Image](release/wait-for-image/README.md)
 * [Test](test/README.md)
 
 ## Usage
