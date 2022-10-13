@@ -1,0 +1,30 @@
+name: Tag current branch
+description: Create an empty commit (to trigger OSCI) and tag the branch
+
+inputs:
+  token:
+    description: GitHub token
+    required: false
+    default: ${{ github.token }}
+  tag:
+    description: Tag
+    required: true
+  dry-run:
+    description: Whether it is a dry-run
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - env:
+        GH_TOKEN: ${{ inputs.token }}
+        DRY_RUN: ${{ inputs.dry-run }}
+      run: |
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/tag.sh" \
+          "${{ inputs.tag }}"
+
+      shell: bash
+  
