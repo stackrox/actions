@@ -6,6 +6,7 @@
 #     test/local-env.sh test/test.sh args
 #
 export GITHUB_STEP_SUMMARY=/dev/stdout
+export GITHUB_OUTPUT=/dev/stdout
 GITHUB_ACTOR=$(git config --get user.email)
 export GITHUB_ACTOR
 export GITHUB_REPOSITORY=stackrox/stackrox
