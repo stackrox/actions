@@ -6,4 +6,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: reviewdog/action-actionlint@v1
+      - uses: reviewdog/action-shellcheck@v1
+
