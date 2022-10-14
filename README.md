@@ -3,6 +3,7 @@
 * [Infra / Create Cluster](infra/create-cluster/README.md)
 * [Infra / Install `infractl`](infra/install-infractl/README.md)
 * [Release / Wait for Image](release/wait-for-image/README.md)
+* [Release / Tag](release/tag/README.md)
 * [Test](test/README.md)
 
 ## Usage
