@@ -2,6 +2,7 @@
 
 * [Infra / Create Cluster](infra/create-cluster/README.md)
 * [Release / Wait for Image](release/wait-for-image/README.md)
+* [Release / Tag](release/tag/README.md)
 * [Test](test/README.md)
 
 ## Usage
