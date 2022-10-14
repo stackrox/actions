@@ -25,4 +25,4 @@ jobs:
           git tag --force \
             --annotate -m "Move tag ${MAJOR_VERSION} after publication of ${{ github.ref_name }}" \
             "${MAJOR_VERSION}" ${{ github.ref_name }}
-          git push --force "${MAJOR_VERSION}"
+          git push --force origin "${MAJOR_VERSION}"
