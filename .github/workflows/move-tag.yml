@@ -14,13 +14,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.ref_name }}
+          fetch-depth: 0
       - name: Initialize mandatory git config
         run: |
-          git config user.name "${{ github.event.sender.login }}"
+          git config user.name "Robot Rox"
           git config user.email noreply@github.com
       - name: Move tag to ${{ github.ref_name }}
         run: |
           MAJOR_VERSION=$(echo ${{ github.ref_name }} | cut -d . -f 1)
-          git tag --force "${MAJOR_VERSION}" ${{ github.ref_name }}
+          git tag --force \
+            --annotated -m "Move tag ${MAJOR_VERSION} after publication of ${{ github.ref_name }}" \
+            "${MAJOR_VERSION}" ${{ github.ref_name }}
           git push --force "${MAJOR_VERSION}"
