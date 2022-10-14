@@ -23,6 +23,6 @@ jobs:
         run: |
           MAJOR_VERSION=$(echo ${{ github.ref_name }} | cut -d . -f 1)
           git tag --force \
-            --annotated -m "Move tag ${MAJOR_VERSION} after publication of ${{ github.ref_name }}" \
+            --annotate -m "Move tag ${MAJOR_VERSION} after publication of ${{ github.ref_name }}" \
             "${MAJOR_VERSION}" ${{ github.ref_name }}
           git push --force "${MAJOR_VERSION}"
