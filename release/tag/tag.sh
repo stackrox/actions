@@ -13,7 +13,6 @@ TAG="$1"
 
 check_not_empty \
     TAG \
-    \
     DRY_RUN
 
 if [ "$(git tag "$TAG" --points-at HEAD)" = "$TAG" ]; then
