@@ -27,4 +27,3 @@ runs:
           "${{ inputs.tag }}"
 
       shell: bash
-  
