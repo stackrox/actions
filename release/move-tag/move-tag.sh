@@ -21,7 +21,7 @@ git config user.email noreply@github.com
 
 git tag --force \
     --annotate -m "Move tag ${SLIDING_TAG} after publication of ${GITHUB_REF_NAME}" \
-    "${SLIDING_TAG}" ${GITHUB_REF_NAME}
+    "${SLIDING_TAG}" "${GITHUB_REF_NAME}"
 
 if [ "$DRY_RUN" = "false" ]; then
     git push --force origin "${SLIDING_TAG}"
