@@ -14,13 +14,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Initialize mandatory git config
+        id: git-config
         run: |
-          git config user.name "Robot Rox"
-          git config user.email noreply@github.com
+          echo "sliding-tag=$(echo ${{ github.ref_name }} | cut -d . -f 1)" >> "$GITHUB_OUTPUT"
       - name: Move major version tag for ${{ github.ref_name }}
-        run: |
-          MAJOR_VERSION=$(echo ${{ github.ref_name }} | cut -d . -f 1)
-          git tag --force \
-            --annotate -m "Move tag ${MAJOR_VERSION} after publication of ${{ github.ref_name }}" \
-            "${MAJOR_VERSION}" ${{ github.ref_name }}
-          git push --force origin "${MAJOR_VERSION}"
+        uses: stackrox/actions/infra/create-cluster@tm/move-tag-workflow # TODO: change to main
+        with:
+          sliding-tag: ${{ steps.git-config.outputs.sliding-tag }}
+          ref-name: ${{ github.ref_name }}
