@@ -20,7 +20,10 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: |
+    - env:
+        GH_TOKEN: ${{ inputs.token }}
+        DRY_RUN: ${{ inputs.dry-run }}
+      run: |
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
           "${{ github.action_path }}/move-tag.sh" \
