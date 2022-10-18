@@ -18,7 +18,7 @@ jobs:
         run: |
           echo "sliding-tag=$(echo ${{ github.ref_name }} | cut -d . -f 1)" >> "$GITHUB_OUTPUT"
       - name: Move major version tag for ${{ github.ref_name }}
-        uses: stackrox/actions/release/move-tag@tm/move-tag-workflow # TODO: change to main
+        uses: ./release/move-tag
         with:
           sliding-tag: ${{ steps.git-config.outputs.sliding-tag }}
           ref-name: ${{ github.ref_name }}
