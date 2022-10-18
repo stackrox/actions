@@ -1,0 +1,24 @@
+run-name: Move major tag ${{ github.ref_name }}
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  move-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Determine current sliding tag
+        id: sliding-tag
+        run: |
+          echo "sliding-tag=$(echo ${{ github.ref_name }} | cut -d . -f 1)" >> "$GITHUB_OUTPUT"
+      - name: Move major version tag for ${{ github.ref_name }}
+        uses: ./release/move-tag
+        with:
+          sliding-tag: ${{ steps.sliding-tag.outputs.sliding-tag }}
+          ref-name: ${{ github.ref_name }}
