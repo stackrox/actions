@@ -39,7 +39,7 @@ Test script arguments:
 If you publish a new action or make another change that warrants a new release of this repository, create and push a new tag following SemVer.
 
 ```bash
-git tag v1.2.3
+git tag -a v1.2.3 -m "Release v1.2.3"
 git push origin v1.2.3
 ```
 
