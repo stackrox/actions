@@ -78,6 +78,43 @@ gh_summary() {
 }
 export -f gh_summary
 
+# retry() - retry a command up to a specific numer of times until it exits
+# successfully, with exponential back off.
+# (original source: https://gist.github.com/sj26/88e1c6584397bb7c13bd11108a579746)
+
+retry() {
+    if [[ "$#" -lt 3 ]]; then
+        echo "usage: retry <try count> <delay true|false> <command> <args...>"
+        exit 1
+    fi
+
+    local tries=$1
+    local delay=$2
+    shift; shift;
+
+    local count=0
+    until "$@"; do
+        exit=$?
+        wait=$((2 ** count))
+        count=$((count + 1))
+        if [[ $count -lt $tries ]]; then
+            echo "Retry $count/$tries exited $exit"
+            if $delay; then
+                echo "Retrying in $wait seconds..."
+                sleep $wait
+            fi
+            if [[ -n "${RETRY_HOOK:-}" ]]; then
+                $RETRY_HOOK
+            fi
+        else
+            echo "Retry $count/$tries exited $exit, no more retries left."
+            return $exit
+        fi
+    done
+    return 0
+}
+export -f retry
+
 # bash trick to check if the script is sourced.
 if ! (return 0 2>/dev/null); then # called
     SCRIPT="$1"

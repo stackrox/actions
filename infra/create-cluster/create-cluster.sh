@@ -23,7 +23,30 @@ check_not_empty \
 CNAME="${NAME//./-}"
 
 function cluster_info() {
-    infractl 2>/dev/null get "$1" --json
+    local check_out=""
+    local tries=5
+    local count=0
+    until check_out="$(infractl 2>/dev/null get "$1" --json -e infra.stackrox.com)"; do
+        exit=$?
+        if [[ "${check_out}" =~ NotFound ]]; then
+            # A missing cluster
+            echo "${check_out}"
+            return "${exit}"
+        else
+            # Other errors can be temporary networking issues and retried
+            wait=$((2 ** count))
+            count=$((count + 1))
+            if [[ $count -lt $tries ]]; then
+                sleep "${wait}"
+            else
+                # Reached the end of retries
+                echo "${check_out}"
+                return "${exit}"
+            fi
+        fi
+    done
+    echo "${check_out}"
+    return 0
 }
 
 function cluster_status() {
@@ -98,8 +121,9 @@ for arg in "${args[@]}"; do
     OPTIONS+=("$arg")
 done
 
-infractl create "$FLAVOR" "$CNAME" \
+retry 5 true infractl create "$FLAVOR" "$CNAME" \
     --lifespan "$LIFESPAN" \
+    -e infra.stackrox.com \
     "${OPTIONS[@]}"
 
 infra_status_summary "$CNAME" "Cluster creation has been requested"
