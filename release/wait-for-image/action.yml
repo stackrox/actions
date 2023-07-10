@@ -13,7 +13,7 @@ inputs:
     default: "30"
   limit:
     description: Time limit in seconds until give up waiting and fail
-    default: "2400"
+    default: "3600"
 
 runs:
   using: composite
