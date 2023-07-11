@@ -27,6 +27,14 @@ runs:
   using: composite
   steps:
     - uses: stackrox/actions/infra/install-infractl@main
+
+    - name: Validate the infractl install and its token
+      shell: bash
+      env:
+        INFRA_TOKEN: "${{ inputs.token }}"
+      run: |
+        infractl whoami
+
     - name: Create Cluster
       shell: bash
       env:
