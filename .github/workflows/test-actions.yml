@@ -18,7 +18,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Create a cluster
-        uses: ./infra/create-cluster@
+        uses: ./infra/create-cluster
         with:
           flavor: gke-default
           name: actions-pr-${{ github.event.pull_request.number }}
