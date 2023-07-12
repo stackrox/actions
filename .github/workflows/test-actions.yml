@@ -1,0 +1,38 @@
+name: Test Actions
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - labeled
+
+jobs:
+  test-infra-create-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Create a cluster
+        uses: ./infra/create-cluster
+        with:
+          flavor: gke-default
+          name: actions-pr-${{ github.event.pull_request.number }}
+          args: machine-type=e2-medium,nodes=1,gcp-image-type=ubuntu_containerd
+          lifespan: 1h
+          wait: true
+          token: ${{ secrets.INFRA_TOKEN }}
+
+      - name: Repeat to test handling for existing clusters
+        uses: ./infra/create-cluster
+        with:
+          flavor: gke-default
+          name: actions-pr-${{ github.event.pull_request.number }}
+          args: machine-type=e2-medium,nodes=1,gcp-image-type=ubuntu_containerd
+          lifespan: 1h
+          wait: true
+          token: ${{ secrets.INFRA_TOKEN }}
