@@ -1,0 +1,39 @@
+name: Create clusters
+description: Create demo/long-running clusters used in release
+inputs:
+  version:
+    description: Main image version
+    required: true
+    default: 4.1.3
+  create-k8s-cluster:
+    description: Create GKE k8s cluster
+    required: false
+  create-os4-cluster:
+    description: Create Open Shift cluster
+    required: false
+  create-long-cluster:
+    description: Create GKE long-running cluster
+    required: false
+  quay-token:
+    description: Quay token
+    required: true
+  dry-run:
+    description: Whether it is a dry-run
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - env:
+        QUAY_TOKEN: ${{ inputs.quay-token }}
+        DRY_RUN: ${{ inputs.dry-run }}
+      run: |
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/create-clusters.sh" \
+          "${{ inputs.version }}" \
+          "${{ inputs.create-k8s-cluster}}" \
+          "${{ inputs.create-os4-cluster}}" \
+          "${{ inputs.create-long-cluster}}"
+      shell: bash
