@@ -19,6 +19,7 @@ runs:
   using: composite
   steps:
     - run: |
+        echo "${{ inputs.token }}" | wc
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
           "${{ github.action_path }}/wait-for-image.sh" \

@@ -19,9 +19,6 @@ check_not_empty \
     INTERVAL \
     TIME_LIMIT
 
-echo "$NAME"
-echo "$TAG"
-
 find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
     {
