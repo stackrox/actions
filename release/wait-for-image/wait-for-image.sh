@@ -2,7 +2,7 @@
 #
 # Wait for an image to appear on Quay.io
 #
-set -euo pipefail
+set -euox pipefail
 
 NAME_TAG="$1"
 TOKEN="${2-}"
@@ -18,6 +18,9 @@ check_not_empty \
     TAG \
     INTERVAL \
     TIME_LIMIT
+
+echo "$NAME"
+echo "$TAG"
 
 find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
