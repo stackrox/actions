@@ -23,6 +23,8 @@ echo "hello world"
 
 find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
+    curl --show-error --fail --location "$URL" \
+                -H "Authorization: Bearer $TOKEN"
     {
         if [ -z "$TOKEN" ]; then
             gh_log notice "Connecting to Quay without token"
