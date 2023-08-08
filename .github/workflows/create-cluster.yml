@@ -53,6 +53,7 @@ jobs:
       matrix:
         image: [main, scanner, scanner-db, collector]
     steps:
+      - uses: actions/checkout@v3
       - name: Wait for the ${{matrix.image}} image
         uses: ./release/wait-for-image
         with:
@@ -69,6 +70,7 @@ jobs:
     if: github.event.inputs.dry-run != 'true' && github.event.inputs.create-k8s-cluster != 'false'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: ./infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -126,6 +128,7 @@ jobs:
     if: github.event.inputs.dry-run != 'true' && github.event.inputs.create-os4-cluster != 'false'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - uses: ./infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -186,7 +189,8 @@ jobs:
       github.event.inputs.create-long-cluster != 'false'
     runs-on: ubuntu-latest
     steps:
-      - uses: ./infra/create-cluster@v1
+      - uses: actions/checkout@v3
+      - uses: ./infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
@@ -206,6 +210,7 @@ jobs:
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
     steps:
+      - uses: actions/checkout@v3
       - uses: ./infra/install-infractl
       - name: Test readiness
         run: |
