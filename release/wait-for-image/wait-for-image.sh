@@ -21,15 +21,19 @@ check_not_empty \
 
 find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
-    AUTH=""
+    CMD="curl --silent --show-error --fail --location $URL"
 
     if [ -z "$TOKEN" ]; then
         gh_log notice "Connecting to Quay without token"
     else
         gh_log notice "Connecting to Quay with token"
-        AUTH="-H \"Authorization: Bearer $TOKEN\""
+        CMD+="--header \"Authorization: Bearer $TOKEN\""
     fi
-    curl --silent --show-error --fail --location "$URL" "$AUTH"
+
+    echo "$CMD"
+
+    eval "$CMD"
+
 }
 
 # bash built-in variable
