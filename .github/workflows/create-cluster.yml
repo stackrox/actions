@@ -31,6 +31,7 @@ env:
   GH_TOKEN: ${{ github.token }}
   GH_NO_UPDATE_NOTIFIER: 1
   TIMEOUT_WAIT_FOR_IMAGES_SECONDS: 3600
+  WORKFLOW_REF: inputs.workflow-ref }}
 
 jobs:
   properties:
@@ -57,7 +58,7 @@ jobs:
         image: [main, scanner, scanner-db, collector]
     steps:
       - name: Wait for the ${{matrix.image}} image
-        uses: stackrox/actions/release/wait-for-image@${{inputs.workflow-ref}}
+        uses: stackrox/actions/release/wait-for-image@$WORKFLOW_REF
         with:
           token: ${{secrets.QUAY_RHACS_ENG_BEARER_TOKEN}}
           image: "rhacs-eng/${{ matrix.image }}:${{ inputs.version }}"
