@@ -72,12 +72,7 @@ jobs:
     if: github.event.inputs.dry-run != 'true' && github.event.inputs.create-k8s-cluster != 'false'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: stackrox/actions
-          path: .actions
-          ref: ${{ inputs.workflow-ref }}
-      - uses: ./.actions/infra/create-cluster
+      - uses: stackrox/actions/infra/create-cluster@v1
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: qa-demo
@@ -134,12 +129,7 @@ jobs:
     if: github.event.inputs.dry-run != 'true' && github.event.inputs.create-os4-cluster != 'false'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: stackrox/actions
-          path: .actions
-          ref: ${{ inputs.workflow-ref }}
-      - uses: ./.actions/infra/create-cluster
+      - uses: stackrox/actions/infra/create-cluster@v1
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: openshift-4-demo
@@ -199,12 +189,7 @@ jobs:
       github.event.inputs.create-long-cluster != 'false'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: stackrox/actions
-          path: .actions
-          ref: ${{ inputs.workflow-ref }}
-      - uses: ./.actions/infra/create-cluster
+      - uses: stackrox/actions/infra/create-cluster@v1
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
@@ -224,12 +209,7 @@ jobs:
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
     steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: stackrox/actions
-          path: .actions
-          ref: ${{ inputs.workflow-ref }}
-      - uses: ./.actions/infra/install-infractl
+      - uses: stackrox/actions/infra/install-infractl@v1
       - name: Test readiness
         run: |
           STATUS=$(infractl get "${NAME//./-}" --json | jq -r .Status)
