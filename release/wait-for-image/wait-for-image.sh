@@ -27,9 +27,9 @@ find_tag() {
         gh_log notice "Connecting to Quay without token"
     else
         gh_log notice "Connecting to Quay with token"
-        AUTH=-H "Authorization: Bearer $TOKEN"
+        AUTH="-H \"Authorization: Bearer $TOKEN\""
     fi
-    curl --silent --show-error --fail --location "$URL" "$AUTH" | jq -r ".tags[0].name"
+    curl --silent --show-error --fail --location "$URL" "$AUTH"
 }
 
 # bash built-in variable
