@@ -78,7 +78,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./infra/create-cluster
+        with:
+          repository: stackrox/actions
+          path: .actions
+          ref: ${{ inputs.workflow-ref }}
+      - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: qa-demo
@@ -136,7 +140,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./infra/create-cluster
+        with:
+          repository: stackrox/actions
+          path: .actions
+          ref: ${{ inputs.workflow-ref }}
+      - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: openshift-4-demo
@@ -197,7 +205,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./infra/create-cluster
+        with:
+          repository: stackrox/actions
+          path: .actions
+          ref: ${{ inputs.workflow-ref }}
+      - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
@@ -218,7 +230,11 @@ jobs:
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
     steps:
       - uses: actions/checkout@v3
-      - uses: ./infra/install-infractl
+        with:
+          repository: stackrox/actions
+          path: .actions
+          ref: ${{ inputs.workflow-ref }}
+      - uses: ./.actions/infra/install-infractl
       - name: Test readiness
         run: |
           STATUS=$(infractl get "${NAME//./-}" --json | jq -r .Status)
