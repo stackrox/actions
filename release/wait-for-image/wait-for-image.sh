@@ -2,7 +2,7 @@
 #
 # Wait for an image to appear on Quay.io
 #
-set -euox pipefail
+set -euo pipefail
 
 NAME_TAG="$1"
 TOKEN="${2-}"
@@ -21,15 +21,16 @@ check_not_empty \
 
 find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
-    CMD="curl --silent --show-error --fail --location $URL"
-
-    if [ -z "$TOKEN" ]; then
-        gh_log notice "Connecting to Quay without token"
-    else
-        gh_log notice "Connecting to Quay with token"
-        CMD+=" --header \"Authorization: Bearer $TOKEN\""
-    fi
-    eval "$CMD" | jq -r ".tags[0].name"
+    {
+        if [ -z "$TOKEN" ]; then
+            gh_log notice "Connecting to Quay without token"
+            curl --silent --show-error --fail --location "$URL"
+        else
+            gh_log notice "Connecting to Quay with token"
+            curl --silent --show-error --fail --location "$URL" \
+                -H "Authorization: Bearer $TOKEN"
+        fi
+    } | jq -r ".tags[0].name"
 }
 
 # bash built-in variable
