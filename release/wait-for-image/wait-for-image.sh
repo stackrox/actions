@@ -2,7 +2,7 @@
 #
 # Wait for an image to appear on Quay.io
 #
-set -euox pipefail
+set -euo pipefail
 
 NAME_TAG="$1"
 TOKEN="${2-}"
