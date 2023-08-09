@@ -23,15 +23,14 @@ find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
     {
         if [ -z "$TOKEN" ]; then
-            gh_log notice "Connecting to Quay without token"
+            # gh_log notice "Connecting to Quay without token"
             curl --silent --show-error --fail --location "$URL"
         else
-            gh_log notice "Connecting to Quay with token"
+            # gh_log notice "Connecting to Quay with token"
             curl --silent --show-error --fail --location "$URL" \
                 -H "Authorization: Bearer $TOKEN"
         fi
-    } | cat
-    # jq -r ".tags[0].name"
+    } | jq -r ".tags[0].name"
 }
 
 # bash built-in variable
