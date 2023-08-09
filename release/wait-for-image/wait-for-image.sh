@@ -19,19 +19,15 @@ check_not_empty \
     INTERVAL \
     TIME_LIMIT
 
-echo "hello world"
-
 find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
-    curl --location "$URL" \
-                -H "Authorization: Bearer $TOKEN"
     {
         if [ -z "$TOKEN" ]; then
             gh_log notice "Connecting to Quay without token"
             curl --silent --show-error --fail --location "$URL"
         else
             gh_log notice "Connecting to Quay with token"
-            curl --show-error --fail --location "$URL" \
+            curl --silent --show-error --fail --location "$URL" \
                 -H "Authorization: Bearer $TOKEN"
         fi
     } | jq -r ".tags[0].name"
