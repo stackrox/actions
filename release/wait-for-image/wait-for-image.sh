@@ -27,7 +27,7 @@ find_tag() {
         gh_log notice "Connecting to Quay without token"
     else
         gh_log notice "Connecting to Quay with token"
-        CMD+="--header \"Authorization: Bearer $TOKEN\""
+        CMD+=" --header \"Authorization: Bearer $TOKEN\""
     fi
 
     echo "$CMD"
