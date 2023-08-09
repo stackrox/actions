@@ -29,11 +29,7 @@ find_tag() {
         gh_log notice "Connecting to Quay with token"
         CMD+=" --header \"Authorization: Bearer $TOKEN\""
     fi
-
-    echo "$CMD"
-
-    eval "$CMD"
-
+    eval "$CMD" | jq -r ".tags[0].name"
 }
 
 # bash built-in variable
