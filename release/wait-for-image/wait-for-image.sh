@@ -30,7 +30,8 @@ find_tag() {
             curl --silent --show-error --fail --location "$URL" \
                 -H "Authorization: Bearer $TOKEN"
         fi
-    } | jq -r ".tags[0].name"
+    } | cat
+    # jq -r ".tags[0].name"
 }
 
 # bash built-in variable
