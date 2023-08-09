@@ -56,18 +56,14 @@ jobs:
       matrix:
         image: [main, scanner, scanner-db, collector]
     steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: stackrox/actions
-          path: .actions
-          ref: ${{ inputs.workflow-ref }}
       - name: Wait for the ${{matrix.image}} image
-        run:
-          .actions/common/common.sh .actions/release/wait-for-image/wait-for-image.sh rhacs-eng/${{ matrix.image }}:${{ inputs.version }} \
-          ${{secrets.QUAY_RHACS_ENG_BEARER_TOKEN}} \
-          ${{ fromJSON('["30", "0"]')[env.DRY_RUN == 'true'] }} \
-          ${{ fromJSON(format('["{0}","{1}"]', env.TIMEOUT_WAIT_FOR_IMAGES_SECONDS, 0))[env.DRY_RUN == 'true'] }}
-
+        uses: stackrox/actions/release/wait-for-image@${{ inputs.workflow-ref }}
+        with:
+          token: ${{secrets.QUAY_RHACS_ENG_BEARER_TOKEN}}
+          image: "rhacs-eng/${{ matrix.image }}:${{ inputs.version }}"
+          # Do not wait if running dry
+          interval: ${{ fromJSON('["30", "0"]')[env.DRY_RUN == 'true'] }}
+          limit: ${{ fromJSON(format('["{0}","{1}"]', env.TIMEOUT_WAIT_FOR_IMAGES_SECONDS, 0))[env.DRY_RUN == 'true'] }}
 
   create-k8s-cluster:
     name: Create k8s cluster
