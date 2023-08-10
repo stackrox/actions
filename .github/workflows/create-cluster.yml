@@ -147,7 +147,7 @@ jobs:
           repository: stackrox/actions
           path: .actions
           ref: ${{ inputs.workflow-ref }}
-      - uses: .actions/infra/create-cluster@v1
+      - uses: .actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: openshift-4-demo
@@ -213,7 +213,7 @@ jobs:
           repository: stackrox/actions
           path: .actions
           ref: ${{ inputs.workflow-ref }}
-      - uses: .actions/infra/create-cluster@v1
+      - uses: .actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
@@ -233,7 +233,7 @@ jobs:
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
     steps:
-      - uses: stackrox/actions/infra/install-infractl@v1
+      - uses: stackrox/actions/infra/install-infractl
       - name: Test readiness
         run: |
           STATUS=$(infractl get "${NAME//./-}" --json | jq -r .Status)
