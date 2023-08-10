@@ -8,7 +8,7 @@
 
 ## Workflows
 
-* [`create-rc-clusters`](.github/workflows/README.md)
+* [`create-demo-clusters`](.github/workflows/README.md)
 
 ## Usage
 
