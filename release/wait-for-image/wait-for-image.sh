@@ -4,12 +4,15 @@
 #
 set -euo pipefail
 
-NAME_TAG="$1"
-TOKEN="${2-}"
+NAME_TAG="${1-}"
+QUAY_TOKEN="${2-}"
 
 # Seconds:
 INTERVAL="${3-30}"
 TIME_LIMIT="${4-2400}"
+
+check_not_empty \
+    NAME_TAG
 
 IFS=: read -r NAME TAG <<<"$NAME_TAG"
 
@@ -21,16 +24,14 @@ check_not_empty \
 
 find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
-    {
-        if [ -z "$TOKEN" ]; then
-            gh_log notice "Connecting to Quay without token"
-            curl --silent --show-error --fail --location "$URL"
-        else
-            gh_log notice "Connecting to Quay with token"
-            curl --silent --show-error --fail --location "$URL" \
-                -H "Authorization: Bearer $TOKEN"
-        fi
-    } | jq -r ".tags[0].name"
+    CURL_PARAMS+=( "--silent" "--show-error" "--fail" "--location" "$URL" )
+    if [ -n "$QUAY_TOKEN" ]; then
+        >&2 gh_log notice "Connecting to Quay with token"
+        CURL_PARAMS+=( "-H" "Authorization: Bearer $QUAY_TOKEN" )
+    else
+        >&2 gh_log notice "Connecting to Quay without token"
+    fi
+    curl "${CURL_PARAMS[@]}" | jq -r ".tags[0].name"
 }
 
 # bash built-in variable
