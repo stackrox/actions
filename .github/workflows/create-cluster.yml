@@ -63,7 +63,7 @@ jobs:
           path: .actions
           ref: ${{ inputs.workflow-ref }}
       - name: Wait for the ${{matrix.image}} image
-        uses: .actions/release/wait-for-image
+        uses: ./.actions/release/wait-for-image
         with:
           token: ${{secrets.QUAY_RHACS_ENG_BEARER_TOKEN}}
           image: "rhacs-eng/${{ matrix.image }}:${{ inputs.version }}"
@@ -84,7 +84,7 @@ jobs:
           repository: stackrox/actions
           path: .actions
           ref: ${{ inputs.workflow-ref }}
-      - uses: .actions/infra/create-cluster
+      - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: qa-demo
@@ -147,7 +147,7 @@ jobs:
           repository: stackrox/actions
           path: .actions
           ref: ${{ inputs.workflow-ref }}
-      - uses: .actions/infra/create-cluster
+      - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: openshift-4-demo
@@ -213,7 +213,7 @@ jobs:
           repository: stackrox/actions
           path: .actions
           ref: ${{ inputs.workflow-ref }}
-      - uses: .actions/infra/create-cluster
+      - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
@@ -239,7 +239,7 @@ jobs:
           repository: stackrox/actions
           path: .actions
           ref: ${{ inputs.workflow-ref }}
-      - uses: .actions/infra/install-infractl
+      - uses: ./.actions/infra/install-infractl
       - name: Test readiness
         run: |
           STATUS=$(infractl get "${NAME//./-}" --json | jq -r .Status)
