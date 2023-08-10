@@ -6,6 +6,10 @@
 * [Release / Tag](release/tag/README.md)
 * [Test](test/README.md)
 
+## Workflows
+
+* [`create-rc-clusters`](.github/workflows/README.md)
+
 ## Usage
 
 As this is an internal repository, it can be accessed with the default GitHub

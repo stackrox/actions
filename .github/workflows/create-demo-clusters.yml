@@ -1,4 +1,4 @@
-name: Clusters
+name: Create demo clusters for version
 on:
   workflow_call:
     inputs:
@@ -8,20 +8,23 @@ on:
         type: string
       create-k8s-cluster:
         description: Create a GKE demo cluster
+        default: false
         type: boolean
       create-os4-cluster:
         description: Create an Openshift 4 demo cluster
+        default: false
         type: boolean
       create-long-cluster:
         description: Create a long-running cluster on RC1
+        default: false
         type: boolean
       dry-run:
         description: Dry-run
         default: false
         type: boolean
       workflow-ref:
-          description: Ref of the called workflow
-          type: string
+        description: Ref of the called workflow
+        type: string
 
 env:
   main_branch: ${{github.event.repository.default_branch}}
