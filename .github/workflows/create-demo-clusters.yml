@@ -91,8 +91,8 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: qa-demo
-          name: qa-k8s-${{ github.event.inputs.version }}
-          args: main-image=quay.io/rhacs-eng/main:${{ github.event.inputs.version }},central-db-image=quay.io/rhacs-eng/central-db:${{ github.event.inputs.version }}
+          name: qa-k8s-${{ inputs.version }}
+          args: main-image=quay.io/rhacs-eng/main:${{ inputs.version }},central-db-image=quay.io/rhacs-eng/central-db:${{ inputs.version }}
           lifespan: 48h
 
   notify-k8s-cluster:
@@ -100,7 +100,7 @@ jobs:
     needs: [properties, create-k8s-cluster]
     runs-on: ubuntu-latest
     env:
-      NAME: qa-k8s-${{ github.event.inputs.version }}
+      NAME: qa-k8s-${{ inputs.version }}
     steps:
       - name: Determine demo url and cluster name
         id: get_demo_artifacts
@@ -121,7 +121,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":tada: *<https://infra.rox.systems/cluster/${{ steps.get_demo_artifacts.outputs.cluster-name }}|QA demo cluster> `${{ steps.get_demo_artifacts.outputs.cluster-name }}` is being created for ${{ github.event.inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
+                    "text": ":tada: *<https://infra.rox.systems/cluster/${{ steps.get_demo_artifacts.outputs.cluster-name }}|QA demo cluster> `${{ steps.get_demo_artifacts.outputs.cluster-name }}` is being created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
                   }
                 },
                 {
@@ -154,8 +154,8 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: openshift-4-demo
-          name: openshift-4-demo-${{ github.event.inputs.version }}
-          args: central-services-helm-chart-version=${{ github.event.inputs.version }},secured-cluster-services-helm-chart-version=${{ github.event.inputs.version }}
+          name: openshift-4-demo-${{ inputs.version }}
+          args: central-services-helm-chart-version=${{ inputs.version }},secured-cluster-services-helm-chart-version=${{ inputs.version }}
           lifespan: 48h
 
   notify-os4-cluster:
@@ -163,7 +163,7 @@ jobs:
     needs: [properties, create-os4-cluster]
     runs-on: ubuntu-latest
     env:
-      NAME: openshift-4-demo-${{ github.event.inputs.version }}
+      NAME: openshift-4-demo-${{ inputs.version }}
     steps:
       - name: Determine demo url and cluster name
         id: get_demo_artifacts
@@ -185,7 +185,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":tada: *<https://infra.rox.systems/cluster/${{ steps.get_demo_artifacts.outputs.cluster-name }}|Openshift 4 Demo cluster> `${{ steps.get_demo_artifacts.outputs.cluster-name }}` is being created for ${{ github.event.inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
+                    "text": ":tada: *<https://infra.rox.systems/cluster/${{ steps.get_demo_artifacts.outputs.cluster-name }}|Openshift 4 Demo cluster> `${{ steps.get_demo_artifacts.outputs.cluster-name }}` is being created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
                   }
                 },
                 {
@@ -220,7 +220,7 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
-          name: gke-long-running-${{ github.event.inputs.version }}
+          name: gke-long-running-${{ inputs.version }}
           lifespan: 168h
           args: nodes=5,machine-type=e2-standard-8
           wait: true
@@ -230,8 +230,8 @@ jobs:
     needs: [properties, create-long-running-cluster]
     runs-on: ubuntu-latest
     env:
-      NAME: gke-long-running-${{ github.event.inputs.version }}
-      TAG: ${{github.event.inputs.version}}
+      NAME: gke-long-running-${{ inputs.version }}
+      TAG: ${{inputs.version}}
       KUBECONFIG: artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
@@ -252,7 +252,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          ref: ${{github.event.inputs.version}}
+          ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v1"
         with:
@@ -268,7 +268,7 @@ jobs:
       - name: Launch central
         id: launch_central
         env:
-          MAIN_IMAGE_TAG: ${{github.event.inputs.version}} # Release version, e.g. 3.63.0-rc.2.
+          MAIN_IMAGE_TAG: ${{inputs.version}} # Release version, e.g. 3.63.0-rc.2.
           API_ENDPOINT: localhost:8000
           STORAGE: pvc # Backing storage
           STORAGE_CLASS: faster # Runs on an SSD type
@@ -317,7 +317,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":tada: *Long-running cluster `${{ steps.launch_central.outputs.cluster_name }}` created for ${{ github.event.inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
+                    "text": ":tada: *Long-running cluster `${{ steps.launch_central.outputs.cluster_name }}` created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
                   }
                 },
                 {
@@ -374,7 +374,7 @@ jobs:
 
               "blocks": [
               { "type": "section", "text": { "type": "mrkdwn", "text":
-              ":red_circle: *Couldn't create test clusters for ${{github.event.inputs.version}} milestone of <${{github.server_url}}/${{github.repository}}|${{github.repository}}>.*" }},
+              ":red_circle: *Couldn't create test clusters for ${{inputs.version}} milestone of <${{github.server_url}}/${{github.repository}}|${{github.repository}}>.*" }},
 
             { "type": "divider" },
 
@@ -386,6 +386,6 @@ jobs:
             { "type": "section", "text": { "type": "mrkdwn", "text":
             ">
             Repository: <${{github.server_url}}/${{github.repository}}|${{github.repository}}>\n>
-            Milestone: ${{github.event.inputs.version}}\n>
+            Milestone: ${{inputs.version}}\n>
             Workflow: <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.workflow}}>" }}
             ]}
