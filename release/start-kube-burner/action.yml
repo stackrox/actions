@@ -1,0 +1,24 @@
+name: Start kube-burner
+description: Starts kube-burner to create load for ACS
+inputs:
+  stackrox-dir:
+    description: Where the stackrox directory is located
+    required: true
+    default: ""
+  benchmark-operator-dir:
+    description: Where the benchmark-operator directory is located
+    required: true
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - env:
+        STACKROX_DIR: ${{ inputs.stackrox-dir }}
+        BENCHMARK_OPERATOR_DIR: ${{ inputs.benchmark-operator-dir }}
+      run: |
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/start-kube-burner.sh"
+
+      shell: bash
