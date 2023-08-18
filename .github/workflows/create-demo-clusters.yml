@@ -25,6 +25,9 @@ on:
       workflow-ref:
         description: Ref of the called workflow
         type: string
+      kube-burner-config-ref:
+        description: Ref of where the kube-burner config files can be found
+        type: string
       central-name:
         description: The name of the long running cluster where the central deployment is run with a sensor that creates its own fake workload
         type: string
@@ -409,7 +412,7 @@ jobs:
           ROX_ADMIN_USERNAME: admin
           CENTRAL_IP: ${{ needs.start-acs.outputs.central-ip }}
           CLUSTER_API_ENDPOINT: https://${{ needs.start-acs.outputs.central-ip }}:443
-          API_ENDPOINT: ${{ needs.start-acs.output.central-ip }}:443
+          API_ENDPOINT: ${{ needs.start-acs.outputs.central-ip }}:443
           CLUSTER: secured-cluster
         run: |
           "${{ github.workspace }}"/deploy/k8s/sensor.sh
