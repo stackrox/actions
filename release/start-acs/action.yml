@@ -54,6 +54,9 @@ runs:
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
           "${{ github.action_path }}/start-acs.sh"
+
+      shell: bash
+
     - id: check-env
       run: |
         echo "Central IP: ${{ steps.launch-central.output.central-ip }}"
