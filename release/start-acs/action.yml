@@ -29,11 +29,6 @@ inputs:
     description: The name of the cluster where ACS will run
     required: true
     default: ""
-  global-github-output:
-    description: The name of the cluster where ACS will run
-    required: true
-    default: ""
-
 
 runs:
   using: composite
@@ -54,7 +49,6 @@ runs:
         KUBECONFIG: ${{ inputs.kubeconfig }}
         STACKROX_DIR: ${{ inputs.stackrox-dir }}
         NAME: ${{ inputs.name }}
-        GLOBAL_GITHUB_OUTPUT: ${{ inputs.global-github-output }}
       run: |
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \

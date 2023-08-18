@@ -261,8 +261,8 @@ jobs:
     needs: [properties, create-long-running-cluster]
     runs-on: ubuntu-latest
     outputs:
-      rox_password: ${{ steps.launch-central.outputs.rox_password }}
-      central-ip: ${{ steps.launch-central.outputs.central-ip }}
+      rox_password: ${{ steps.get-central-info.outputs.rox_password }}
+      central-ip: ${{ steps.get-central-info.outputs.central-ip }}
     env:
       NAME: ${{ inputs.central-name }}
       KUBECONFIG: artifacts/kubeconfig
@@ -308,10 +308,18 @@ jobs:
           registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           stackrox-dir: ${{ github.workspace }}
           name: ${{ env.NAME }}
-          global-github-output: ${{ env.GITHUB_OUTPUT }}
+      - name Get central info
+        id: get-central-info
+        run: |
+          CENTRAL_IP=$(kubectl -n stackrox get svc/central-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[0] | .ip // .hostname')
+          ROX_ADMIN_PASSWORD=$(cat ${{ github.workspace }}/deploy/k8s/central-deploy/password)
+          echo "rox_password=${ROX_ADMIN_PASSWORD}" >> "$GITHUB_OUTPUT"
+          echo "central-ip=${CENTRAL_IP}" >> "$GITHUB_OUTPUT"
+
+
       - name: Central ip
         run: | 
-          echo "central-ip ${{ steps.launch-central.outputs.central-ip }}"
+          echo "central-ip ${{ steps.get-central-info.outputs.central-ip }}"
           echo "GITHUB_OUTPUT= $GITHUB_OUTPUT"
           echo "cat $GITHUB_OUTPUT"
 
@@ -349,7 +357,7 @@ jobs:
           #      - name: Start fake workload
           #        env:
           #          API_ENDPOINT: localhost:8000
-          #          ROX_PASSWORD: ${{ steps.launch-central.outputs.rox_password }}
+          #          ROX_PASSWORD: ${{ steps.get-central-info.outputs.rox_password }}
           #        run: |
           #          #echo "::add-mask::$ROX_PASSWORD"
           #          kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
