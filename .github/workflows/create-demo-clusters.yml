@@ -431,8 +431,8 @@ jobs:
       - name: Check out stackrox/test-gh-actions code
         uses: actions/checkout@v3
         with:
-          ref: jv-ROX-17741-long-running-cluster-should-include-collector
-          repository: stackrox/test-gh-actions
+          ref: ${{ inputs.kube-burner-config-ref }}
+          repository: stackrox/performance-scale-tests
       - name: Check out cloud-bulldozer/benchmark-operator code
         run: |
           git clone https://github.com/cloud-bulldozer/benchmark-operator.git
@@ -462,7 +462,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
         uses: ./.actions/release/start-kube-burner
         with:
-          stackrox-dir: ${{ github.workspace }}
+          kube-burner-config-dir: ${{ github.workspace }}/tests/kube-burner/long-running-collector
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
 
 
