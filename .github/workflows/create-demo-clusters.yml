@@ -309,7 +309,10 @@ jobs:
           stackrox-dir: ${{ github.workspace }}
           name: ${{ env.NAME }}
       - name: Central ip
-        run: echo "central-ip ${{ steps.launch-central.outputs.central-ip }}"
+        run: | 
+          echo "central-ip ${{ steps.launch-central.outputs.central-ip }}"
+          echo "GITHUB_OUTPUT= $GITHUB_OUTPUT"
+          echo "cat $GITHUB_OUTPUT"
 
           #      - name: Post to Slack
           #        env:
