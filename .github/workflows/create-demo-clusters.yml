@@ -309,47 +309,47 @@ jobs:
           stackrox-dir: ${{ github.workspace }}
           name: ${{ env.NAME }}
 
-      - name: Post to Slack
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: slackapi/slack-github-action@v1.23.0
-        with:
-          channel-id: ${{ needs.properties.outputs.slack-channel }}
-          payload: >-
-            {
-              "text": "Long-running cluster created. Setup your local access with `scripts/release-tools/setup-central-access.sh | bash -s -- ${{ steps.launch-central.outputs.cluster_name }}`",
-
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":tada: *Long-running cluster `${{ steps.launch-central.outputs.cluster_name }}` created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
-                  }
-                },
-                {
-                  "type": "divider"
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": ":arrow_right: Setup your local access to Central by running:\n```curl -L https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/release-tools/setup-central-access.sh | bash -s -- ${{ steps.launch-central.outputs.cluster_name }}```"
-                  }
-                }
-              ]
-            }
-
-      - name: Start fake workload
-        env:
-          API_ENDPOINT: localhost:8000
-          ROX_PASSWORD: ${{ steps.launch-central.outputs.rox_password }}
-        run: |
-          #echo "::add-mask::$ROX_PASSWORD"
-          kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
-          sleep 20
-          ./scale/launch_workload.sh np-load
-          echo "Fake workload has been deployed to the long-running cluster" >> "$GITHUB_STEP_SUMMARY"
+          #      - name: Post to Slack
+          #        env:
+          #          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          #        uses: slackapi/slack-github-action@v1.23.0
+          #        with:
+          #          channel-id: ${{ needs.properties.outputs.slack-channel }}
+          #          payload: >-
+          #            {
+          #              "text": "Long-running cluster created. Setup your local access with `scripts/release-tools/setup-central-access.sh | bash -s -- ${{ steps.launch-central.outputs.cluster_name }}`",
+          #
+          #              "blocks": [
+          #                {
+          #                  "type": "section",
+          #                  "text": {
+          #                    "type": "mrkdwn",
+          #                    "text": ":tada: *Long-running cluster `${{ steps.launch-central.outputs.cluster_name }}` created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
+          #                  }
+          #                },
+          #                {
+          #                  "type": "divider"
+          #                },
+          #                {
+          #                  "type": "section",
+          #                  "text": {
+          #                    "type": "mrkdwn",
+          #                    "text": ":arrow_right: Setup your local access to Central by running:\n```curl -L https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/release-tools/setup-central-access.sh | bash -s -- ${{ steps.launch-central.outputs.cluster_name }}```"
+          #                  }
+          #                }
+          #              ]
+          #            }
+          #
+          #      - name: Start fake workload
+          #        env:
+          #          API_ENDPOINT: localhost:8000
+          #          ROX_PASSWORD: ${{ steps.launch-central.outputs.rox_password }}
+          #        run: |
+          #          #echo "::add-mask::$ROX_PASSWORD"
+          #          kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
+          #          sleep 20
+          #          ./scale/launch_workload.sh np-load
+          #          echo "Fake workload has been deployed to the long-running cluster" >> "$GITHUB_STEP_SUMMARY"
 
   start-secured-cluster:
     name: Start secured cluster

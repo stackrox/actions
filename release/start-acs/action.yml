@@ -34,7 +34,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - env:
+    - id: launch-central
+      env:
         MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
         API_ENDPOINT: localhost:8000
         STORAGE: pvc # Backing storage
@@ -57,7 +58,5 @@ runs:
       shell: bash
 
 outputs:
-  rox_password:
-    description: The rox admin password
-  central-ip:
-    description: The ip address of central
+  rox_password: ${{ steps.launch-central.outputs.rox_password }}
+  central-ip: ${{ steps.launch-central.outputs.central-ip }}
