@@ -35,9 +35,6 @@ runs:
   using: composite
   steps:
     - id: launch-central
-      outputs:
-        rox_password: ${{ steps.launch-central.outputs.rox_password }}
-        central-ip: ${{ steps.launch-central.outputs.central-ip }}
       env:
         MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
         API_ENDPOINT: localhost:8000
@@ -59,7 +56,13 @@ runs:
           "${{ github.action_path }}/start-acs.sh"
       shell: bash
 
-    - id: check-env
-      run: |
-        echo "Central IP: ${{ steps.launch-central.outputs.central-ip }}"
-      shell: bash
+      #- id: check-env
+      #  run: |
+      #    echo "Central IP: ${{ steps.launch-central.outputs.central-ip }}"
+      #  shell: bash
+
+outputs:
+  rox_password:
+    description: The rox admin password
+  central-ip:
+    description: The ip address of central
