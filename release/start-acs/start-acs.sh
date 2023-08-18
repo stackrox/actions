@@ -21,7 +21,7 @@
 # export GITHUB_OUTPUT=delete-log-github-output.txt
 # export GITHUB_STEP_SUMMARY=delete-log-start-acs.txt
 
-set -euo pipefail
+set -euox pipefail
 
 pushd "$STACKROX_DIR"
 
@@ -51,5 +51,8 @@ ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/k8s/central-deploy/password)
 kubectl -n stackrox create secret generic access-rhacs --from-literal="username=${ROX_ADMIN_USERNAME}" --from-literal="password=${ROX_ADMIN_PASSWORD}" --from-literal="central_url=https://${CENTRAL_IP}"
 echo "rox_password=${ROX_ADMIN_PASSWORD}" >> "$GITHUB_OUTPUT"
 echo "central-ip=${CENTRAL_IP}" >> "$GITHUB_OUTPUT"
+ls $GITHUB_OUTPUT
+echo ""
+cat $GITHUB_OUTPUT
 
 printf "Long-running GKE cluster %s has been patched.\nAccess it by running \`./scripts/release-tools/setup-central-access.sh %s\` from your local machine." "${NAME//./-}" "${NAME//./-}" >> "$GITHUB_STEP_SUMMARY"
