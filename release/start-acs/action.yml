@@ -59,7 +59,7 @@ runs:
 
     - id: check-env
       run: |
-        echo "Central IP: ${{ steps.launch-central.output.central-ip }}"
+        echo "Central IP: ${{ steps.launch-central.outputs.central-ip }}"
 
       shell: bash
 
