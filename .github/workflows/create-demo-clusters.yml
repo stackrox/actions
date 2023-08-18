@@ -375,9 +375,6 @@ jobs:
       KUBECONFIG: artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
-      ROX_ADMIN_PASSWORD: ${{ needs.start-acs.outputs.rox_password }}
-      ROX_ADMIN_USERNAME: admin
-      CENTRAL_IP: ${{ needs.start-acs.outputs.central-ip }}
     steps:
       - uses: stackrox/actions/infra/install-infractl@v1
       - name: Test readiness for central
@@ -408,8 +405,11 @@ jobs:
           MAIN_IMAGE_TAG: ${{github.event.inputs.version}} # Release version, e.g. 3.63.0-rc.2.
           REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
-          CLUSTER_API_ENDPOINT: https://"${CENTRAL_IP}":443
-          API_ENDPOINT: "${CENTRAL_IP}:443"
+          ROX_ADMIN_PASSWORD: ${{ needs.start-acs.outputs.rox_password }}
+          ROX_ADMIN_USERNAME: admin
+          CENTRAL_IP: ${{ needs.start-acs.outputs.central-ip }}
+          CLUSTER_API_ENDPOINT: https://${{ needs.start-acs.outputs.central-ip }}:443
+          API_ENDPOINT: ${{ needs.start-acs.output.central-ip }}:443
           CLUSTER: secured-cluster
         run: |
           "${{ github.workspace }}"/deploy/k8s/sensor.sh
