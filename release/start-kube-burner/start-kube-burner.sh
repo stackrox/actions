@@ -7,7 +7,7 @@
 # export KUBECONFIG=<kubeconfig file>
 # export STACKROX_DIR=<stackrox directory>
 
-set -euox pipefail
+set -euo pipefail
 
 make -C "$BENCHMARK_OPERATOR_DIR" deploy
 

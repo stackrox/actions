@@ -21,7 +21,7 @@
 # export GITHUB_OUTPUT=delete-log-github-output.txt
 # export GITHUB_STEP_SUMMARY=delete-log-start-acs.txt
 
-set -euox pipefail
+set -euo pipefail
 
 pushd "$STACKROX_DIR"
 
