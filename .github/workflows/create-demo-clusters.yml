@@ -368,7 +368,7 @@ jobs:
 
   start-secured-cluster:
     name: Start secured cluster
-    needs: [properties, start-acs, create-long-running-for-real-load]
+    needs: [properties, start-acs, create-long-running-cluster-for-real-load]
     runs-on: ubuntu-latest
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
