@@ -28,6 +28,9 @@ on:
       kube-burner-config-ref:
         description: Ref of where the kube-burner config files can be found
         type: string
+      kube-burner-config-repo:
+        description: The repository where the kube-burner config files can be found
+        type: string
       central-name:
         description: The name of the long running cluster where the central deployment is run with a sensor that creates its own fake workload
         type: string
@@ -431,11 +434,12 @@ jobs:
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
     steps:
       - uses: stackrox/actions/infra/install-infractl@v1
-      - name: Check out stackrox/test-gh-actions code
+      - name: Check out kube-burner config repository code
         uses: actions/checkout@v3
         with:
+          repository: stackrox/${{ inputs.kube-burner-config-repo }}
+          path: .kube-burner-config
           ref: ${{ inputs.kube-burner-config-ref }}
-          repository: stackrox/performance-scale-tests
       - name: Check out cloud-bulldozer/benchmark-operator code
         run: |
           git clone https://github.com/cloud-bulldozer/benchmark-operator.git
@@ -465,7 +469,7 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
         uses: ./.actions/release/start-kube-burner
         with:
-          kube-burner-config-dir: ${{ github.workspace }}/tests/kube-burner/long-running-collector
+          kube-burner-config-dir: ./.kube-burner-config/tests/kube-burner/long-running-collector
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
 
 
