@@ -55,11 +55,6 @@ runs:
           "${{ github.action_path }}/start-acs.sh"
       shell: bash
 
-      #- id: check-env
-      #  run: |
-      #    echo "Central IP: ${{ steps.launch-central.outputs.central-ip }}"
-      #  shell: bash
-
 outputs:
   rox_password:
     description: The rox admin password

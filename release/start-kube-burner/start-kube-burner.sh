@@ -5,7 +5,7 @@
 # When running locally first have a kubeconfig file and set the following environment variables
 #
 # export KUBECONFIG=<kubeconfig file>
-# export STACKROX_DIR=<stackrox directory>
+# export KUBE_BURNER_CONFIG_DIR=<kube_burner_config_dir>
 
 set -euo pipefail
 
