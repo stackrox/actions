@@ -372,13 +372,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
-      #TAG: ${{github.event.inputs.version}}
       KUBECONFIG: artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
     steps:
       - uses: stackrox/actions/infra/install-infractl@v1
-      - name: Test readiness for central
+      - name: Test readiness for secured cluster
         run: |
           STATUS=$(infractl get "${SECURED_CLUSTER_NAME//./-}" --json | jq -r .Status)
           if [ "$STATUS" != "READY" ]; then
