@@ -31,10 +31,10 @@ on:
       kube-burner-config-repo:
         description: The repository where the kube-burner config files can be found
         type: string
-      central-name:
+      cluster-with-fake-load-name:
         description: The name of the long running cluster where the central deployment is run with a sensor that creates its own fake workload
         type: string
-      secured-cluster-name:
+      cluster-with-real-load-name:
         description: The name of the long running cluster where collector is run with real workload
         type: string
 
@@ -213,8 +213,8 @@ jobs:
               ]
             }
 
-  create-long-running-cluster:
-    name: Create GKE long-running cluster
+  create-long-running-cluster-for-fake-load:
+    name: Create GKE long-running cluster for fake load
     needs: [wait-for-images]
     # Cannot use env.DRY_RUN here. `github.event.inputs.*` can be 'true', 'false' or empty.
     if: >-
@@ -232,14 +232,14 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
-          name: ${{ inputs.central-name }}
+          name: ${{ inputs.cluster-with-fake-load-name }}
           lifespan: 168h
           args: nodes=5,machine-type=e2-standard-8
           wait: true
 
   # TODO Don't DRY. Make this and the above into a separate action.
-  create-long-running-secured-cluster:
-    name: Create GKE long-running cluster
+  create-long-running-cluster-for-real-load:
+    name: Create GKE long-running cluster for real load
     needs: [wait-for-images]
     # Cannot use env.DRY_RUN here. `github.event.inputs.*` can be 'true', 'false' or empty.
     if: >-
@@ -257,20 +257,20 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
-          name: ${{ inputs.secured-cluster-name }}
+          name: ${{ inputs.cluster-with-real-load-name }}
           lifespan: 168h
           args: nodes=5,machine-type=e2-standard-8
           wait: true
 
   start-acs:
     name: Start ACS
-    needs: [properties, create-long-running-cluster]
+    needs: [properties, create-long-running-cluster-for-fake-load]
     runs-on: ubuntu-latest
     outputs:
       rox_password: ${{ steps.get-central-info.outputs.rox_password }}
       central-ip: ${{ steps.get-central-info.outputs.central-ip }}
     env:
-      NAME: ${{ inputs.central-name }}
+      NAME: ${{ inputs.cluster-with-fake-load-name }}
       KUBECONFIG: artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
@@ -314,6 +314,7 @@ jobs:
           registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           stackrox-dir: ${{ github.workspace }}
           name: ${{ env.NAME }}
+      # TODO Get this information from the previous step
       - name: Get central info
         id: get-central-info
         run: |
@@ -323,61 +324,55 @@ jobs:
           echo "central-ip=${CENTRAL_IP}" >> "$GITHUB_OUTPUT"
 
 
-      - name: Central ip
-        run: | 
-          echo "central-ip ${{ steps.get-central-info.outputs.central-ip }}"
-          echo "GITHUB_OUTPUT= $GITHUB_OUTPUT"
-          echo "cat $GITHUB_OUTPUT"
+      - name: Post to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: ${{ needs.properties.outputs.slack-channel }}
+          payload: >-
+            {
+              "text": "Long-running cluster created. Setup your local access with `scripts/release-tools/setup-central-access.sh | bash -s -- ${{ inputs.cluster-with-fake-load-name }}`",
 
-          #      - name: Post to Slack
-          #        env:
-          #          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          #        uses: slackapi/slack-github-action@v1.23.0
-          #        with:
-          #          channel-id: ${{ needs.properties.outputs.slack-channel }}
-          #          payload: >-
-          #            {
-          #              "text": "Long-running cluster created. Setup your local access with `scripts/release-tools/setup-central-access.sh | bash -s -- ${{ steps.launch-central.outputs.cluster_name }}`",
-          #
-          #              "blocks": [
-          #                {
-          #                  "type": "section",
-          #                  "text": {
-          #                    "type": "mrkdwn",
-          #                    "text": ":tada: *Long-running cluster `${{ steps.launch-central.outputs.cluster_name }}` created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
-          #                  }
-          #                },
-          #                {
-          #                  "type": "divider"
-          #                },
-          #                {
-          #                  "type": "section",
-          #                  "text": {
-          #                    "type": "mrkdwn",
-          #                    "text": ":arrow_right: Setup your local access to Central by running:\n```curl -L https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/release-tools/setup-central-access.sh | bash -s -- ${{ steps.launch-central.outputs.cluster_name }}```"
-          #                  }
-          #                }
-          #              ]
-          #            }
-          #
-          #      - name: Start fake workload
-          #        env:
-          #          API_ENDPOINT: localhost:8000
-          #          ROX_PASSWORD: ${{ steps.get-central-info.outputs.rox_password }}
-          #        run: |
-          #          #echo "::add-mask::$ROX_PASSWORD"
-          #          kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
-          #          sleep 20
-          #          ./scale/launch_workload.sh np-load
-          #          echo "Fake workload has been deployed to the long-running cluster" >> "$GITHUB_STEP_SUMMARY"
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":tada: *Long-running cluster `${{ inputs.cluster-with-fake-load-name }}` created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":arrow_right: Setup your local access to Central by running:\n```curl -L https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/release-tools/setup-central-access.sh | bash -s -- ${{ inputs.cluster-with-fake-load-name }}```"
+                  }
+                }
+              ]
+            }
+
+      - name: Start fake workload
+        env:
+          API_ENDPOINT: localhost:8000
+          ROX_PASSWORD: ${{ steps.get-central-info.outputs.rox_password }}
+        run: |
+          #echo "::add-mask::$ROX_PASSWORD"
+          kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
+          sleep 20
+          ./scale/launch_workload.sh np-load
+          echo "Fake workload has been deployed to the long-running cluster" >> "$GITHUB_STEP_SUMMARY"
 
   start-secured-cluster:
     name: Start secured cluster
-    needs: [properties, start-acs, create-long-running-secured-cluster]
+    needs: [properties, start-acs, create-long-running-for-real-load]
     runs-on: ubuntu-latest
     env:
-      SECURED_CLUSTER_NAME: ${{ inputs.secured-cluster-name }}
-      TAG: ${{github.event.inputs.version}}
+      SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
+      #TAG: ${{github.event.inputs.version}}
       KUBECONFIG: artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
@@ -392,7 +387,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          ref: jv-ROX-17741-long-running-cluster-should-include-collector
+          ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v1"
         with:
@@ -407,7 +402,7 @@ jobs:
           infractl artifacts "${SECURED_CLUSTER_NAME//./-}" -d artifacts
       - name: Launch secured cluster
         id: launch-secured-cluster
-        env:  # Line 440
+        env:
           MAIN_IMAGE_TAG: ${{github.event.inputs.version}} # Release version, e.g. 3.63.0-rc.2.
           REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
@@ -421,14 +416,12 @@ jobs:
           "${{ github.workspace }}"/deploy/k8s/sensor.sh
            kubectl -n stackrox create secret generic access-rhacs --from-literal="username=${ROX_ADMIN_USERNAME}" --from-literal="password=${ROX_ADMIN_PASSWORD}" --from-literal="central_url=https://${CENTRAL_IP}":443
 
-
   start-kube-burner:
     name: Start kube-burner
     needs: [properties, start-secured-cluster]
-    #needs: [properties, start-secured-cluster]
     runs-on: ubuntu-latest
     env:
-      SECURED_CLUSTER_NAME: ${{ inputs.secured-cluster-name }}
+      SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
       KUBECONFIG: ${{ github.workspace }}/artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
@@ -472,8 +465,6 @@ jobs:
           kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
 
-
-
   notify-failed-clusters:
     name: Notify about failed cluster creation
     needs:
@@ -481,14 +472,16 @@ jobs:
         properties,
         create-k8s-cluster,
         create-os4-cluster,
-        create-long-running-cluster,
+        create-long-running-cluster-for-fake-load,
+        create-long-running-cluster-for-real-load,
       ]
     if:
       >- # Required as create-*-cluster jobs could be skipped while other jobs could fail.
       always() && (
         needs.create-k8s-cluster.result == 'failure' ||
         needs.create-os4-cluster.result == 'failure' ||
-        needs.create-long-running-cluster.result == 'failure'
+        needs.create-long-running-cluster-for-fake-load.result == 'failure' ||
+        needs.create-long-running-cluster-for-real-load.result == 'failure'
       )
     runs-on: ubuntu-latest
     steps:
