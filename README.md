@@ -48,3 +48,8 @@ git push origin v1.2.3
 ```
 
 A Github action will create a short version, in this example `v1`, or move the `v1` tag to your new tag.
+
+## Setting up git hooks
+
+Git hooks are configured in the `.pre-commit-config.yaml` file using [pre-commit](https://pre-commit.com)
+In order to use them install pre-commit, and run `git config core.hooksPath ./githooks/` from the root directory.
