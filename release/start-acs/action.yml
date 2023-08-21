@@ -1,0 +1,62 @@
+name: Start ACS
+description: Starts ACS for the long running cluster
+inputs:
+  main-image-tag:
+    description: The image tag used for the main image and other images
+    required: true
+    default: ""
+  kubeconfig:
+    description: The kubeconfig file used to connect to kubernetes
+    required: true
+    default: ""
+  pagerduty-integration-key:
+    description: The key that will be used to send pager duty allerts
+    required: false
+    default: ""
+  registry-username:
+    description: The username used for the docker registry
+    required: true
+    default: ""
+  registry-password:
+    description: The password used for the docker registry
+    required: true
+    default: ""
+  stackrox-dir:
+    description: Where the stackrox directory is located
+    required: true
+    default: ""
+  name:
+    description: The name of the cluster where ACS will run
+    required: true
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - id: launch-central
+      env:
+        MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
+        API_ENDPOINT: localhost:8000
+        STORAGE: pvc # Backing storage
+        STORAGE_CLASS: faster # Runs on an SSD type
+        STORAGE_SIZE: 100 # 100G
+        MONITORING_SUPPORT: true # Runs monitoring
+        LOAD_BALANCER: lb
+        ROX_ADMIN_USERNAME: admin
+        PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
+        REGISTRY_USERNAME: ${{ inputs.registry-username }}
+        REGISTRY_PASSWORD: ${{ inputs.registry-password }}
+        KUBECONFIG: ${{ inputs.kubeconfig }}
+        STACKROX_DIR: ${{ inputs.stackrox-dir }}
+        NAME: ${{ inputs.name }}
+      run: |
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/start-acs.sh"
+      shell: bash
+
+outputs:
+  rox_password:
+    description: The rox admin password
+  central-ip:
+    description: The ip address of central
