@@ -46,7 +46,7 @@ API_ENDPOINT="${CENTRAL_IP}":443
 wait_for_central "${API_ENDPOINT}"
 
 ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/k8s/central-deploy/password)
-# TODO Mask $ROX_ADMIN_PASSWORD
+# TODO ROX-19190 Mask $ROX_ADMIN_PASSWORD
 #echo "::add-mask::$ROX_ADMIN_PASSWORD"
 kubectl -n stackrox create secret generic access-rhacs --from-literal="username=${ROX_ADMIN_USERNAME}" --from-literal="password=${ROX_ADMIN_PASSWORD}" --from-literal="central_url=https://${CENTRAL_IP}"
 echo "rox_password=${ROX_ADMIN_PASSWORD}" >> "$GITHUB_OUTPUT"

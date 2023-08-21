@@ -237,7 +237,7 @@ jobs:
           args: nodes=5,machine-type=e2-standard-8
           wait: true
 
-  # TODO Don't DRY. Make this and the above into a separate action.
+  # TODO ROX-19190 Don't DRY. Make this and the above into a separate action.
   create-long-running-cluster-for-real-load:
     name: Create GKE long-running cluster for real load
     needs: [wait-for-images]
@@ -314,7 +314,7 @@ jobs:
           registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           stackrox-dir: ${{ github.workspace }}
           name: ${{ env.NAME }}
-      # TODO Get this information from the previous step
+      # TODO ROX-19190 Get this information from the previous step
       - name: Get central info
         id: get-central-info
         run: |
