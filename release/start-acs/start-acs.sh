@@ -60,7 +60,8 @@ PATCH=$(cat <<EOPATCH
     { "spec": { "containers": [
         { "name": "central",
             "env": [
-                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" }
+                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" },
+                { "name": "ROX_TELEMETRY_STORAGE_KEY_V1", "value": "R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW" },
             ],
             "resources": {
                 "requests": { "memory": "3Gi", "cpu": "2" },
