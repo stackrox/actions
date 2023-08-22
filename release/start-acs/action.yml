@@ -39,8 +39,8 @@ runs:
         API_ENDPOINT: localhost:8000
         STORAGE: pvc # Backing storage
         STORAGE_CLASS: faster # Runs on an SSD type
-        STORAGE_SIZE: 100 # 100G
-        MONITORING_SUPPORT: true # Runs monitoring
+        STORAGE_SIZE: "100" # 100G
+        MONITORING_SUPPORT: "true" # Runs monitoring
         LOAD_BALANCER: lb
         ROX_ADMIN_USERNAME: admin
         PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
@@ -59,5 +59,7 @@ runs:
 outputs:
   rox_password:
     description: The rox admin password
+    value: ${{steps.launch-central.outputs.rox_password}}
   central-ip:
     description: The ip address of central
+    value: ${{steps.launch-central.outputs.central-ip}}

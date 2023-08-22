@@ -35,22 +35,65 @@ sleep 20
 
 "${STACKROX_DIR}"/deploy/k8s/sensor.sh
 
-kubectl -n stackrox set env deploy/sensor MUTEX_WATCHDOG_TIMEOUT_SECS=0 ROX_FAKE_KUBERNETES_WORKLOAD=long-running ROX_FAKE_WORKLOAD_STORAGE=/var/cache/stackrox/pebble.db
-kubectl -n stackrox patch deploy/sensor -p '{"spec":{"template":{"spec":{"containers":[{"name":"sensor","resources":{"requests":{"memory":"3Gi","cpu":"2"},"limits":{"memory":"12Gi","cpu":"4"}}}]}}}}'
+PATCH=$(cat <<EOPATCH
+{ "spec": { "template":
+    { "spec": { "containers": [
+        { "name": "sensor",
+            "env": [
+                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" },
+                { "name": "ROX_FAKE_KUBERNETES_WORKLOAD", "value": "long-running" },
+                { "name": "ROX_FAKE_WORKLOAD_STORAGE", "value": "/var/cache/stackrox/pebble.db" }
+            ],
+            "resources": {
+                "requests": { "memory": "3Gi", "cpu": "2" },
+                "limits": { "memory": "12Gi", "cpu": "4" }
+            }
+        }
+    ] } }
+} }
+EOPATCH
+)
+kubectl -n stackrox patch deploy/sensor -p "$PATCH"
 
-kubectl -n stackrox set env deploy/central MUTEX_WATCHDOG_TIMEOUT_SECS=0
-kubectl -n stackrox patch deploy/central -p '{"spec":{"template":{"spec":{"containers":[{"name":"central","resources":{"requests":{"memory":"3Gi","cpu":"2"},"limits":{"memory":"12Gi","cpu":"4"}}}]}}}}'
+PATCH=$(cat <<EOPATCH
+{ "spec": { "template":
+    { "spec": { "containers": [
+        { "name": "central",
+            "env": [
+                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" }
+            ],
+            "resources": {
+                "requests": { "memory": "3Gi", "cpu": "2" },
+                "limits": { "memory": "12Gi", "cpu": "4" }
+            }
+        }
+    ] } }
+} }
+EOPATCH
+)
+kubectl -n stackrox patch deploy/central -p "$PATCH"
 
 CENTRAL_IP=$(kubectl -n stackrox get svc/central-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[0] | .ip // .hostname')
 
-API_ENDPOINT="${CENTRAL_IP}":443
+API_ENDPOINT="${CENTRAL_IP}:443"
 wait_for_central "${API_ENDPOINT}"
 
 ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/k8s/central-deploy/password)
-# TODO ROX-19190 Mask $ROX_ADMIN_PASSWORD
-#echo "::add-mask::$ROX_ADMIN_PASSWORD"
-kubectl -n stackrox create secret generic access-rhacs --from-literal="username=${ROX_ADMIN_USERNAME}" --from-literal="password=${ROX_ADMIN_PASSWORD}" --from-literal="central_url=https://${CENTRAL_IP}"
-echo "rox_password=${ROX_ADMIN_PASSWORD}" >> "$GITHUB_OUTPUT"
-echo "central-ip=${CENTRAL_IP}" >> "$GITHUB_OUTPUT"
+echo "::add-mask::$ROX_ADMIN_PASSWORD"
 
-printf "Long-running GKE cluster %s has been patched.\nAccess it by running \`./scripts/release-tools/setup-central-access.sh %s\` from your local machine." "${NAME//./-}" "${NAME//./-}" >> "$GITHUB_STEP_SUMMARY"
+kubectl -n stackrox create secret generic access-rhacs \
+    --from-literal="username=${ROX_ADMIN_USERNAME}" \
+    --from-literal="password=${ROX_ADMIN_PASSWORD}" \
+    --from-literal="central_url=https://${CENTRAL_IP}"
+
+gh_output "rox_password" "$ROX_ADMIN_PASSWORD"
+gh_output "central-ip" "$CENTRAL_IP"
+
+gh_summary <<EOSUMMARY
+Long-running GKE cluster ${NAME//./-} has been patched.
+Access it by running:
+\`\`\`
+./scripts/release-tools/setup-central-access.sh ${NAME//./-}
+\`\`\`
+from your local machine.
+EOSUMMARY
