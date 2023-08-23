@@ -1,0 +1,12 @@
+#!/bin/bash
+
+top_dir="$(git rev-parse --show-toplevel)"
+
+pushd "$top_dir"
+
+if command -v actionlint > /dev/null; then
+    actionlint
+else
+    echo "You need to install actionlint"
+    exit 1
+fi
