@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if command -v pre-push > /dev/null; then
+    pre-push run
+else
+    echo "Install pre-push to run configured pre-push actions"
+    echo "https://pre-push.com"
+    exit 1
+fi
