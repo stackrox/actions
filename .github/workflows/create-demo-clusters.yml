@@ -216,7 +216,6 @@ jobs:
   create-long-running-cluster-for-fake-load:
     name: Create GKE long-running cluster for fake load
     needs: [wait-for-images]
-    dsfasdfa:
     # Cannot use env.DRY_RUN here. `github.event.inputs.*` can be 'true', 'false' or empty.
     if: >-
       github.event.inputs.dry-run != 'true' &&
