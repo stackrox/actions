@@ -48,3 +48,8 @@ git push origin v1.2.3
 ```
 
 A Github action will create a short version, in this example `v1`, or move the `v1` tag to your new tag.
+
+## Setting up git hooks
+
+There is currently one pre-push git hook that runs actionlint. To use the pre-push git hook you must
+install actionlint and run `git config core.hooksPath ./githooks/` in the root of this repository.
