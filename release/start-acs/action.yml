@@ -49,6 +49,7 @@ runs:
         KUBECONFIG: ${{ inputs.kubeconfig }}
         STACKROX_DIR: ${{ inputs.stackrox-dir }}
         NAME: ${{ inputs.name }}
+        ROX_TELEMETRY_STORAGE_KEY_V1: R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW
       run: |
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
