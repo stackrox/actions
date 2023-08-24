@@ -24,42 +24,19 @@
 
 set -euo pipefail
 
-pushd "${STACKROX_DIR}"
+pushd "$STACKROX_DIR"
 
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
-gh_log info "Deploying central..."
-
+gh_log notice "Deploying central..."
 "${STACKROX_DIR}"/deploy/k8s/central.sh
 
-PATCH=$(cat <<EOPATCH
-{ "spec": { "template":
-    { "spec": { "containers": [
-        { "name": "central",
-            "env": [
-                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" },
-                { "name": "ROX_TELEMETRY_STORAGE_KEY_V1", "value": "R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW" }
-            ],
-            "resources": {
-                "requests": { "memory": "3Gi", "cpu": "2" },
-                "limits": { "memory": "12Gi", "cpu": "4" }
-            }
-        }
-    ] } }
-} }
-EOPATCH
-)
-
-gh_log info "Patching central deployment..."
-kubectl -n stackrox patch deploy/central -p "$PATCH"
-
-gh_log info "Forwarding central port..."
+gh_log notice "Forwarding central port..."
 kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
-
 sleep 20
 
-gh_log info "Deploying sensor..."
+gh_log notice "Deploying sensor..."
 "${STACKROX_DIR}"/deploy/k8s/sensor.sh
 
 PATCH=$(cat <<EOPATCH
@@ -80,11 +57,30 @@ PATCH=$(cat <<EOPATCH
 } }
 EOPATCH
 )
-gh_log info "Patching sensor deployment..."
+gh_log notice "Patching sensor deployment..."
 kubectl -n stackrox patch deploy/sensor -p "$PATCH"
 
+PATCH=$(cat <<EOPATCH
+{ "spec": { "template":
+    { "spec": { "containers": [
+        { "name": "central",
+            "env": [
+                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" }
+            ],
+            "resources": {
+                "requests": { "memory": "3Gi", "cpu": "2" },
+                "limits": { "memory": "12Gi", "cpu": "4" }
+            }
+        }
+    ] } }
+} }
+EOPATCH
+)
+gh_log notice "Patching central deployment..."
+kubectl -n stackrox patch deploy/central -p "$PATCH"
+
 CENTRAL_IP=$(kubectl -n stackrox get svc/central-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[0] | .ip // .hostname')
-gh_log info "CENTRAL_IP=$CENTRAL_IP"
+gh_log notice "CENTRAL_IP=$CENTRAL_IP"
 
 API_ENDPOINT="${CENTRAL_IP}:443"
 wait_for_central "${API_ENDPOINT}"
@@ -97,7 +93,7 @@ popd
 gh_output rox-password "$ROX_ADMIN_PASSWORD"
 gh_output central-ip "$CENTRAL_IP"
 
-gh_log info "Creating access-rhacs secret with the username and the password..."
+gh_log notice "Creating access-rhacs secret with the username and the password..."
 kubectl -n stackrox create secret generic access-rhacs \
     --from-literal="username=${ROX_ADMIN_USERNAME}" \
     --from-literal="password=${ROX_ADMIN_PASSWORD}" \
