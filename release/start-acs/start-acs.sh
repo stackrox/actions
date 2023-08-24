@@ -87,8 +87,8 @@ kubectl -n stackrox create secret generic access-rhacs \
     --from-literal="password=${ROX_ADMIN_PASSWORD}" \
     --from-literal="central_url=https://${CENTRAL_IP}"
 
-gh_output "rox_password" "$ROX_ADMIN_PASSWORD"
-gh_output "central-ip" "$CENTRAL_IP"
+gh_output rox-password "$ROX_ADMIN_PASSWORD"
+gh_output central-ip "$CENTRAL_IP"
 
 gh_summary <<EOSUMMARY
 Long-running GKE cluster ${NAME//./-} has been patched.

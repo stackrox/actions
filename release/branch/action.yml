@@ -1,0 +1,79 @@
+name: Create release branch
+description: Branch from a given ref, tag the main branch with the next version
+
+inputs:
+  token:
+    description: GitHub token
+    required: false
+    default: ${{ github.token }}
+  ref:
+    description: Reference to branch from
+    required: false
+    default: HEAD
+  version:
+    description: Version
+    required: true
+  prefix:
+    description: Branch name prefix
+    required: false
+    default: "release/v"
+  main-branch:
+    description: Repository main branch name
+    required: false
+    default: "main"
+  dry-run:
+    description: Whether it is a dry-run
+    required: false
+    default: "false"
+
+outputs:
+  branch-exists:
+    description: Whether the branch has already existed
+    value: ${{ steps.check-existing.outputs.branch-exists }}
+
+runs:
+  using: composite
+  steps:
+    - name: Parse version
+      id: parse
+      uses: ./release/parse-version
+      with:
+        version: ${{ inputs.version }}
+
+    - name: Check remote branch exists
+      shell: bash
+      id: check-existing
+      run: |
+        if git ls-remote --quiet --exit-code origin "${{ inputs.prefix }}${{ inputs.version }}"; then
+          echo "branch-exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "branch-exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Checkout
+      if: steps.check-existing.outputs.branch-exists == 'false'
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.main-branch }}
+
+    - name: Initialize mandatory git config
+      if: steps.check-existing.outputs.branch-exists == 'false'
+      shell: bash
+      run: |
+        git config user.name "${{github.event.sender.login}}"
+        git config user.email noreply@github.com
+
+    - name: Switch to ${{needs.variables.outputs.branch}} branch
+      if: steps.check-existing.outputs.branch-exists == 'false'
+      shell: bash
+      run: |
+        SHA=$(git show-ref --hash "${{ inputs.ref }}")
+        git branch "${{needs.variables.outputs.branch}}" "$SHA"
+        
+        git tag --annotate --message "Upstream automation" \
+          "${{needs.variables.outputs.release}}.x" HEAD
+
+    - name: Tag the main branch
+      shell: bash
+      run: |
+        git commit --allow-empty --message "Empty commit to"

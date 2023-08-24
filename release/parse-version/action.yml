@@ -1,0 +1,76 @@
+name: Parse Version
+description: Parse version into components
+inputs:
+  version:
+    description: Version (A.B.C[-N][-rc.D])
+    required: true
+
+outputs:
+  release:
+    description: Release number (A.B)
+    value: ${{steps.parse.outputs.release}}
+  patch:
+    description: Patch number (C)
+    value: ${{steps.parse.outputs.patch}}
+  rc:
+    description: RC number (D)
+    value: ${{steps.parse.outputs.rc}}
+  name:
+    description: Release name (N)
+    value: ${{steps.parse.outputs.name}}
+  release-patch:
+    description: Release.patch numbers (A.B.C[-N])
+    value: ${{format('{0}.{1}{2}', steps.parse.outputs.release, steps.parse.outputs.patch, steps.parse.outputs.dash-name)}}
+  branch:
+    description: Release branch name (release-A.B[-N])
+    value: ${{format('release-{0}{1}', steps.parse.outputs.release, steps.parse.outputs.dash-name)}}
+  docs-branch:
+    description: Documentation branch name
+    value: ${{format('rhacs-docs-{0}.{1}', steps.parse.outputs.release, steps.parse.outputs.patch)}}
+  milestone:
+    description: Milestone (A.B.C[-N]-rc.D)
+    value: ${{format('{0}.{1}{2}-rc.{3}', steps.parse.outputs.release, steps.parse.outputs.patch, steps.parse.outputs.dash-name, steps.parse.outputs.rc)}}
+  next-milestone:
+    description: Next milestone (A.B.C[-N]-rc.`D+1`)
+    value: ${{format('{0}.{1}{2}-rc.{3}', steps.parse.outputs.release, steps.parse.outputs.patch, steps.parse.outputs.dash-name, steps.parse.outputs.next-rc)}}
+
+runs:
+  using: composite
+  steps:
+    - name: Parse ${{ inputs.version }}
+      shell: python
+      id: parse
+      # Allowed versions examples:
+      # 1.2.3
+      # 1.2.3-rc.4
+      # 1.2.3-alnum
+      # 1.2.3-alnum-alnum
+      # 1.2.3-alnum-rc.4
+      run: |
+        run: |
+          import os
+          import re
+          import sys
+
+          EXPR = r'(?P<release>\d+\.\d+)\.(?P<patch>\d+)(-(?P<name>\w+(-\w+)*))?(-rc\.(?P<rc>\d+))?$'
+
+          version = '${{ inputs.version }}'
+          m = re.match(EXPR, version)
+          if not m:
+              print(f'::error::Cannot parse "{version}": should be in a form of `X.X.X[-name][-rc.X]`, where `X` is a decimal number.')
+              exit(1)
+
+          rc = int(m.group('rc') or 1)
+          name = m.group('name') or ''
+
+          data = {
+              'release': m.group('release'),
+              'patch': m.group('patch'),
+              'name': name,
+              'dash-name': f'-{name}' if name else '',
+              'rc': rc,
+              'next-rc': rc+1
+          }
+
+          with open(os.environ.get('GITHUB_OUTPUT'), mode='a') as f:
+              print('\n'.join(f'{k}={v}' for k,v in data.items()), file=f)

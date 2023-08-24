@@ -57,9 +57,9 @@ runs:
       shell: bash
 
 outputs:
-  rox_password:
+  rox-password:
     description: The rox admin password
-    value: ${{steps.launch-central.outputs.rox_password}}
+    value: ${{steps.launch-central.outputs.rox-password}}
   central-ip:
     description: The ip address of central
     value: ${{steps.launch-central.outputs.central-ip}}
