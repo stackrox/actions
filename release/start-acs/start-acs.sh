@@ -29,7 +29,7 @@ pushd "${STACKROX_DIR}"
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
-gh_log debug "Deploying central..."
+gh_log info "Deploying central..."
 
 "${STACKROX_DIR}"/deploy/k8s/central.sh
 
@@ -51,15 +51,15 @@ PATCH=$(cat <<EOPATCH
 EOPATCH
 )
 
-gh_log debug "Patching central deployment..."
+gh_log info "Patching central deployment..."
 kubectl -n stackrox patch deploy/central -p "$PATCH"
 
-gh_log debug "Forwarding central port..."
+gh_log info "Forwarding central port..."
 kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
 
 sleep 20
 
-gh_log debug "Deploying sensor..."
+gh_log info "Deploying sensor..."
 "${STACKROX_DIR}"/deploy/k8s/sensor.sh
 
 PATCH=$(cat <<EOPATCH
@@ -80,24 +80,24 @@ PATCH=$(cat <<EOPATCH
 } }
 EOPATCH
 )
-gh_log debug "Patching sensor deployment..."
+gh_log info "Patching sensor deployment..."
 kubectl -n stackrox patch deploy/sensor -p "$PATCH"
 
-popd
-
 CENTRAL_IP=$(kubectl -n stackrox get svc/central-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[0] | .ip // .hostname')
-gh_log debug "CENTRAL_IP=$CENTRAL_IP"
+gh_log info "CENTRAL_IP=$CENTRAL_IP"
 
 API_ENDPOINT="${CENTRAL_IP}:443"
 wait_for_central "${API_ENDPOINT}"
 
 ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/k8s/central-deploy/password)
 
+popd
+
 # Don't mask the password: masked values are not passed to the runner.
 gh_output rox-password "$ROX_ADMIN_PASSWORD"
 gh_output central-ip "$CENTRAL_IP"
 
-gh_log debug "Creating access-rhacs secret with the username and the password..."
+gh_log info "Creating access-rhacs secret with the username and the password..."
 kubectl -n stackrox create secret generic access-rhacs \
     --from-literal="username=${ROX_ADMIN_USERNAME}" \
     --from-literal="password=${ROX_ADMIN_PASSWORD}" \
