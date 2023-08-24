@@ -24,9 +24,12 @@
 
 set -euo pipefail
 
-gh_log debug "Deploying central..."
-
 pushd "${STACKROX_DIR}"
+
+# shellcheck source=/dev/null
+source "${STACKROX_DIR}"/deploy/common/deploy.sh
+
+gh_log debug "Deploying central..."
 
 "${STACKROX_DIR}"/deploy/k8s/central.sh
 
