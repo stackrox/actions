@@ -427,12 +427,6 @@ jobs:
           git clone https://github.com/cloud-bulldozer/benchmark-operator.git
           cd ${{ github.workspace }}/benchmark-operator
           git checkout 081359d2a90ba556a603840b18015d10d05a89ec
-      - name: Checkout local action
-        uses: actions/checkout@v3
-        with:
-          repository: stackrox/actions
-          path: .actions
-          ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v1"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -449,7 +443,7 @@ jobs:
         env:
           REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
-        uses: ./.actions/release/start-kube-burner
+        uses: ./../../release/start-kube-burner
         with:
           kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
