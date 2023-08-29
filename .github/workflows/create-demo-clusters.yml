@@ -9,19 +9,19 @@ on:
       create-k8s-cluster:
         description: Create a GKE demo cluster
         default: false
-        type: boolean
+        type: string
       create-os4-cluster:
         description: Create an Openshift 4 demo cluster
         default: false
-        type: boolean
+        type: string
       create-long-cluster:
         description: Create a long-running cluster on RC1
         default: false
-        type: boolean
+        type: string
       dry-run:
         description: Dry-run
         default: false
-        type: boolean
+        type: string
       workflow-ref:
         description: Ref of the called workflow
         type: string
