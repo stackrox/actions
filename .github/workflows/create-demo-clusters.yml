@@ -218,8 +218,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "{{ github.event.inputs.create-long-cluster }}"
-          echo "{{github.event.inputs.create-long-cluster != 'false'}}"
+          echo "${{ github.event.inputs.create-long-cluster }}"
+          echo "${{ github.event.inputs.create-long-cluster != 'false' }}"
 
 
   # create-long-running-cluster-for-fake-load:
