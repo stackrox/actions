@@ -41,7 +41,7 @@ on:
 env:
   main_branch: ${{github.event.repository.default_branch}}
   script_url: /repos/${{github.repository}}/contents/.github/workflows/scripts/common.sh?ref=${{ github.ref_name }}
-  DRY_RUN: ${{ fromJSON('["true", "false"]')[github.event.inputs.dry-run != 'true'] }}
+  DRY_RUN: ${{ inputs.dry-run }}
   ACCEPT_RAW: "Accept: application/vnd.github.v3.raw"
   GH_TOKEN: ${{ github.token }}
   GH_NO_UPDATE_NOTIFIER: 1
@@ -51,7 +51,7 @@ jobs:
   properties:
     runs-on: ubuntu-latest
     outputs:
-      slack-channel: ${{ fromJSON(format('["{0}","{1}"]', steps.fetch.outputs.dry-slack-channel, steps.fetch.outputs.slack-channel))[github.event.inputs.dry-run != 'true'] }}
+      slack-channel: ${{ fromJSON(format('["{0}","{1}"]', steps.fetch.outputs.dry-slack-channel, steps.fetch.outputs.slack-channel))[inputs.dry-run != true] }}
       jira-projects: ${{ steps.fetch.outputs.jira-projects }}
     steps:
       - name: Read workflow properties file
@@ -64,9 +64,9 @@ jobs:
     name: Wait for images on Quay.io
     runs-on: ubuntu-latest
     if: >- # Skip if no clusters are going to be created.
-      inputs.create-k8s-cluster != 'false' ||
-      inputs.create-os4-cluster != 'false' ||
-      inputs.create-long-cluster != 'false'
+      inputs.create-k8s-cluster != false ||
+      inputs.create-os4-cluster != false ||
+      inputs.create-long-cluster != false
     strategy:
       matrix:
         image: [main, scanner, scanner-db, collector]
@@ -83,14 +83,13 @@ jobs:
           token: ${{secrets.QUAY_RHACS_ENG_BEARER_TOKEN}}
           image: "rhacs-eng/${{ matrix.image }}:${{ inputs.version }}"
           # Do not wait if running dry
-          interval: ${{ fromJSON('["30", "0"]')[env.DRY_RUN == 'true'] }}
-          limit: ${{ fromJSON(format('["{0}","{1}"]', env.TIMEOUT_WAIT_FOR_IMAGES_SECONDS, 0))[env.DRY_RUN == 'true'] }}
+          interval: ${{ fromJSON('["30", "0"]')[inputs.dry-run == true] }}
+          limit: ${{ fromJSON(format('["{0}","{1}"]', env.TIMEOUT_WAIT_FOR_IMAGES_SECONDS, 0))[inputs.dry-run == true] }}
 
   create-k8s-cluster:
     name: Create k8s cluster
     needs: [wait-for-images]
-    # Cannot use env.DRY_RUN here. `github.event.inputs.*` can be 'true', 'false' or empty.
-    if: github.event.inputs.dry-run != 'true' && github.event.inputs.create-k8s-cluster != 'false'
+    if: inputs.dry-run != true && inputs.create-k8s-cluster != false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
@@ -152,8 +151,7 @@ jobs:
   create-os4-cluster:
     name: Create OS4 cluster
     needs: [wait-for-images]
-    # Cannot use env.DRY_RUN here. `github.event.inputs.*` can be 'true', 'false' or empty.
-    if: github.event.inputs.dry-run != 'true' && github.event.inputs.create-os4-cluster != 'false'
+    if: inputs.dry-run == false && inputs.create-os4-cluster == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
@@ -216,10 +214,9 @@ jobs:
   create-long-running-cluster-for-fake-load:
     name: Create GKE long-running cluster for fake load
     needs: [wait-for-images]
-    # Cannot use env.DRY_RUN here. `github.event.inputs.*` can be 'true', 'false' or empty.
     if: >-
-      github.event.inputs.dry-run != 'true' &&
-      github.event.inputs.create-long-cluster != 'false'
+      inputs.dry-run != true &&
+      inputs.create-long-cluster == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
@@ -241,10 +238,9 @@ jobs:
   create-long-running-cluster-for-real-load:
     name: Create GKE long-running cluster for real load
     needs: [wait-for-images]
-    # Cannot use env.DRY_RUN here. `github.event.inputs.*` can be 'true', 'false' or empty.
     if: >-
-      github.event.inputs.dry-run != 'true' &&
-      github.event.inputs.create-long-cluster != 'false'
+      inputs.dry-run != true &&
+      inputs.create-long-cluster == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
@@ -308,8 +304,9 @@ jobs:
         id: launch-central
         uses: ./.actions/release/start-acs
         with:
-          main-image-tag: ${{github.event.inputs.version}}
+          main-image-tag: ${{inputs.version}}
           kubeconfig: ${{ env.KUBECONFIG }}
+          pagerduty-integration-key: ${{ secrets.RELEASE_MANAGEMENT_PAGERDUTY_INTEGRATION_KEY }}
           registry-username: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           stackrox-dir: ${{ github.workspace }}
@@ -402,7 +399,7 @@ jobs:
       - name: Launch secured cluster
         id: launch-secured-cluster
         env:
-          MAIN_IMAGE_TAG: ${{github.event.inputs.version}} # Release version, e.g. 3.63.0-rc.2.
+          MAIN_IMAGE_TAG: ${{inputs.version}} # Release version, e.g. 3.63.0-rc.2.
           REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           ROX_ADMIN_PASSWORD: ${{ needs.start-acs.outputs.rox_password }}
