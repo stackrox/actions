@@ -1,0 +1,37 @@
+{
+    "spec": {
+        "template": {
+            "spec": {
+                "containers": [
+                    {
+                        "name": "sensor",
+                        "env": [
+                            {
+                                "name": "MUTEX_WATCHDOG_TIMEOUT_SECS",
+                                "value": "0"
+                            },
+                            {
+                                "name": "ROX_FAKE_KUBERNETES_WORKLOAD",
+                                "value": "long-running"
+                            },
+                            {
+                                "name": "ROX_FAKE_WORKLOAD_STORAGE",
+                                "value": "/var/cache/stackrox/pebble.db"
+                            }
+                        ],
+                        "resources": {
+                            "requests": {
+                                "memory": "3Gi",
+                                "cpu": "2"
+                            },
+                            "limits": {
+                                "memory": "12Gi",
+                                "cpu": "4"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

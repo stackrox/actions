@@ -24,8 +24,6 @@
 
 set -euo pipefail
 
-pushd "$STACKROX_DIR"
-
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
@@ -39,45 +37,11 @@ sleep 20
 gh_log notice "Deploying sensor..."
 "${STACKROX_DIR}"/deploy/k8s/sensor.sh
 
-PATCH=$(cat <<EOPATCH
-{ "spec": { "template":
-    { "spec": { "containers": [
-        { "name": "sensor",
-            "env": [
-                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" },
-                { "name": "ROX_FAKE_KUBERNETES_WORKLOAD", "value": "long-running" },
-                { "name": "ROX_FAKE_WORKLOAD_STORAGE", "value": "/var/cache/stackrox/pebble.db" }
-            ],
-            "resources": {
-                "requests": { "memory": "3Gi", "cpu": "2" },
-                "limits": { "memory": "12Gi", "cpu": "4" }
-            }
-        }
-    ] } }
-} }
-EOPATCH
-)
 gh_log notice "Patching sensor deployment..."
-kubectl -n stackrox patch deploy/sensor -p "$PATCH"
+kubectl -n stackrox patch deploy/sensor --patch-file="patch-sensor.json"
 
-PATCH=$(cat <<EOPATCH
-{ "spec": { "template":
-    { "spec": { "containers": [
-        { "name": "central",
-            "env": [
-                { "name": "MUTEX_WATCHDOG_TIMEOUT_SECS", "value": "0" }
-            ],
-            "resources": {
-                "requests": { "memory": "3Gi", "cpu": "2" },
-                "limits": { "memory": "12Gi", "cpu": "4" }
-            }
-        }
-    ] } }
-} }
-EOPATCH
-)
 gh_log notice "Patching central deployment..."
-kubectl -n stackrox patch deploy/central -p "$PATCH"
+kubectl -n stackrox patch deploy/central --patch-file="patch-central.json"
 
 CENTRAL_IP=$(kubectl -n stackrox get svc/central-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[0] | .ip // .hostname')
 gh_log notice "CENTRAL_IP=$CENTRAL_IP"
@@ -86,8 +50,6 @@ API_ENDPOINT="${CENTRAL_IP}:443"
 wait_for_central "${API_ENDPOINT}"
 
 ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/k8s/central-deploy/password)
-
-popd
 
 # Don't mask the password: masked values are not passed to the runner.
 gh_output rox-password "$ROX_ADMIN_PASSWORD"
