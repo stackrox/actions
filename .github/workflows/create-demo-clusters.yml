@@ -72,7 +72,7 @@ jobs:
         image: [main, scanner, scanner-db, collector]
     steps:
       - name: Checkout local action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/actions
           path: .actions
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/actions
           path: .actions
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/actions
           path: .actions
@@ -220,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/actions
           path: .actions
@@ -244,7 +244,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/actions
           path: .actions
@@ -279,12 +279,12 @@ jobs:
             exit 1
           fi
       - name: Check out stackrox code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - name: Checkout local action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/actions
           path: .actions
@@ -371,7 +371,7 @@ jobs:
             exit 1
           fi
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{inputs.version}}
           repository: stackrox/stackrox
@@ -417,7 +417,7 @@ jobs:
     steps:
       - uses: stackrox/actions/infra/install-infractl@v1
       - name: Check out kube-burner config repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
@@ -428,7 +428,7 @@ jobs:
           cd ${{ github.workspace }}/benchmark-operator
           git checkout 081359d2a90ba556a603840b18015d10d05a89ec
       - name: Checkout local action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: stackrox/actions
           path: .actions
