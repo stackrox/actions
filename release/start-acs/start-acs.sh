@@ -24,6 +24,8 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
@@ -38,10 +40,10 @@ gh_log notice "Deploying sensor..."
 "${STACKROX_DIR}"/deploy/k8s/sensor.sh
 
 gh_log notice "Patching sensor deployment..."
-kubectl -n stackrox patch deploy/sensor --patch-file="patch-sensor.json"
+kubectl -n stackrox patch deploy/sensor --patch-file="${SCRIPT_DIR}/patch-sensor.json"
 
 gh_log notice "Patching central deployment..."
-kubectl -n stackrox patch deploy/central --patch-file="patch-central.json"
+kubectl -n stackrox patch deploy/central --patch-file="${SCRIPT_DIR}/patch-central.json"
 
 CENTRAL_IP=$(kubectl -n stackrox get svc/central-loadbalancer -o json | jq -r '.status.loadBalancer.ingress[0] | .ip // .hostname')
 gh_log notice "CENTRAL_IP=$CENTRAL_IP"
