@@ -1,0 +1,29 @@
+{
+    "spec": {
+        "template": {
+            "spec": {
+                "containers": [
+                    {
+                        "name": "central",
+                        "env": [
+                            {
+                                "name": "MUTEX_WATCHDOG_TIMEOUT_SECS",
+                                "value": "0"
+                            }
+                        ],
+                        "resources": {
+                            "requests": {
+                                "memory": "3Gi",
+                                "cpu": "2"
+                            },
+                            "limits": {
+                                "memory": "12Gi",
+                                "cpu": "4"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}
