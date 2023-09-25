@@ -8,7 +8,7 @@ inputs:
     description: Flavor (`qa-demo`, `gke-default`, `openshift-4-demo`...)
     required: true
   name:
-    description: Cluster name
+    description: Cluster name ([a-zA-z]{3,28})
     required: true
   lifespan:
     description: Cluster lifespan
