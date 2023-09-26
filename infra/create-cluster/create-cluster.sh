@@ -21,6 +21,7 @@ check_not_empty \
     INFRA_TOKEN
 
 CNAME="${NAME//./-}"
+CNAME="${CNAME:0:28}"
 
 function cluster_info() {
     infractl 2>/dev/null get "$1" --json
