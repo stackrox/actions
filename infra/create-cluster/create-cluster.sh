@@ -20,7 +20,7 @@ check_not_empty \
     FLAVOR NAME LIFESPAN WAIT \
     INFRA_TOKEN
 
-ALLOWED_NAMES="^[a-z][a-z0-9-]{1,25}[a-z0-9]$"
+ALLOWED_NAMES="^[a-z][a-z0-9-]{1,26}[a-z0-9]$"
 CNAME="${NAME//./-}"
 
 if ! [[ "${CNAME}" =~ ${ALLOWED_NAMES} ]]; then

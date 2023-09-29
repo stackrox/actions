@@ -32,10 +32,10 @@ on:
         description: The repository where the kube-burner config files can be found
         type: string
       cluster-with-fake-load-name:
-        description: "The name of the long running cluster where the central deployment is run with a sensor that creates its own fake workload. Must comply to the regex: [a-z][a-z0-9-]{1,25}[a-z0-9]"
+        description: "The name of the long running cluster where the central deployment is run with a sensor that creates its own fake workload. Must comply to the regex: [a-z][a-z0-9-]{1,26}[a-z0-9]"
         type: string
       cluster-with-real-load-name:
-        description: "The name of the long running cluster where collector is run with real workload. Must comply to the regex: [a-z][a-z0-9-]{1,25}[a-z0-9]"
+        description: "The name of the long running cluster where collector is run with real workload. Must comply to the regex: [a-z][a-z0-9-]{1,26}[a-z0-9]"
         type: string
 
 env:
