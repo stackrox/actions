@@ -33,6 +33,8 @@ Default value: unset
 
 Default value: unset
 
+Must comply to the regex: `[a-z][a-z0-9-]{1,25}[a-z0-9]`.
+
 #### lifespan
 
 Default value: `48h`

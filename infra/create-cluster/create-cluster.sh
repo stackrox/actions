@@ -20,8 +20,13 @@ check_not_empty \
     FLAVOR NAME LIFESPAN WAIT \
     INFRA_TOKEN
 
+ALLOWED_NAMES="^[a-z][a-z0-9-]{1,25}[a-z0-9]$"
 CNAME="${NAME//./-}"
-CNAME="${CNAME:0:28}"
+
+if ! [[ "${CNAME}" =~ ${ALLOWED_NAMES} ]]; then
+    gh_log error "The cluster name must comply to the regular expression: \"${ALLOWED_NAMES}"\"
+    exit 1
+fi
 
 function cluster_info() {
     infractl 2>/dev/null get "$1" --json
