@@ -398,7 +398,7 @@ jobs:
           CLUSTER_API_ENDPOINT: https://${{ needs.start-acs.outputs.central-ip }}:443
           API_ENDPOINT: ${{ needs.start-acs.outputs.central-ip }}:443
           CLUSTER: secured-cluster
-          COLLECTION_METHOD: CORE_BPF
+          COLLECTION_METHOD: core_bpf
         run: |
           "${{ github.workspace }}"/deploy/k8s/sensor.sh
           kubectl -n stackrox create secret generic access-rhacs \
