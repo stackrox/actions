@@ -337,7 +337,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":arrow_right: Setup your local access to Central by running:\n```curl -L https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/release-tools/setup-central-access.sh | bash -s -- ${{ inputs.cluster-with-fake-load-name }}```"
+                    "text": ":arrow_right: Setup your local access to Central by running:\n```./scripts/release-tools/setup-central-access.sh ${{ inputs.cluster-with-fake-load-name }}```\nfrom your local machine."
                   }
                 }
               ]
