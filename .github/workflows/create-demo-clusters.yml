@@ -117,7 +117,7 @@ jobs:
         id: get_demo_artifacts
         run: |
           echo "cluster-name=${NAME//./-}" >> "$GITHUB_OUTPUT"
-          echo "url=https://${NAME//[.-]/}.demo.stackrox.com/login" >> "$GITHUB_OUTPUT"
+          echo "url=https://${NAME//[.-]/}.demos.rox.systems/login" >> "$GITHUB_OUTPUT"
       - name: Post to Slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -142,7 +142,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":arrow_right: When it is ready in ca. 20 minutes, a notification will be posted in #acs-infra-notifications channel, and the cluster will be accessible at ${{ steps.get_demo_artifacts.outputs.url }} with your @stackrox.com Google account."
+                    "text": ":arrow_right: When it is ready in ca. 20 minutes, a notification will be posted in #acs-infra-notifications channel, and the cluster will be accessible at ${{ steps.get_demo_artifacts.outputs.url }} with your @redhat.com Google account."
                   }
                 }
               ]
@@ -179,7 +179,7 @@ jobs:
         id: get_demo_artifacts
         run: |
           echo "cluster-name=${NAME//./-}" >> "$GITHUB_OUTPUT"
-          echo "url=https://central-stackrox.apps.${NAME//./-}.openshift.infra.rox.systems/login" >> "$GITHUB_OUTPUT"
+          echo "url=https://central-stackrox.apps.${NAME//./-}.ocp.infra.rox.systems/login" >> "$GITHUB_OUTPUT"
       - name: Post to Slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
