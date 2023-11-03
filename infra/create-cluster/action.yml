@@ -22,6 +22,10 @@ inputs:
     description: Whether to wait for the cluster readiness
     required: false
     default: "false"
+  no-slack:
+    description: Whether to skip sending Slack messages for lifecycle events
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -48,4 +52,5 @@ runs:
           "${{ inputs.name }}" \
           "${{ inputs.lifespan }}" \
           "${{ inputs.wait }}" \
+          "${{ inputs.no-slack }}" \
           "${{ inputs.args }}"
