@@ -404,7 +404,7 @@ jobs:
           # 4.0 is already out of support
           # TODO(ROX-20631): remove the override after 3.74 is out of support
           if [[ "${MAIN_IMAGE_TAG}" == 3.* ]]; then
-            COLLECTION_METHOD="KERNEL_MODULE"
+            export COLLECTION_METHOD="KERNEL_MODULE"
           fi
           "${{ github.workspace }}/deploy/k8s/sensor.sh"
           kubectl -n stackrox create secret generic access-rhacs \
