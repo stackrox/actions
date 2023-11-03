@@ -9,9 +9,10 @@ FLAVOR="$1"
 NAME="$2"
 LIFESPAN="$3"
 WAIT="$4"
+NO_SLACK="$5"
 
-if [ "$#" -gt 4 ]; then
-    ARGS="$5"
+if [ "$#" -gt 5 ]; then
+    ARGS="$6"
 else
     ARGS=""
 fi
@@ -96,6 +97,11 @@ OPTIONS=()
 if [ "$WAIT" = "true" ]; then
     OPTIONS+=("--wait")
     gh_log warning "The job will wait for the cluster creation to finish."
+fi
+
+if [ "$NO_SLACK" = "true" ]; then
+    OPTIONS+=("--no-slack")
+    gh_log notice "Skipping sending Slack messages for cluster \`$CNAME\`."
 fi
 
 IFS=',' read -ra args <<<"$ARGS"

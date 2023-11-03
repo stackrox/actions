@@ -10,14 +10,15 @@ permissions: {}
 
 ## All options
 
-| Input                 | Description                               | Default   |
-| ----------------------| ------------------------------------------| --------- |
-| [token](#token)       | Infra token                               |           |
-| [flavor](#flavor)     | Cluster flavor                            |           |
-| [name](#name)         | Cluster name                              |           |
-| [lifespan](#lifespan) | Lifespan                                  | `48h`     |
-| [args](#args)         | Arguments                                 |           |
-| [wait](#wait)         | Whether to wait for the cluster readiness | `'false'` |
+| Input                 | Description                                                    | Default   |
+|-----------------------|----------------------------------------------------------------|-----------|
+| [token](#token)       | Infra token                                                    |           |
+| [flavor](#flavor)     | Cluster flavor                                                 |           |
+| [name](#name)         | Cluster name                                                   |           |
+| [lifespan](#lifespan) | Lifespan                                                       | `48h`     |
+| [args](#args)         | Arguments                                                      |           |
+| [wait](#wait)         | Whether to wait for the cluster readiness                      | `'false'` |
+| [no-slack](#no-slack) | Whether to to skip sending Slack messages for lifecycle events | `'false'` |
 
 ### Detailed options
 
@@ -44,6 +45,10 @@ Default value: `48h`
 Default value: unset
 
 #### wait
+
+Default value: `'false'`
+
+#### no-slack
 
 Default value: `'false'`
 
