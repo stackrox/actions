@@ -400,7 +400,13 @@ jobs:
           CLUSTER: secured-cluster
           COLLECTION_METHOD: core_bpf
         run: |
-          "${{ github.workspace }}"/deploy/k8s/sensor.sh
+          # Overriding COLLECTION_METHOD for 3.x releases because 'core_bpf' was introduced in 4.1.0
+          # 4.0 is already out of support
+          # TODO(ROX-20631): remove the override after 3.74 is out of support
+          if [[ "${MAIN_IMAGE_TAG}" == 3.* ]]; then
+            COLLECTION_METHOD="KERNEL_MODULE"
+          fi
+          "${{ github.workspace }}/deploy/k8s/sensor.sh"
           kubectl -n stackrox create secret generic access-rhacs \
             --from-literal="username=${ROX_ADMIN_USERNAME}" \
             --from-literal="password=${ROX_ADMIN_PASSWORD}" \
