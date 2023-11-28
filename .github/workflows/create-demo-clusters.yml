@@ -142,7 +142,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":arrow_right: When it is ready in ca. 20 minutes, a notification will be posted in #acs-infra-notifications channel, and the cluster will be accessible at ${{ steps.get_demo_artifacts.outputs.url }} with your @redhat.com Google account."
+                    "text": ":arrow_right: When it is ready in ca. 20 minutes, a notification will be posted in #acs-infra-notifications channel, and the cluster will be accessible at ${{ steps.get_demo_artifacts.outputs.url }}. You can find the admin password and kubeconfig with `infractl artifacts ${{ steps.get_demo_artifacts.outputs.cluster-name }}`."
                   }
                 }
               ]
