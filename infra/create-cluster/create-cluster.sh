@@ -110,6 +110,8 @@ for arg in "${args[@]}"; do
     OPTIONS+=("$arg")
 done
 
+echo "CNAME= $CNAME"
+
 infractl create "$FLAVOR" "$CNAME" \
     --lifespan "$LIFESPAN" \
     "${OPTIONS[@]}"
