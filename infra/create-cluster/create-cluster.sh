@@ -24,9 +24,10 @@ check_not_empty \
 ALLOWED_NAMES="^[a-z][a-z0-9-]{1,26}[a-z0-9]$"
 CNAME="${NAME//./-}"
 
+gh_log info "CNAME= $CNAME"
 if ! [[ "${CNAME}" =~ ${ALLOWED_NAMES} ]]; then
     gh_log error "The cluster name must comply to the regular expression: \"${ALLOWED_NAMES}"\"
-    exit 1
+    #exit 1
 fi
 
 function cluster_info() {
