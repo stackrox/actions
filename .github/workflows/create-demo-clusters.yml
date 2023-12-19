@@ -53,8 +53,8 @@ jobs:
     outputs:
       slack-channel: ${{ fromJSON(format('["{0}","{1}"]', steps.fetch.outputs.dry-slack-channel, steps.fetch.outputs.slack-channel))[inputs.dry-run != true] }}
       jira-projects: ${{ steps.fetch.outputs.jira-projects }}
-      cluster-with-fake-load-truncated-name: ${{ steps.truncate-cluster-names.cluster-with-fake-load-truncated-name }}
-      cluster-with-real-load-truncated-name: ${{ steps.truncate-cluster-names.cluster-with-real-load-truncated-name }}
+      cluster-with-fake-load-truncated-name: ${{ steps.truncate_cluster_names.cluster-with-fake-load-truncated-name }}
+      cluster-with-real-load-truncated-name: ${{ steps.truncate_cluster_names.cluster-with-real-load-truncated-name }}
     steps:
       - name: Read workflow properties file
         id: fetch
@@ -62,7 +62,7 @@ jobs:
           PROPERTIES_URL: /repos/${{ github.repository }}/contents/.github/properties?ref=${{ github.ref_name }}
         run: gh api -H "$ACCEPT_RAW" "$PROPERTIES_URL" >> "$GITHUB_OUTPUT"
       - name: Truncate cluster names
-        id: truncate-cluster-names
+        id: truncate_cluster_names
         run: |
           truncated_fake_cluster_name="$(echo "${{ inputs.cluster-with-fake-load-name }}" | cut -c 1-28))"
           truncated_real_cluster_name="$(echo "${{ inputs.cluster-with-real-load-name }}" | cut -c 1-28))"
