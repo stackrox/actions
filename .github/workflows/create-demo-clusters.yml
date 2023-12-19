@@ -53,12 +53,21 @@ jobs:
     outputs:
       slack-channel: ${{ fromJSON(format('["{0}","{1}"]', steps.fetch.outputs.dry-slack-channel, steps.fetch.outputs.slack-channel))[inputs.dry-run != true] }}
       jira-projects: ${{ steps.fetch.outputs.jira-projects }}
+      cluster-with-fake-load-truncated-name: ${{ steps.truncate-cluster-names.cluster-with-fake-load-truncated-name }}
+      cluster-with-real-load-truncated-name: ${{ steps.truncate-cluster-names.cluster-with-real-load-truncated-name }}
     steps:
       - name: Read workflow properties file
         id: fetch
         env:
           PROPERTIES_URL: /repos/${{ github.repository }}/contents/.github/properties?ref=${{ github.ref_name }}
         run: gh api -H "$ACCEPT_RAW" "$PROPERTIES_URL" >> "$GITHUB_OUTPUT"
+      - name: Truncate cluster names
+        id: truncate-cluster-names
+        run: |
+          truncated_fake_cluster_name="$(echo "${{ inputs.cluster-with-fake-load-name }}" | cut -c 1-28))"
+          truncated_real_cluster_name="$(echo "${{ inputs.cluster-with-real-load-name }}" | cut -c 1-28))"
+          gh_output cluster-with-fake-load-truncated-name "$truncated_fake_cluster_name"
+          gh_output cluster-with-real-load-truncated-name "$truncated_real_cluster_name"
 
   wait-for-images:
     name: Wait for images on Quay.io
@@ -229,7 +238,8 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
-          name: ${{ inputs.cluster-with-fake-load-name }}
+          name: ${{ needs.properies.outputs.cluster-with-fake-load-truncated-name }}
+          #name: ${{ inputs.cluster-with-fake-load-name }}
           lifespan: 168h
           args: nodes=5,machine-type=e2-standard-8
           wait: true
