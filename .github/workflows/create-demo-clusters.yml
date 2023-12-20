@@ -292,6 +292,8 @@ jobs:
           git clone https://github.com/stackrox/stackrox.git
           cd stackrox
           git checkout ${{inputs.version}}
+          cd ..
+          pwd
         #uses: actions/checkout@v4
         #with:
         #  ref: ${{inputs.version}}
