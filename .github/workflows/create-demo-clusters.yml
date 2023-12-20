@@ -289,7 +289,9 @@ jobs:
           fi
       - name: Check out stackrox code
         run: |
-          git clone https://github.com/stackrox/stackrox.git --branch ${{ inputs.version }}
+          git clone https://github.com/stackrox/stackrox.git
+          cd stackrox
+          git checkout ${{inputs.version}}
         #uses: actions/checkout@v4
         #with:
         #  ref: ${{inputs.version}}
