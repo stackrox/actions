@@ -246,7 +246,7 @@ jobs:
   # TODO ROX-19190 Don't DRY. Make this and the above into a separate action.
   create-long-running-cluster-for-real-load:
     name: Create GKE long-running cluster for real load
-    needs: [wait-for-images]
+    needs: [properties, wait-for-images]
     if: >-
       inputs.dry-run != true &&
       inputs.create-long-cluster == true
