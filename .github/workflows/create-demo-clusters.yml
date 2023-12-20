@@ -239,7 +239,6 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
           name: ${{ needs.properties.outputs.cluster-with-fake-load-truncated-name }}
-          #name: ${{ inputs.cluster-with-fake-load-name }}
           lifespan: 168h
           args: nodes=5,machine-type=e2-standard-8
           wait: true
@@ -263,7 +262,7 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
-          name: ${{ inputs.cluster-with-real-load-name }}
+          name: ${{ needs.properties.outputs.cluster-with-real-load-truncated-name }}
           lifespan: 168h
           args: nodes=5,machine-type=e2-standard-8
           wait: true
@@ -276,7 +275,7 @@ jobs:
       rox-password: ${{ steps.launch-central.outputs.rox-password }}
       central-ip: ${{ steps.launch-central.outputs.central-ip }}
     env:
-      NAME: ${{ inputs.cluster-with-fake-load-name }}
+      NAME: ${{ needs.properties.outputs.cluster-with-real-load-truncated-name }}
       KUBECONFIG: artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
@@ -330,14 +329,14 @@ jobs:
           channel-id: ${{ needs.properties.outputs.slack-channel }}
           payload: >-
             {
-              "text": "Long-running cluster created. Setup your local access with `scripts/release-tools/setup-central-access.sh | bash -s -- ${{ inputs.cluster-with-fake-load-name }}`",
+              "text": "Long-running cluster created. Setup your local access with `scripts/release-tools/setup-central-access.sh | bash -s -- ${{ needs.properties.outputs.cluster-with-fake-load-truncated-name }}`",
 
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":tada: *Long-running cluster `${{ inputs.cluster-with-fake-load-name }}` created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
+                    "text": ":tada: *Long-running cluster `${{ needs.properties.outputs.cluster-with-fake-load-truncated-name }}` created for ${{ inputs.version }} milestone of <${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>.*"
                   }
                 },
                 {
@@ -347,7 +346,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":arrow_right: Setup your local access to Central by running:\n```./scripts/release-tools/setup-central-access.sh ${{ inputs.cluster-with-fake-load-name }}```\nfrom your local machine."
+                    "text": ":arrow_right: Setup your local access to Central by running:\n```./scripts/release-tools/setup-central-access.sh ${{ needs.properties.outputs.cluster-with-fake-load-truncated-name }}```\nfrom your local machine."
                   }
                 }
               ]
@@ -368,7 +367,7 @@ jobs:
     needs: [properties, start-acs, create-long-running-cluster-for-real-load]
     runs-on: ubuntu-latest
     env:
-      SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
+      SECURED_CLUSTER_NAME: ${{ needs.properties.outputs.cluster-with-real-load-truncated-name }}
       KUBECONFIG: artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
@@ -427,7 +426,7 @@ jobs:
     needs: [properties, start-secured-cluster]
     runs-on: ubuntu-latest
     env:
-      SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
+      SECURED_CLUSTER_NAME: ${{ needs.properties.outputs.cluster-with-real-load-truncated-name }}
       KUBECONFIG: ${{ github.workspace }}/artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
