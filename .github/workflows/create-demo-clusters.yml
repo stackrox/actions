@@ -288,11 +288,13 @@ jobs:
             exit 1
           fi
       - name: Check out stackrox code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{inputs.version}}
-          repository: stackrox/stackrox
-          fetch-depth: 0
+        run: |
+          git clone https://github.com/stackrox/stackrox.git --branch ${{ inputs.version }}
+        #uses: actions/checkout@v4
+        #with:
+        #  ref: ${{inputs.version}}
+        #  repository: stackrox/stackrox
+        #  fetch-depth: 0
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
