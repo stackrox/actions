@@ -292,6 +292,7 @@ jobs:
         with:
           ref: ${{inputs.version}}
           repository: stackrox/stackrox
+          fetch-depth: 0
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
@@ -384,6 +385,7 @@ jobs:
         with:
           ref: ${{inputs.version}}
           repository: stackrox/stackrox
+          fetch-depth: 0
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -438,6 +440,7 @@ jobs:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
           ref: ${{ inputs.kube-burner-config-ref }}
+          fetch-depth: 0
       - name: Check out cloud-bulldozer/benchmark-operator code
         run: |
           git clone https://github.com/cloud-bulldozer/benchmark-operator.git
