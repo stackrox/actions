@@ -26,6 +26,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+pushd "$STACKROX_DIR"
+
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
