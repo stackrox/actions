@@ -28,6 +28,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 pushd "$STACKROX_DIR"
 
+pwd
+
+ls
+
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
