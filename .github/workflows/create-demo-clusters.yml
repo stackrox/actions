@@ -399,6 +399,7 @@ jobs:
           API_ENDPOINT: ${{ needs.start-acs.outputs.central-ip }}:443
           CLUSTER: secured-cluster
           COLLECTION_METHOD: core_bpf
+          MONITORING_SUPPORT: "true"
         run: |
           # Overriding COLLECTION_METHOD for 3.x releases because 'core_bpf' was introduced in 4.1.0
           # 4.0 is already out of support
