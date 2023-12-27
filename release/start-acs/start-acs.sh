@@ -28,9 +28,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 pushd "$STACKROX_DIR"
 
-pwd
+working_directory="$(pwd)"
+gh_log notice "working_directory= $working_directory"
 
 ls
+for file in `ls`; do
+	gh_log notice "$file"
+done
 
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
