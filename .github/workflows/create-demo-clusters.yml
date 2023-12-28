@@ -339,6 +339,10 @@ jobs:
 
           SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+          pwd
+
+          ls
+
           pushd "$STACKROX_DIR"
 
           working_directory="$(pwd)"
