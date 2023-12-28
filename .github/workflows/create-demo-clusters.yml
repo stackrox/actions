@@ -331,7 +331,7 @@ jobs:
           REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           KUBECONFIG: ${{ env.KUBECONFIG }}
-          STACKROX_DIR: ${{ github.workspace }}/stackrox }}
+          STACKROX_DIR: ${{ github.workspace }}/stackrox
           NAME: ${{ env.NAME }}
           ROX_TELEMETRY_STORAGE_KEY_V1: R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW
         run: |
