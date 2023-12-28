@@ -341,7 +341,11 @@ jobs:
 
           pwd
 
-          ls
+          echo ""
+
+          ls -l
+
+          ls -l "$STACKROX_DIR"
 
           pushd "$STACKROX_DIR"
 
