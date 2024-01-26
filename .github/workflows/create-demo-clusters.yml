@@ -400,6 +400,9 @@ jobs:
           CLUSTER: secured-cluster
           COLLECTION_METHOD: core_bpf
           MONITORING_SUPPORT: "true"
+          STORAGE: pvc
+          MONITORING_LOAD_BALANCER: none
+          COMMON_DIR: ${{ github.workspace }}/deploy/common
         run: |
           # Overriding COLLECTION_METHOD for 3.x releases because 'core_bpf' was introduced in 4.1.0
           # 4.0 is already out of support
@@ -412,6 +415,20 @@ jobs:
             --from-literal="username=${ROX_ADMIN_USERNAME}" \
             --from-literal="password=${ROX_ADMIN_PASSWORD}" \
             --from-literal="central_url=${CLUSTER_API_ENDPOINT}"
+
+          echo "Deploying Monitoring..."
+          helm_args=(
+            --set persistence.type="${STORAGE}"
+            --set exposure.type="${MONITORING_LOAD_BALANCER}"
+          )
+         
+          helm dependency update "${COMMON_DIR}/../charts/monitoring"
+          envsubst < "${COMMON_DIR}/../charts/monitoring/values.yaml" > "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
+          helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COMMON_DIR}/../charts/monitoring" --values "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml" "${helm_args[@]}"
+          rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
+          echo "Deployed Monitoring..."
+
+
 
   start-kube-burner:
     name: Start kube-burner
