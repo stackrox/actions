@@ -426,9 +426,6 @@ jobs:
           envsubst < "${COMMON_DIR}/../charts/monitoring/values.yaml" > "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
           helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COMMON_DIR}/../charts/monitoring" --values "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml" "${helm_args[@]}"
           rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
-
-          kubectl create -f ${{ github.workspace }}/deploy/charts/monitoring/templates/prometheus-role.yaml
-
           echo "Deployed Monitoring..."
 
 
