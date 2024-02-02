@@ -373,7 +373,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: jv-ROX-21548-long-running-collector-should-be-monitored
+          ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v2"
         with:
