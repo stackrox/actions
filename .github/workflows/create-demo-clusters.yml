@@ -428,8 +428,6 @@ jobs:
           rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
           echo "Deployed Monitoring..."
 
-
-
   start-kube-burner:
     name: Start kube-burner
     needs: [properties, start-secured-cluster]
