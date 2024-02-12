@@ -403,6 +403,7 @@ jobs:
           STORAGE: pvc
           MONITORING_LOAD_BALANCER: none
           COMMON_DIR: ${{ github.workspace }}/deploy/common
+          COLLECTION_METHOD: ebpf
         run: |
           # Overriding COLLECTION_METHOD for 3.x releases because 'core_bpf' was introduced in 4.1.0
           # 4.0 is already out of support
