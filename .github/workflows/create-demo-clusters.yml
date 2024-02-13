@@ -308,8 +308,8 @@ jobs:
           make cli_linux-amd64
           cp "${STACKROX_DIR}"/bin/linux_amd64/roxctl ~/.local/bin/roxctl
           chmod +x ~/.local/bin/roxctl
-          echo "::debug::$(ls -l ~/.local/bin/roxctl)"
-          echo "::debug::$(which roxctl)"
+          echo "$(ls -l ~/.local/bin/roxctl)" &> "$GITHUB_STEP_SUMMARY"
+          echo "$(which roxctl)" &> "$GITHUB_STEP_SUMMARY"
           which asdf
       - name: Launch central
         id: launch-central
