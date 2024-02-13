@@ -31,8 +31,8 @@ source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
 #alias roxctl="${STACKROX_DIR}"/bin/linux_arm64/roxctl
 #chmod 755 "${STACKROX_DIR}"/bin/linux_arm64/roxctl
-cp "${STACKROX_DIR}"/bin/linux_arm64/roxctl ~/.local/bin/roxctl
-chmod +x ~/.local/bin/roxctl
+#cp "${STACKROX_DIR}"/bin/linux_arm64/roxctl ~/.local/bin/roxctl
+#chmod +x ~/.local/bin/roxctl
 
 gh_log notice "Deploying central..."
 "${STACKROX_DIR}"/deploy/k8s/central.sh

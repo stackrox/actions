@@ -301,8 +301,14 @@ jobs:
         run: |
           infractl artifacts "${NAME//./-}" -d artifacts >> "$GITHUB_STEP_SUMMARY"
       - name: Install roxctl
+        env:
+          STACKROX_DIR: ${{ github.workspace }}
         run: |
           make cli_linux-amd64
+          cp "${STACKROX_DIR}"/bin/linux_amd64/roxctl ~/.local/bin/roxctl
+          chmod +x ~/.local/bin/roxctl
+          ls -l ~/.local/bin/roxctl
+          which roxctl
       - name: Launch central
         id: launch-central
         uses: ./.actions/release/start-acs
