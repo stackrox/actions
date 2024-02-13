@@ -304,6 +304,7 @@ jobs:
         env:
           STACKROX_DIR: ${{ github.workspace }}
         run: |
+          set -eoux pipefail
           mkdir -p ~/.local/bin
           make cli_linux-amd64
           cp "${STACKROX_DIR}"/bin/linux_amd64/roxctl ~/.local/bin/roxctl
