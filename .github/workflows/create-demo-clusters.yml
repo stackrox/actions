@@ -311,7 +311,6 @@ jobs:
           chmod +x ~/.local/bin/roxctl
           ls -l ~/.local/bin/roxctl &> "$GITHUB_STEP_SUMMARY"
           which roxctl &> "$GITHUB_STEP_SUMMARY"
-          which asdf
       - name: Launch central
         id: launch-central
         uses: ./.actions/release/start-acs
