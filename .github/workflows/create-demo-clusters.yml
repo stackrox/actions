@@ -303,6 +303,7 @@ jobs:
       - name: Install roxctl
         run: |
           make cli_linux-amd64
+          sudo make cli-install
       - name: Launch central
         id: launch-central
         uses: ./.actions/release/start-acs
