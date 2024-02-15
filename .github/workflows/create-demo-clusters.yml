@@ -281,7 +281,8 @@ jobs:
       - name: Check out stackrox code
         uses: actions/checkout@v4
         with:
-          ref: jv-test-long-running-4.4-2
+                #ref: jv-test-long-running-4.4-2
+          ref: jv-test-long-running-4.4
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
