@@ -281,7 +281,8 @@ jobs:
       - name: Check out stackrox code
         uses: actions/checkout@v4
         with:
-          ref: mc/roxctl-not-found-fix
+          ref: jv-test-long-running-4.4-2
+          #ref: mc/roxctl-not-found-fix
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -373,7 +374,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: mc/roxctl-not-found-fix
+          ref: jv-test-long-running-4.4-2
+          #ref: mc/roxctl-not-found-fix
           #ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v2"
