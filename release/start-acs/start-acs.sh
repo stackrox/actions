@@ -22,12 +22,9 @@
 # export GITHUB_OUTPUT=delete-log-github-output.txt
 # export GITHUB_STEP_SUMMARY=delete-log-start-acs.txt
 
-set -euox pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-kubectl get nodes
-kubectl api-versions
 
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
