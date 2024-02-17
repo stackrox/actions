@@ -286,7 +286,8 @@ jobs:
                 #ref: jv-test-long-running-4.4
                 #ref: mc/roxctl-not-found-fix
                 #ref: jv-test-long-running-4.4-3
-          ref: jv-test-long-running-4.4
+                #ref: jv-test-long-running-4.4
+          ref: release-4.3
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -382,7 +383,8 @@ jobs:
                 #ref: mc/roxctl-not-found-fix
                 #ref: jv-test-long-running-4.4-2
                 #ref: jv-test-long-running-4.4-3
-          ref: jv-test-long-running-4.4
+                #ref: jv-test-long-running-4.4 #Can't set collection method
+          ref: release-4.3
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v2"
         with:
