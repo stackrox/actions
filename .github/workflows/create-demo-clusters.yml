@@ -285,7 +285,7 @@ jobs:
                 #ref: jv-test-long-running-4.4-2
                 #ref: jv-test-long-running-4.4
                 #ref: mc/roxctl-not-found-fix
-                ref: jv-test-long-running-4.4-3
+          ref: jv-test-long-running-4.4-3
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
