@@ -281,7 +281,8 @@ jobs:
       - name: Check out stackrox code
         uses: actions/checkout@v4
         with:
-          ref: jv-fix-directory-change-in-deploy-script
+          ref: jv-monitor-long-running-cluster-for-4.3
+          #ref: jv-fix-directory-change-in-deploy-script
           #ref: jv-test-long-running-4.4-2
           #ref: mc/roxctl-not-found-fix
           repository: stackrox/stackrox
@@ -375,7 +376,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: jv-fix-directory-change-in-deploy-script
+          ref: jv-monitor-long-running-cluster-for-4.3
+          #ref: jv-fix-directory-change-in-deploy-script
           #ref: jv-test-long-running-4.4-2
           #ref: mc/roxctl-not-found-fix
           #ref: ${{inputs.version}}
