@@ -230,7 +230,7 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
           name: ${{ inputs.cluster-with-fake-load-name }}
-          lifespan: 168h
+          lifespan: 48h
           args: nodes=5,machine-type=e2-standard-32
           wait: true
 
@@ -254,7 +254,7 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
           name: ${{ inputs.cluster-with-real-load-name }}
-          lifespan: 168h
+          lifespan: 48h
           args: nodes=5,machine-type=e2-standard-32
           wait: true
 
