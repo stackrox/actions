@@ -22,9 +22,19 @@
 # export GITHUB_OUTPUT=delete-log-github-output.txt
 # export GITHUB_STEP_SUMMARY=delete-log-start-acs.txt
 
-set -euo pipefail
+set -euox pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+pushd "$STACKROX_DIR"
+
+working_directory="$(pwd)"
+gh_log notice "working_directory= $working_directory"
+
+ls
+for file in `ls`; do
+	gh_log notice "$file"
+done
 
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
