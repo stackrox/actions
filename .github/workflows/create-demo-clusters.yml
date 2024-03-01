@@ -386,7 +386,9 @@ jobs:
                 #ref: jv-test-long-running-4.4-3
                 #ref: jv-test-long-running-4.4 #Can't set collection method
                 #ref: release-4.3
-          ref: jv-monitor-long-running-cluster-for-4.3
+                #ref: jv-monitor-long-running-cluster-for-4.3
+
+          ref: jv-dg-exp-deleteing-parent-thread-info
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v2"
         with:
@@ -411,7 +413,7 @@ jobs:
           CLUSTER_API_ENDPOINT: https://${{ needs.start-acs.outputs.central-ip }}:443
           API_ENDPOINT: ${{ needs.start-acs.outputs.central-ip }}:443
           CLUSTER: secured-cluster
-          COLLECTION_METHOD: ebpf
+          COLLECTION_METHOD: core_bpf
           MONITORING_SUPPORT: "true"
           STORAGE: pvc
           MONITORING_LOAD_BALANCER: none
