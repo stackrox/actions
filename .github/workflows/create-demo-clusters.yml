@@ -121,7 +121,7 @@ jobs:
       - name: Post to Slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: ${{ needs.properties.outputs.slack-channel }}
           payload: >-
@@ -183,7 +183,7 @@ jobs:
       - name: Post to Slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: ${{ needs.properties.outputs.slack-channel }}
           payload: >-
@@ -315,7 +315,7 @@ jobs:
       - name: Post to Slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: ${{ needs.properties.outputs.slack-channel }}
           payload: >-
@@ -500,7 +500,7 @@ jobs:
       - name: Post to Slack
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        uses: slackapi/slack-github-action@v1.24.0
+        uses: slackapi/slack-github-action@v1.25.0
         with:
           channel-id: ${{ needs.properties.outputs.slack-channel }}
           payload: >-
