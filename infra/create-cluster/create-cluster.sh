@@ -10,9 +10,11 @@ NAME="$2"
 LIFESPAN="$3"
 WAIT="$4"
 NO_SLACK="$5"
+ENDPOINT="$6"
+INSECURE="$7"
 
-if [ "$#" -gt 5 ]; then
-    ARGS="$6"
+if [ "$#" -gt 7 ]; then
+    ARGS="$8"
 else
     ARGS=""
 fi
@@ -29,8 +31,17 @@ if ! [[ "${CNAME}" =~ ${ALLOWED_NAMES} ]]; then
     exit 1
 fi
 
+function infractl_call() {
+    local options=("--endpoint $ENDPOINT")
+    if [ "$INSECURE" = "true"]; then
+        options+=("--insecure")
+        gh_log notice "Using an insecure connection when connecting to infra endpoint $ENDPOINT."
+    fi
+    infractl "${options[@]}" $@
+}
+
 function cluster_info() {
-    infractl 2>/dev/null get "$1" --json
+    infractl_call 2>/dev/null get "$1" --json
 }
 
 function cluster_status() {
@@ -110,7 +121,7 @@ for arg in "${args[@]}"; do
     OPTIONS+=("$arg")
 done
 
-infractl create "$FLAVOR" "$CNAME" \
+infractl_call create "$FLAVOR" "$CNAME" \
     --lifespan "$LIFESPAN" \
     "${OPTIONS[@]}"
 

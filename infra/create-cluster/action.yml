@@ -26,6 +26,14 @@ inputs:
     description: Whether to skip sending Slack messages for lifecycle events
     required: false
     default: "false"
+  endpoint:
+    description: URL to infra deployment
+    required: false
+    default: infra.rox.systems
+  insecure:
+    description: Whether to allow insecure connections to infra deployment
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -53,4 +61,6 @@ runs:
           "${{ inputs.lifespan }}" \
           "${{ inputs.wait }}" \
           "${{ inputs.no-slack }}" \
+          "${{ inputs.endpoint }}" \
+          "${{ inputs.insecure }}" \
           "${{ inputs.args }}"
