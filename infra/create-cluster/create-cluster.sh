@@ -3,7 +3,7 @@
 # Creates a cluster on infra.
 #
 
-set -euxo pipefail
+set -euo pipefail
 
 FLAVOR="$1"
 NAME="$2"
