@@ -33,7 +33,7 @@ fi
 
 function infractl_call() {
     local options=("--endpoint $ENDPOINT")
-    if [ "$INSECURE" = "true"]; then
+    if [ "$INSECURE" = "true" ]; then
         options+=("--insecure")
         gh_log notice "Using an insecure connection when connecting to infra endpoint $ENDPOINT."
     fi
