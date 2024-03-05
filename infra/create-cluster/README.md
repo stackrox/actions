@@ -10,15 +10,17 @@ permissions: {}
 
 ## All options
 
-| Input                 | Description                                                    | Default   |
-|-----------------------|----------------------------------------------------------------|-----------|
-| [token](#token)       | Infra token                                                    |           |
-| [flavor](#flavor)     | Cluster flavor                                                 |           |
-| [name](#name)         | Cluster name                                                   |           |
-| [lifespan](#lifespan) | Lifespan                                                       | `48h`     |
-| [args](#args)         | Arguments                                                      |           |
-| [wait](#wait)         | Whether to wait for the cluster readiness                      | `'false'` |
-| [no-slack](#no-slack) | Whether to to skip sending Slack messages for lifecycle events | `'false'` |
+| Input                 | Description                                                    | Default             |
+|-----------------------|----------------------------------------------------------------|---------------------|
+| [token](#token)       | Infra token                                                    |                     |
+| [flavor](#flavor)     | Cluster flavor                                                 |                     |
+| [name](#name)         | Cluster name                                                   |                     |
+| [lifespan](#lifespan) | Lifespan                                                       | `48h`               |
+| [args](#args)         | Arguments                                                      |                     |
+| [wait](#wait)         | Whether to wait for the cluster readiness                      | `'false'`           |
+| [no-slack](#no-slack) | Whether to to skip sending Slack messages for lifecycle events | `'false'`           |
+| [endpoint](#endpoint) | URL to infra deployment                                        | `infra.rox.systems` |
+| [insecure](#insecure) | Whether to allow insecure connections to infra deployment      | `'false'`           |
 
 ### Detailed options
 
@@ -52,6 +54,14 @@ Default value: `'false'`
 
 Default value: `'false'`
 
+#### endpoint
+
+Default value: `infra.rox.systems`
+
+#### insecure
+
+Default value: `'false'`
+
 ## Usage
 
 ```yaml
@@ -69,4 +79,6 @@ jobs:
         lifespan: 48h
         args: main-image=quay.io/rhacs-eng/main:3.75.4
         wait: "false"
+        endpoint: localhost:8443
+        insecure: "true"
 ```
