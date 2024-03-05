@@ -32,12 +32,12 @@ if ! [[ "${CNAME}" =~ ${ALLOWED_NAMES} ]]; then
 fi
 
 function infractl_call() {
-    local options=("--endpoint" "$ENDPOINT")
+    local endpoint_options=("--endpoint" "$ENDPOINT")
     if [ "$INSECURE" = "true" ]; then
-        options+=("--insecure")
+        endpoint_options+=("--insecure")
         gh_log notice "Using an insecure connection when connecting to infra endpoint $ENDPOINT."
     fi
-    infractl "${options[@]}" "$@"
+    infractl "${endpoint_options[@]}" "$@"
 }
 
 function cluster_info() {
