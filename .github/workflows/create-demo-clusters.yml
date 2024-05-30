@@ -49,7 +49,7 @@ env:
 
 jobs:
   properties:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       slack-channel: ${{ fromJSON(format('["{0}","{1}"]', steps.fetch.outputs.dry-slack-channel, steps.fetch.outputs.slack-channel))[inputs.dry-run != true] }}
       jira-projects: ${{ steps.fetch.outputs.jira-projects }}
@@ -62,7 +62,7 @@ jobs:
 
   wait-for-images:
     name: Wait for images on Quay.io
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: >- # Skip if no clusters are going to be created.
       inputs.create-k8s-cluster != false ||
       inputs.create-os4-cluster != false ||
@@ -90,7 +90,7 @@ jobs:
     name: Create k8s cluster
     needs: [wait-for-images]
     if: inputs.dry-run != true && inputs.create-k8s-cluster != false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -109,7 +109,7 @@ jobs:
   notify-k8s-cluster:
     name: Notify about K8s cluster creation
     needs: [properties, create-k8s-cluster]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       NAME: qa-k8s-${{ inputs.version }}
     steps:
@@ -152,7 +152,7 @@ jobs:
     name: Create OS4 cluster
     needs: [wait-for-images]
     if: inputs.dry-run == false && inputs.create-os4-cluster == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -171,7 +171,7 @@ jobs:
   notify-os4-cluster:
     name: Notify about Openshift cluster creation
     needs: [properties, create-os4-cluster]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       NAME: openshift-4-demo-${{ inputs.version }}
     steps:
@@ -217,7 +217,7 @@ jobs:
     if: >-
       inputs.dry-run != true &&
       inputs.create-long-cluster == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -241,7 +241,7 @@ jobs:
     if: >-
       inputs.dry-run != true &&
       inputs.create-long-cluster == true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -261,7 +261,7 @@ jobs:
   start-acs:
     name: Start ACS
     needs: [properties, create-long-running-cluster-for-fake-load]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     outputs:
       rox-password: ${{ steps.launch-central.outputs.rox-password }}
       central-ip: ${{ steps.launch-central.outputs.central-ip }}
@@ -356,7 +356,7 @@ jobs:
   start-secured-cluster:
     name: Start secured cluster
     needs: [properties, start-acs, create-long-running-cluster-for-real-load]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
       KUBECONFIG: artifacts/kubeconfig
@@ -431,7 +431,7 @@ jobs:
   start-kube-burner:
     name: Start kube-burner
     needs: [properties, start-secured-cluster]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
       KUBECONFIG: ${{ github.workspace }}/artifacts/kubeconfig
@@ -495,7 +495,7 @@ jobs:
         needs.create-long-running-cluster-for-fake-load.result == 'failure' ||
         needs.create-long-running-cluster-for-real-load.result == 'failure'
       )
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Post to Slack
         env:
