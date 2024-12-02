@@ -165,7 +165,7 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: openshift-4-demo
           name: openshift-4-demo-${{ inputs.version }}
-          args: central-services-helm-chart-version=${{ inputs.version }},secured-cluster-services-helm-chart-version=${{ inputs.version }}
+          args: central-services-helm-chart-version=${{ inputs.version }},secured-cluster-services-helm-chart-version=${{ inputs.version }},image-registry=quay.io/rhacs-eng
           lifespan: 48h
 
   notify-os4-cluster:
@@ -421,7 +421,7 @@ jobs:
             --set persistence.type="${STORAGE}"
             --set exposure.type="${MONITORING_LOAD_BALANCER}"
           )
-         
+
           helm dependency update "${COMMON_DIR}/../charts/monitoring"
           envsubst < "${COMMON_DIR}/../charts/monitoring/values.yaml" > "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
           helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COMMON_DIR}/../charts/monitoring" --values "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml" "${helm_args[@]}"
