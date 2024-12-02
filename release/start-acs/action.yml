@@ -41,7 +41,7 @@ runs:
         STORAGE: pvc # Backing storage
         STORAGE_CLASS: faster # Runs on an SSD type
         STORAGE_SIZE: "100" # 100G
-        MONITORING_SUPPORT: "true" # Runs monitoring
+        MONITORING_SUPPORT: "false" # Runs monitoring
         LOAD_BALANCER: lb
         ROX_ADMIN_USERNAME: admin
         PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
