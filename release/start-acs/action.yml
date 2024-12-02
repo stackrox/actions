@@ -35,6 +35,7 @@ runs:
   steps:
     - id: launch-central
       env:
+        ROX_IMAGE_FLAVOR: RHACS_BRANDING
         MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
         API_ENDPOINT: localhost:8000
         STORAGE: pvc # Backing storage
