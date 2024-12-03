@@ -8,8 +8,7 @@
 # export NAME=<cluster name>
 # export KUBECONFIG=/tmp/${NAME}/kubeconfig
 #
-# export ROX_PRODUCT_BRANDING=RHACS_BRANDING
-# export ROX_IMAGE_FLAVOR=rhacs
+# export ROX_IMAGE_FLAVOR=RHACS_BRANDING
 # export MAIN_IMAGE_TAG=<tag>
 # export API_ENDPOINT=localhost:8000
 # export STORAGE=pvc # Backing storage
@@ -25,9 +24,6 @@
 # export GITHUB_STEP_SUMMARY=delete-log-start-acs.txt
 
 set -euo pipefail
-
-echo "${ROX_PRODUCT_BRANDING}"
-echo "${ROX_IMAGE_FLAVOR}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
