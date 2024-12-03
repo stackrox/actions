@@ -33,8 +33,16 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Docker login to quay.io
+      uses: docker/login-action@v3
+      with:
+        registry: quay.io
+        REGISTRY_USERNAME: ${{ inputs.registry-username }}
+        REGISTRY_PASSWORD: ${{ inputs.registry-password }}
+
     - id: launch-central
       env:
+        # ROX_IMAGE_FLAVOR: rhacs not required, development_build default is quay.io/rhacs-eng, rhacs would be registry.redhat.io?
         ROX_PRODUCT_BRANDING: RHACS_BRANDING
         MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
         API_ENDPOINT: localhost:8000
