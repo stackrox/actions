@@ -37,8 +37,8 @@ runs:
       uses: docker/login-action@v3
       with:
         registry: quay.io
-        REGISTRY_USERNAME: ${{ inputs.registry-username }}
-        REGISTRY_PASSWORD: ${{ inputs.registry-password }}
+        username: ${{ inputs.registry-username }}
+        password: ${{ inputs.registry-password }}
 
     - id: launch-central
       env:
