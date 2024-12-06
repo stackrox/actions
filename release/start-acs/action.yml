@@ -33,8 +33,16 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Docker login to quay.io
+      uses: docker/login-action@v3
+      with:
+        registry: quay.io
+        username: ${{ inputs.registry-username }}
+        password: ${{ inputs.registry-password }}
+
     - id: launch-central
       env:
+        ROX_PRODUCT_BRANDING: RHACS_BRANDING
         MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
         API_ENDPOINT: localhost:8000
         STORAGE: pvc # Backing storage

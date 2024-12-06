@@ -8,6 +8,7 @@
 # export NAME=<cluster name>
 # export KUBECONFIG=/tmp/${NAME}/kubeconfig
 #
+# export ROX_IMAGE_FLAVOR=RHACS_BRANDING
 # export MAIN_IMAGE_TAG=<tag>
 # export API_ENDPOINT=localhost:8000
 # export STORAGE=pvc # Backing storage
