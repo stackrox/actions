@@ -21,6 +21,18 @@ inputs:
     description: The password used for the docker registry
     required: true
     default: ""
+  elasticsearch-url:
+    description: The url of the Elasticsearch instance that the metrics are sent to
+    required: false
+    default: ""
+  elasticsearch-user:
+    description: The username for the Elasticsearch instance
+    required: false
+    default: ""
+  elasticsearch-password:
+    description: The password for the Elasticsearch instance
+    required: false
+    default: ""
   stackrox-dir:
     description: Where the stackrox directory is located
     required: true
@@ -46,6 +58,9 @@ runs:
         PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
         REGISTRY_USERNAME: ${{ inputs.registry-username }}
         REGISTRY_PASSWORD: ${{ inputs.registry-password }}
+        ELASTICSEARCH_URL: ${{ inputs.elasticsearch-url }}
+        ELASTICSEARCH_USER: ${{ inputs.elasticsearch-user }}
+        ELASTICSEARCH_PASSWORD: ${{ inputs.elasticsearch-password }}
         KUBECONFIG: ${{ inputs.kubeconfig }}
         STACKROX_DIR: ${{ inputs.stackrox-dir }}
         NAME: ${{ inputs.name }}
