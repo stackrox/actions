@@ -281,7 +281,8 @@ jobs:
       - name: Check out stackrox code
         uses: actions/checkout@v4
         with:
-          ref: ${{inputs.version}}
+          ref: jv-ROX-28665-save-metrics-from-long-running-clusters-to-elasticsearch
+          #ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
