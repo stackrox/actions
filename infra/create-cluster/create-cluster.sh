@@ -12,9 +12,10 @@ WAIT="$4"
 NO_SLACK="$5"
 ENDPOINT="$6"
 INSECURE="$7"
+DESCRIPTION="${8}"
 
-if [ "$#" -gt 7 ]; then
-    ARGS="$8"
+if [ "$#" -gt 8 ]; then
+    ARGS="$9"
 else
     ARGS=""
 fi
@@ -123,6 +124,7 @@ done
 
 infractl_call create "$FLAVOR" "$CNAME" \
     --lifespan "$LIFESPAN" \
+    --description "$DESCRIPTION" \
     "${OPTIONS[@]}"
 
 infra_status_summary "$CNAME" "Cluster creation has been requested"

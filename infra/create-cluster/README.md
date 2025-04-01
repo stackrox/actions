@@ -20,7 +20,8 @@ permissions: {}
 | [wait](#wait)         | Whether to wait for the cluster readiness                      | `'false'`           |
 | [no-slack](#no-slack) | Whether to to skip sending Slack messages for lifecycle events | `'false'`           |
 | [endpoint](#endpoint) | URL to infra deployment                                        | `infra.rox.systems` |
-| [insecure](#insecure) | Whether to allow insecure connections to infra deployment      | `'false'`           |
+| [insecure](#insecure) | Whether to allow insecure connections to infra deployment      | `'false'
+| [description](#description) | Cluster description text      | `''` `           |
 
 ### Detailed options
 
@@ -62,6 +63,10 @@ Default value: `infra.rox.systems`
 
 Default value: `'false'`
 
+#### description
+
+Default value: `''`
+
 ## Usage
 
 ```yaml
@@ -81,4 +86,5 @@ jobs:
         wait: "false"
         endpoint: localhost:8443
         insecure: "true"
+        description: This is my test cluster
 ```
