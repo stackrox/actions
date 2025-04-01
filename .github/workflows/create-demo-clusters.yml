@@ -231,6 +231,7 @@ jobs:
           flavor: gke-default
           name: ${{ inputs.cluster-with-fake-load-name }}
           lifespan: 168h
+          description: "Long-running cluster (fake load) for testing ${{ inputs.version }}"
           args: nodes=5,machine-type=e2-standard-8
           wait: true
 
@@ -255,6 +256,7 @@ jobs:
           flavor: gke-default
           name: ${{ inputs.cluster-with-real-load-name }}
           lifespan: 168h
+          description: "Long-running cluster (real load) for testing ${{ inputs.version }}"
           args: nodes=5,machine-type=e2-standard-8
           wait: true
 
