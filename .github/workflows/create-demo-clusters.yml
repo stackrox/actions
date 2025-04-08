@@ -373,7 +373,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: ${{inputs.version}}
+          ref: jv-ROX-28628-long-running-cluster-with-real-external-ips
+          #ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v2"
         with:
