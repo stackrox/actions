@@ -283,7 +283,8 @@ jobs:
       - name: Check out stackrox code
         uses: actions/checkout@v4
         with:
-          ref: ${{inputs.version}}
+          ref: jv-ROX-28665-save-metrics-from-long-running-clusters-to-elasticsearch
+          #ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -311,6 +312,9 @@ jobs:
           pagerduty-integration-key: ${{ secrets.RELEASE_MANAGEMENT_PAGERDUTY_INTEGRATION_KEY }}
           registry-username: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+          elasticsearch-url: ${{ secrets.K6_ELASTICSEARCH_URL }}
+          elasticsearch-user: ${{ secrets.K6_ELASTICSEARCH_USER }}
+          elasticsearch-password: ${{ secrets.K6_ELASTICSEARCH_PASSWORD }}
           stackrox-dir: ${{ github.workspace }}
           name: ${{ env.NAME }}
 
