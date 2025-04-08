@@ -34,6 +34,10 @@ inputs:
     description: Whether to allow insecure connections to infra deployment
     required: false
     default: "false"
+  description:
+    description: Cluster description text
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -63,4 +67,5 @@ runs:
           "${{ inputs.no-slack }}" \
           "${{ inputs.endpoint }}" \
           "${{ inputs.insecure }}" \
+          "${{ inputs.description }}" \
           "${{ inputs.args }}"
