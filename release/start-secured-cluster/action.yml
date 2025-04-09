@@ -1,0 +1,65 @@
+name: Start the secured cluster
+description: Starts the secured cluster for the long running cluster
+inputs:
+  main-image-tag:
+    description: The image tag used for the main image and other images
+    required: true
+    default: ""
+  kubeconfig:
+    description: The kubeconfig file used to connect to kubernetes
+    required: true
+    default: ""
+  registry-username:
+    description: The username used for the docker registry
+    required: true
+    default: ""
+  registry-password:
+    description: The password used for the docker registry
+    required: true
+    default: ""
+  rox-admin-password:
+    description: The password for central
+    required: true
+    default: ""
+  central-ip:
+    description: The IP address for central
+    required: true
+    default: ""
+  stackrox-dir:
+    description: Where the stackrox directory is located
+    required: true
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Docker login to quay.io
+      uses: docker/login-action@v3
+      with:
+        registry: quay.io
+        username: ${{ inputs.registry-username }}
+        password: ${{ inputs.registry-password }}
+
+    - id: launch-secured-cluster
+      env:
+        ROX_PRODUCT_BRANDING: RHACS_BRANDING
+        MAIN_IMAGE_TAG: ${{inputs.main-image-tag}} # Release version, e.g. 3.63.0-rc.2.
+        REGISTRY_USERNAME: ${{ inputs.registry-username }}
+        REGISTRY_PASSWORD: ${{ inputs.registry-password }}
+        ROX_ADMIN_PASSWORD: ${{ inputs.rox-admin-password }}                      
+        ROX_ADMIN_USERNAME: admin
+        CENTRAL_IP: ${{ inputs.central-ip }}                                
+        CLUSTER_API_ENDPOINT: https://${{ inputs.central-ip }}:443          
+        API_ENDPOINT: ${{ inputs.central-ip }}:443                          
+        CLUSTER: secured-cluster
+        COLLECTION_METHOD: core_bpf                                                          
+        MONITORING_SUPPORT: "true"                                                           
+        STORAGE: pvc                                                                         
+        MONITORING_LOAD_BALANCER: none
+        KUBECONFIG: ${{ inputs.kubeconfig }}
+        COMMON_DIR: ${{ inputs.stackrox-dir }}/deploy/common  
+      run: |
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/start-secured-cluster.sh"
+      shell: bash

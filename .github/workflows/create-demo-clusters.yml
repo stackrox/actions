@@ -373,8 +373,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: jv-ROX-28628-long-running-cluster-with-real-external-ips
-          #ref: ${{inputs.version}}
+          ref: ${{inputs.version}}
           repository: stackrox/stackrox
       - uses: "google-github-actions/auth@v2"
         with:
@@ -395,43 +394,45 @@ jobs:
           password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
       - name: Launch secured cluster
         id: launch-secured-cluster
-        env:
-          ROX_PRODUCT_BRANDING: RHACS_BRANDING
-          MAIN_IMAGE_TAG: ${{inputs.version}} # Release version, e.g. 3.63.0-rc.2.
-          REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
-          REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
-          ROX_ADMIN_PASSWORD: ${{ needs.start-acs.outputs.rox-password }}
-          ROX_ADMIN_USERNAME: admin
-          CENTRAL_IP: ${{ needs.start-acs.outputs.central-ip }}
-          CLUSTER_API_ENDPOINT: https://${{ needs.start-acs.outputs.central-ip }}:443
-          API_ENDPOINT: ${{ needs.start-acs.outputs.central-ip }}:443
-          CLUSTER: secured-cluster
-          COLLECTION_METHOD: core_bpf
-          MONITORING_SUPPORT: "true"
-          STORAGE: pvc
-          MONITORING_LOAD_BALANCER: none
-          COMMON_DIR: ${{ github.workspace }}/deploy/common
-        run: |
-          # Create the collector-config ConfigMap in order to enable external IPs
-          kubectl create -f ./.actions/release/start-secured-cluster/collector-config.yaml
-
-          "${{ github.workspace }}/deploy/k8s/sensor.sh"
-          kubectl -n stackrox create secret generic access-rhacs \
-            --from-literal="username=${ROX_ADMIN_USERNAME}" \
-            --from-literal="password=${ROX_ADMIN_PASSWORD}" \
-            --from-literal="central_url=${CLUSTER_API_ENDPOINT}"
-
-          echo "Deploying Monitoring..."
-          helm_args=(
-            --set persistence.type="${STORAGE}"
-            --set exposure.type="${MONITORING_LOAD_BALANCER}"
-          )
-
-          helm dependency update "${COMMON_DIR}/../charts/monitoring"
-          envsubst < "${COMMON_DIR}/../charts/monitoring/values.yaml" > "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
-          helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COMMON_DIR}/../charts/monitoring" --values "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml" "${helm_args[@]}"
-          rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
-          echo "Deployed Monitoring..."
+        users: ./.actions/release/start-secured-cluster
+        with:
+#        env:
+#          ROX_PRODUCT_BRANDING: RHACS_BRANDING
+#          MAIN_IMAGE_TAG: ${{inputs.version}} # Release version, e.g. 3.63.0-rc.2.
+#          REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
+#          REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+#          ROX_ADMIN_PASSWORD: ${{ needs.start-acs.outputs.rox-password }}
+#          ROX_ADMIN_USERNAME: admin
+#          CENTRAL_IP: ${{ needs.start-acs.outputs.central-ip }}
+#          CLUSTER_API_ENDPOINT: https://${{ needs.start-acs.outputs.central-ip }}:443
+#          API_ENDPOINT: ${{ needs.start-acs.outputs.central-ip }}:443
+#          CLUSTER: secured-cluster
+#          COLLECTION_METHOD: core_bpf
+#          MONITORING_SUPPORT: "true"
+#          STORAGE: pvc
+#          MONITORING_LOAD_BALANCER: none
+#          COMMON_DIR: ${{ github.workspace }}/deploy/common
+#        run: |
+#          # Create the collector-config ConfigMap in order to enable external IPs
+#          kubectl create -f ./.actions/release/start-secured-cluster/collector-config.yaml
+#
+#          "${{ github.workspace }}/deploy/k8s/sensor.sh"
+#          kubectl -n stackrox create secret generic access-rhacs \
+#            --from-literal="username=${ROX_ADMIN_USERNAME}" \
+#            --from-literal="password=${ROX_ADMIN_PASSWORD}" \
+#            --from-literal="central_url=${CLUSTER_API_ENDPOINT}"
+#
+#          echo "Deploying Monitoring..."
+#          helm_args=(
+#            --set persistence.type="${STORAGE}"
+#            --set exposure.type="${MONITORING_LOAD_BALANCER}"
+#          )
+#
+#          helm dependency update "${COMMON_DIR}/../charts/monitoring"
+#          envsubst < "${COMMON_DIR}/../charts/monitoring/values.yaml" > "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
+#          helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COMMON_DIR}/../charts/monitoring" --values "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml" "${helm_args[@]}"
+#          rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
+#          echo "Deployed Monitoring..."
 
   start-kube-burner:
     name: Start kube-burner
