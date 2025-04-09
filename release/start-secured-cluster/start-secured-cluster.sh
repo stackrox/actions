@@ -3,14 +3,14 @@ set -eou pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Create the collector-config ConfigMap in order to enable external IPs
-kubectl create -f "${SCRIPT_DIR}/collector-config.yaml"
-
 "${STACKROX_DIR}/deploy/k8s/sensor.sh"
 kubectl -n stackrox create secret generic access-rhacs \
   --from-literal="username=${ROX_ADMIN_USERNAME}" \
   --from-literal="password=${ROX_ADMIN_PASSWORD}" \
   --from-literal="central_url=${CLUSTER_API_ENDPOINT}"
+
+# Create the collector-config ConfigMap in order to enable external IPs
+kubectl create -f "${SCRIPT_DIR}/collector-config.yaml"
 
 echo "Deploying Monitoring..."
 helm_args=(
