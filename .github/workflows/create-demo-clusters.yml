@@ -396,6 +396,13 @@ jobs:
         id: launch-secured-cluster
         users: ./.actions/release/start-secured-cluster
         with:
+          main-image-tag: ${{inputs.version}}
+          kubeconfig: ${{ env.KUBECONFIG }}
+          registry-username: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
+          registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+          stackrox-dir: ${{ github.workspace }}
+          rox-admin-password: ${{ needs.start-acs.outputs.rox-password }}
+          central-ip: ${{ needs.start-acs.outputs.central-ip }}
 #        env:
 #          ROX_PRODUCT_BRANDING: RHACS_BRANDING
 #          MAIN_IMAGE_TAG: ${{inputs.version}} # Release version, e.g. 3.63.0-rc.2.
