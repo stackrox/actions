@@ -375,6 +375,12 @@ jobs:
         with:
           ref: ${{inputs.version}}
           repository: stackrox/stackrox
+      - name: Checkout local action
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/actions
+          path: .actions
+          ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
