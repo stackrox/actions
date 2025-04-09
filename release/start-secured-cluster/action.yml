@@ -57,6 +57,7 @@ runs:
         STORAGE: pvc                                                                         
         MONITORING_LOAD_BALANCER: none
         KUBECONFIG: ${{ inputs.kubeconfig }}
+        STACKROX_DIR: ${{ inputs.stackrox-dir }}
         COMMON_DIR: ${{ inputs.stackrox-dir }}/deploy/common  
       run: |
         set -uo pipefail
