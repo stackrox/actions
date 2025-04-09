@@ -10,7 +10,7 @@
                                 "name": "MUTEX_WATCHDOG_TIMEOUT_SECS",
                                 "value": "0",
                                 "name": "ROX_EXTERNAL_IPS",
-                                "value": "true"
+                                "value": "true",
                                 "name": "ROX_NETWORK_GRAPH_EXTERNAL_IPS",
                                 "value": "true"
                             }
