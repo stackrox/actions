@@ -25,10 +25,6 @@ inputs:
     description: The IP address for central
     required: true
     default: ""
-  stackrox-dir:
-    description: Where the stackrox directory is located
-    required: true
-    default: ""
 
 runs:
   using: composite
@@ -56,8 +52,8 @@ runs:
         STORAGE: pvc                                                                         
         MONITORING_LOAD_BALANCER: none
         KUBECONFIG: ${{ inputs.kubeconfig }}
-        STACKROX_DIR: ${{ inputs.stackrox-dir }}
-        COMMON_DIR: ${{ inputs.stackrox-dir }}/deploy/common  
+        STACKROX_DIR: ${{ github.workspace }}
+        COMMON_DIR: ${{ github.workspace }}/deploy/common
       run: |
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
