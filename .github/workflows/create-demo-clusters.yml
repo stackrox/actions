@@ -364,15 +364,14 @@ jobs:
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
 
-      - name: Calculate expiration time
-        id: time
-        run: |
-          EXPIRATION_TIME="$(date -u -d "+3 hours" +"%Y-%m-%dT%H:%M:%SZ")"
-          echo "expiration_time=$EXPIRATION_TIME" >> "$GITHUB_OUTPUT"
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
+        with:
+          install_components: "gke-gcloud-auth-plugin"
 
       - name: Create VM instance
         run: |
-          gcloud compute instances create temp-kube-burner-vm-test-4 \
+          gcloud compute instances create temp-kube-burner-vm-test-5 \
             --zone=us-east1-b \
             --machine-type=e2-standard-2 \
             --image-family ubuntu-2204-lts \
