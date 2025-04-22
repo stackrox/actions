@@ -230,7 +230,7 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
           name: ${{ inputs.cluster-with-fake-load-name }}
-          lifespan: 168h
+          lifespan: 3h
           description: "Long-running cluster with fake workload (no Collector) for testing ${{ inputs.version }}"
           args: nodes=5,machine-type=e2-standard-8
           wait: true
@@ -255,7 +255,7 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
           name: ${{ inputs.cluster-with-real-load-name }}
-          lifespan: 168h
+          lifespan: 3h
           description: "Long-running cluster with real workload (with Collector and Berserker) for testing ${{ inputs.version }}"
           args: nodes=5,machine-type=e2-standard-8
           wait: true
@@ -354,6 +354,30 @@ jobs:
           sleep 20
           ./scale/launch_workload.sh np-load
           echo "Fake workload has been deployed to the long-running cluster" >> "$GITHUB_STEP_SUMMARY"
+
+  start-vm-for-kube-burner:
+    name: Start VM for Kube-burner
+    needs: [properties]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
+
+      - name: Calculate expiration time
+        id: time
+        run: |
+          EXPIRATION_TIME=$(date -u -d "+3 hours" +"%Y-%m-%dT%H:%M:%SZ")
+          echo "expiration_time=$EXPIRATION_TIME" >> $GITHUB_OUTPUT
+
+      - name: Create VM instance
+        run: |
+          gcloud compute instance create temp-kube-burner-vm-test \
+            --zone=us-east1-b \
+            --machine-type=e2-standard-2 \
+            --image-family ubuntu-2204-lts \
+            --project acs-team-sandbox \
+            --delete-time="${{ steps.time.output.expiration_time }}"
 
   start-secured-cluster:
     name: Start secured cluster
