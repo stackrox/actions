@@ -372,12 +372,14 @@ jobs:
 
       - name: Create VM instance
         run: |
-          gcloud compute instance create temp-kube-burner-vm-test \
+          gcloud compute instances create temp-kube-burner-vm-test-4 \
             --zone=us-east1-b \
             --machine-type=e2-standard-2 \
             --image-family ubuntu-2204-lts \
+            --image-project ubuntu-os-cloud \
             --project acs-team-sandbox \
-            --delete-time="${{ steps.time.outputs.expiration_time }}"
+            --max-run-duration 3h \
+            --instance-termination-action STOP
 
   start-secured-cluster:
     name: Start secured cluster
