@@ -367,8 +367,8 @@ jobs:
       - name: Calculate expiration time
         id: time
         run: |
-          EXPIRATION_TIME=$(date -u -d "+3 hours" +"%Y-%m-%dT%H:%M:%SZ")
-          echo "expiration_time=$EXPIRATION_TIME" >> $GITHUB_OUTPUT
+          EXPIRATION_TIME="$(date -u -d "+3 hours" +"%Y-%m-%dT%H:%M:%SZ")"
+          echo "expiration_time=$EXPIRATION_TIME" >> "$GITHUB_OUTPUT"
 
       - name: Create VM instance
         run: |
@@ -377,7 +377,7 @@ jobs:
             --machine-type=e2-standard-2 \
             --image-family ubuntu-2204-lts \
             --project acs-team-sandbox \
-            --delete-time="${{ steps.time.output.expiration_time }}"
+            --delete-time="${{ steps.time.outputs.expiration_time }}"
 
   start-secured-cluster:
     name: Start secured cluster
