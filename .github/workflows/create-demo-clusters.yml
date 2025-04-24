@@ -355,30 +355,30 @@ jobs:
           ./scale/launch_workload.sh np-load
           echo "Fake workload has been deployed to the long-running cluster" >> "$GITHUB_STEP_SUMMARY"
 
-  start-vm-for-kube-burner:
-    name: Start VM for Kube-burner
-    needs: [properties]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: "${{ secrets.GCP_SERVICE_ACCOUNT_STACKROX_CI }}"
+  #start-vm-for-kube-burner:
+  #  name: Start VM for Kube-burner
+  #  needs: [properties]
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - uses: "google-github-actions/auth@v2"
+  #      with:
+  #        credentials_json: "${{ secrets.GCP_SERVICE_ACCOUNT_STACKROX_CI }}"
 
-      - name: "Set up Cloud SDK"
-        uses: "google-github-actions/setup-gcloud@v2"
-        with:
-          install_components: "gke-gcloud-auth-plugin"
+  #    - name: "Set up Cloud SDK"
+  #      uses: "google-github-actions/setup-gcloud@v2"
+  #      with:
+  #        install_components: "gke-gcloud-auth-plugin"
 
-      - name: Create VM instance
-        run: |
-          gcloud compute instances create temp-kube-burner-vm-test-5 \
-            --zone=us-east1-b \
-            --machine-type=e2-standard-2 \
-            --image-family ubuntu-2204-lts \
-            --image-project ubuntu-os-cloud \
-            --project acs-team-sandbox \
-            --max-run-duration 3h \
-            --instance-termination-action STOP
+  #    - name: Create VM instance
+  #      run: |
+  #        gcloud compute instances create temp-kube-burner-vm-test-5 \
+  #          --zone=us-east1-b \
+  #          --machine-type=e2-standard-2 \
+  #          --image-family ubuntu-2204-lts \
+  #          --image-project ubuntu-os-cloud \
+  #          --project acs-team-sandbox \
+  #          --max-run-duration 3h \
+  #          --instance-termination-action STOP
 
   start-secured-cluster:
     name: Start secured cluster
@@ -439,7 +439,8 @@ jobs:
 
   start-kube-burner:
     name: Start kube-burner
-    needs: [properties, start-secured-cluster]
+    #needs: [properties, start-secured-cluster]
+    needs: [properties, create-long-running-cluster-for-real-load]
     runs-on: ubuntu-latest
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
@@ -454,11 +455,11 @@ jobs:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
           ref: ${{ inputs.kube-burner-config-ref }}
-      - name: Check out cloud-bulldozer/benchmark-operator code
-        run: |
-          git clone https://github.com/cloud-bulldozer/benchmark-operator.git
-          cd ${{ github.workspace }}/benchmark-operator
-          git checkout 081359d2a90ba556a603840b18015d10d05a89ec
+      #- name: Check out cloud-bulldozer/benchmark-operator code
+      #  run: |
+      #    git clone https://github.com/cloud-bulldozer/benchmark-operator.git
+      #    cd ${{ github.workspace }}/benchmark-operator
+      #    git checkout 081359d2a90ba556a603840b18015d10d05a89ec
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
@@ -485,6 +486,8 @@ jobs:
         with:
           kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
+          artifacts-dir: ${{ github.workspace }}/artifacts
+          infra-name: "${SECURED_CLUSTER_NAME//./-}"
 
   notify-failed-clusters:
     name: Notify about failed cluster creation
