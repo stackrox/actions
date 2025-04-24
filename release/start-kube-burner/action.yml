@@ -9,6 +9,14 @@ inputs:
     description: Where the benchmark-operator directory is located
     required: true
     default: ""
+  artifacts-dir:
+    description: Where the artifacts for connecting to kubernetes server are
+    required: true
+    default: ""
+  infra-name:
+    description: Where kube-burner is run from
+    required: true
+    default: ""
 
 runs:
   using: composite
@@ -16,6 +24,8 @@ runs:
     - env:
         KUBE_BURNER_CONFIG_DIR: ${{ inputs.kube-burner-config-dir }}
         BENCHMARK_OPERATOR_DIR: ${{ inputs.benchmark-operator-dir }}
+        ARTIFACTS_DIR: ${{ inputs.artifacts-dir }}
+        INFRA_NAME: ${{ inputs.infra-name }}
       run: |
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
