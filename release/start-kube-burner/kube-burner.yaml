@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-burner
+  namespace: kube-burner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-burner
+  template:
+    metadata:
+      labels:
+        app: kube-burner
+    spec:
+      containers:
+      - name: kube-burner
+        image: quay.io/kube-burner/kube-burner:v1.4.3
+        command: ["sleep"]
+        args: ["infinity"]
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/kube-burner"
+          readOnly: true
+        - name: metrics
+          mountPath: "/etc/kube-burner-metrics"
+        env:
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: ELASTICSEARCH_URL
+      volumes:
+      - name: config
+        configMap:
+          name: kube-burner-config
+      - name: metrics
+        configMap:
+          name: kube-burner-metrics-config
+          items:
+          - key: metrics.yml
+            path: metrics.yml
+      serviceAccount: kube-burner
+      serviceAccountName: kube-burner
+
