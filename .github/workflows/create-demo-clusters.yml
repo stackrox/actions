@@ -482,12 +482,12 @@ jobs:
         env:
           REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+          ELASTICSEARCH_URL: "https://${{ secrets.K6_ELASTICSEARCH_USER }}:${{ secrets.K6_ELASTICSEARCH_PASSWORD }}@${{ secrets.K6_ELASTICSEARCH_URL }}"
         uses: ./.actions/release/start-kube-burner
         with:
           kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
-          artifacts-dir: ${{ github.workspace }}/artifacts
-          infra-name: ${{ inputs.cluster-with-real-load-name }}
+
 
   notify-failed-clusters:
     name: Notify about failed cluster creation
