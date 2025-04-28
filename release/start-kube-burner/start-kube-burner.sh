@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # TODO(ROX-28948): When all versions using the cluster-density directory
 # are out of support, remove it here
 kube_burner_load_dir="${KUBE_BURNER_CONFIG_DIR}/berserker-load"
@@ -19,10 +21,10 @@ kube_burner_config_map="${KUBE_BURNER_CONFIG_DIR}/kube-burner-config.yml"
 
 kubectl create ns kube-burner
 
-kubectl create -f service-account.yaml
-kubectl create -f cluster-role-binding.yaml
+kubectl create -f "${DIR}"/service-account.yaml
+kubectl create -f "${DIR}"/cluster-role-binding.yaml
 kubectl create -f "$kube_burner_config_map"
-kubectl create -f metrics-full-config.yml
+kubectl create -f "${DIR}"/metrics-full-config.yml
 
 kubectl create secret generic kube-burner-secret --from-literal=ELASTICSEARCH_URL=$ELASTICSEARCH_URL --namespace=kube-burner
 
