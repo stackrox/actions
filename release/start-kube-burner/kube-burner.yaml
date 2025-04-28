@@ -19,14 +19,13 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
-            uuid="${TEST_NAME}-$(date +%s)" && \
             cd /etc/kube-burner && \
             config=config.yml && \
             metrics_profile=/etc/kube-burner-metrics/metrics.yml && \
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090" && \
             (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" || true) & \
             sleep 30m && \
-            kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --uuid="$uuid"
+            kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --uuid="$UUID"
         volumeMounts:
         - name: config
           mountPath: "/etc/kube-burner"
@@ -39,11 +38,11 @@ spec:
             secretKeyRef:
               name: kube-burner-secret
               key: ELASTICSEARCH_URL
-        - name: TEST_NAME
+        - name: UUID
           valueFrom:
             secretKeyRef:
               name: kube-burner-secret
-              key: TEST_NAME
+              key: UUID
       volumes:
       - name: config
         configMap:
