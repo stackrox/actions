@@ -439,11 +439,10 @@ jobs:
 
   start-kube-burner:
     name: Start kube-burner
-    #needs: [properties, start-secured-cluster]
-    needs: [properties, create-long-running-cluster-for-real-load]
+    needs: [properties, start-secured-cluster]
     runs-on: ubuntu-latest
     env:
-      SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
+      INFRA_NAME: ${{ inputs.cluster-with-real-load-name }}
       KUBECONFIG: ${{ github.workspace }}/artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
@@ -476,7 +475,7 @@ jobs:
       - name: Download artifacts
         id: artifacts
         run: |
-          infractl artifacts "${SECURED_CLUSTER_NAME//./-}" -d ${{ github.workspace }}/artifacts
+          infractl artifacts "${INFRA_NAME//./-}" -d ${{ github.workspace }}/artifacts
       - name: Launch kube-burner
         id: launch-kube-burner
         env:
