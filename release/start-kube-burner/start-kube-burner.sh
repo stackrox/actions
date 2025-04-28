@@ -28,4 +28,4 @@ kubectl create -f "${DIR}"/metrics-full-config.yml
 
 kubectl create secret generic kube-burner-secret --from-literal=ELASTICSEARCH_URL=$ELASTICSEARCH_URL --namespace=kube-burner
 
-kubectl create -f kube-burner.yaml
+kubectl create -f "${DIR}"/kube-burner.yaml
