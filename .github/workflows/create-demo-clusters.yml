@@ -454,11 +454,6 @@ jobs:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
           ref: ${{ inputs.kube-burner-config-ref }}
-      #- name: Check out cloud-bulldozer/benchmark-operator code
-      #  run: |
-      #    git clone https://github.com/cloud-bulldozer/benchmark-operator.git
-      #    cd ${{ github.workspace }}/benchmark-operator
-      #    git checkout 081359d2a90ba556a603840b18015d10d05a89ec
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
@@ -484,7 +479,52 @@ jobs:
           ELASTICSEARCH_URL: "https://${{ secrets.K6_ELASTICSEARCH_USER }}:${{ secrets.K6_ELASTICSEARCH_PASSWORD }}@${{ secrets.K6_ELASTICSEARCH_URL }}"
         uses: ./.actions/release/start-kube-burner
         with:
-          kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs
+          kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs/berserker-load
+          benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
+
+  start-kube-burner-for-central:
+    name: Start kube-burner for Central
+    needs: [properties, start-acs]
+    runs-on: ubuntu-latest
+    env:
+      INFRA_NAME: ${{ inputs.cluster-with-fake-load-name }}
+      KUBECONFIG: ${{ github.workspace }}/artifacts/kubeconfig
+      INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
+      USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
+    steps:
+      - uses: stackrox/actions/infra/install-infractl@v1
+      - name: Check out kube-burner config repository code
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/${{ inputs.kube-burner-config-repo }}
+          path: .kube-burner-config
+          ref: ${{ inputs.kube-burner-config-ref }}
+      - name: Checkout local action
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/actions
+          path: .actions
+          ref: ${{ inputs.workflow-ref }}
+      - uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SERVICE_ACCOUNT_STACKROX_CI }}"
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
+        with:
+          install_components: "gke-gcloud-auth-plugin"
+      - name: Download artifacts
+        id: artifacts
+        run: |
+          infractl artifacts "${INFRA_NAME//./-}" -d ${{ github.workspace }}/artifacts
+      - name: Launch kube-burner
+        id: launch-kube-burner
+        env:
+          REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+          ELASTICSEARCH_URL: "https://${{ secrets.K6_ELASTICSEARCH_USER }}:${{ secrets.K6_ELASTICSEARCH_PASSWORD }}@${{ secrets.K6_ELASTICSEARCH_URL }}"
+        uses: ./.actions/release/start-kube-burner
+        with:
+          kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs/no-load-only-elasticsearch
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
 
 
