@@ -17,7 +17,7 @@ secret_file="${kube_burner_load_dir}/secret.yml"
 sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file" 
 
 kube_burner_config_map="${KUBE_BURNER_CONFIG_DIR}/kube-burner-config.yml"
-"${KUBE_BURNER_CONFIG_DIR}"/combine-configs.sh "$kube_burner_load_dir" kube-burner-config kube-burner > "$kube_burner_config_map"
+"${DIR}"/combine-configs.sh "$kube_burner_load_dir" kube-burner-config kube-burner > "$kube_burner_config_map"
 
 kubectl create ns kube-burner
 
