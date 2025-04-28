@@ -283,7 +283,7 @@ jobs:
       - name: Check out stackrox code
         uses: actions/checkout@v4
         with:
-          ref: ${{inputs.version}}
+          ref: jv-ROX-28665-save-metrics-from-long-running-clusters-vm
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
@@ -400,7 +400,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: ${{inputs.version}}
+          ref: jv-ROX-28665-save-metrics-from-long-running-clusters-vm
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
