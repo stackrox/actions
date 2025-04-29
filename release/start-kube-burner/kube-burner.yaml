@@ -19,6 +19,7 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
+            set -x
             cd /etc/kube-burner && \
             config=config.yml && \
             metrics_profile=/etc/kube-burner-metrics/metrics.yml && \
