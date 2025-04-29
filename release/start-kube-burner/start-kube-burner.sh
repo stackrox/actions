@@ -33,7 +33,7 @@ kubectl create -f "$kube_burner_config_map"
 kubectl create -f "${DIR}"/metrics-full-config.yml
 
 
-uuid="${TEST_NAME}-$(date +%s)"
+uuid="${INFRA_NAME}-$(date +%s)"
 gh_log notice "Setting uuid to $uuid"
 
 kubectl create secret generic kube-burner-secret \
