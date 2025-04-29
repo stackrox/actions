@@ -33,6 +33,8 @@ gh_log notice "Setting uuid to $uuid"
 kubectl create secret generic kube-burner-secret \
     --from-literal=ELASTICSEARCH_URL="$ELASTICSEARCH_URL" \
     --from-literal=UUID="$uuid" \
+    --from-literal=METRICS_COLLECTION_TIME="$METRICS_COLLECTION_TIME" \
+    --from-literal=METRICS_TIME_STEP="5m" \
     --namespace=kube-burner
 
 kubectl create -f "${DIR}"/kube-burner.yaml
