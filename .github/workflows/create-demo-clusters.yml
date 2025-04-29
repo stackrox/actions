@@ -355,31 +355,6 @@ jobs:
           ./scale/launch_workload.sh np-load
           echo "Fake workload has been deployed to the long-running cluster" >> "$GITHUB_STEP_SUMMARY"
 
-  #start-vm-for-kube-burner:
-  #  name: Start VM for Kube-burner
-  #  needs: [properties]
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - uses: "google-github-actions/auth@v2"
-  #      with:
-  #        credentials_json: "${{ secrets.GCP_SERVICE_ACCOUNT_STACKROX_CI }}"
-
-  #    - name: "Set up Cloud SDK"
-  #      uses: "google-github-actions/setup-gcloud@v2"
-  #      with:
-  #        install_components: "gke-gcloud-auth-plugin"
-
-  #    - name: Create VM instance
-  #      run: |
-  #        gcloud compute instances create temp-kube-burner-vm-test-5 \
-  #          --zone=us-east1-b \
-  #          --machine-type=e2-standard-2 \
-  #          --image-family ubuntu-2204-lts \
-  #          --image-project ubuntu-os-cloud \
-  #          --project acs-team-sandbox \
-  #          --max-run-duration 3h \
-  #          --instance-termination-action STOP
-
   start-secured-cluster:
     name: Start secured cluster
     needs: [properties, start-acs, create-long-running-cluster-for-real-load]
@@ -437,8 +412,8 @@ jobs:
           rox-admin-password: ${{ needs.start-acs.outputs.rox-password }}
           central-ip: ${{ needs.start-acs.outputs.central-ip }}
 
-  start-kube-burner:
-    name: Start kube-burner
+  start-kube-burner-for-secured-cluster:
+    name: Start kube-burner for the secured cluster
     needs: [properties, start-secured-cluster]
     runs-on: ubuntu-latest
     env:
@@ -462,7 +437,7 @@ jobs:
           ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v2"
         with:
-          credentials_json: "${{ secrets.GCP_SERVICE_ACCOUNT_STACKROX_CI }}"
+          credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
       - name: "Set up Cloud SDK"
         uses: "google-github-actions/setup-gcloud@v2"
         with:
@@ -507,7 +482,7 @@ jobs:
           ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v2"
         with:
-          credentials_json: "${{ secrets.GCP_SERVICE_ACCOUNT_STACKROX_CI }}"
+          credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
       - name: "Set up Cloud SDK"
         uses: "google-github-actions/setup-gcloud@v2"
         with:
