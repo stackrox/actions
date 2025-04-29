@@ -29,10 +29,9 @@ spec:
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
             start="$(get_epoch_time)"
             (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" || true) &
-            sleep 30m
+            sleep "$METRICS_COLLECTION_TIME"
             end="$(get_epoch_time)"
-            step=5m
-            kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$step" --uuid="$UUID"
+            kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID"
             sleep infinity
         volumeMounts:
         - name: config
@@ -51,6 +50,16 @@ spec:
             secretKeyRef:
               name: kube-burner-secret
               key: UUID
+        - name: METRICS_COLLECTION_TIME
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: METRICS_COLLECTION_TIME
+        - name: METRICS_TIME_STEP
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: METRICS_TIME_STEP
       volumes:
       - name: config
         configMap:
