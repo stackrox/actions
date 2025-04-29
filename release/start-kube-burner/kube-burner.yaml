@@ -20,13 +20,20 @@ spec:
         args:
           - |
             set -x
+            get_epoch_time() {
+              curl -G "$prometheus_url"/api/v1/query --data-urlencode 'query=time()' | sed 's|.*||'
+            }
             cd /etc/kube-burner
             config=config.yml
             metrics_profile=/etc/kube-burner-metrics/metrics.yml
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
+            start="$(get_epoch_time)"
             (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" || true) &
             sleep 30m
-            kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --uuid="$UUID"
+            end="$(get_epoch_time)"
+            step=5m
+            kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$step" --uuid="$UUID"
+            sleep infinity
         volumeMounts:
         - name: config
           mountPath: "/etc/kube-burner"
