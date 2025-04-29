@@ -20,12 +20,12 @@ spec:
         args:
           - |
             set -x
-            cd /etc/kube-burner && \
-            config=config.yml && \
-            metrics_profile=/etc/kube-burner-metrics/metrics.yml && \
-            prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090" && \
-            (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" || true) & \
-            sleep 30m && \
+            cd /etc/kube-burner
+            config=config.yml
+            metrics_profile=/etc/kube-burner-metrics/metrics.yml
+            prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
+            (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" || true) &
+            sleep 30m
             kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --uuid="$UUID"
         volumeMounts:
         - name: config
