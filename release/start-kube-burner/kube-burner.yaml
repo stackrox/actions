@@ -21,7 +21,7 @@ spec:
           - |
             set -x
             get_epoch_time() {
-              curl -G "$prometheus_url"/api/v1/query --data-urlencode 'query=time()' | sed 's|.*||'
+              curl -G --silent http://monitoring.stackrox.svc.cluster.local:9090/api/v1/query --data-urlencode 'query=time()' | sed 's|.*\[||' | sed 's|\..*||'
             }
             cd /etc/kube-burner
             config=config.yml
