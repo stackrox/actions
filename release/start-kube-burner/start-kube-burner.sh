@@ -18,7 +18,7 @@ gh_log notice "Patching $secret_template"
 sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file" 
 
 kube_burner_config_map="${KUBE_BURNER_CONFIG_DIR_BASE}/kube-burner-config.yml"
-"${DIR}"/combine-configs.sh "$KUBE_BURNER_CONFIG_DIR" kube-burner-config kube-burner > "$kube_burner_config_map"
+"${DIR}"/create-combined-config-map.sh "$KUBE_BURNER_CONFIG_DIR" kube-burner-config kube-burner > "$kube_burner_config_map"
 
 kubectl create ns kube-burner
 
