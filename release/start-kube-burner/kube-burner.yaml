@@ -27,12 +27,13 @@ spec:
             config=config.yml
             metrics_profile=/etc/kube-burner-metrics/metrics.yml
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
-            start="$(get_epoch_time)"
             (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" || true) &
-            sleep "$METRICS_COLLECTION_TIME"
-            end="$(get_epoch_time)"
-            kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID"
-            sleep infinity
+            while true; do
+              start="$(get_epoch_time)"
+              sleep "$METRICS_COLLECTION_TIME"
+              end="$(get_epoch_time)"
+              kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID"
+            done
         volumeMounts:
         - name: config
           mountPath: "/etc/kube-burner"
