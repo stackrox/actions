@@ -1,10 +1,6 @@
 #!/usr/bin/bash
 set -eou pipefail
 
-input_dir=$1
-configmap_name=$2
-configmap_namespace=$3
-
 print_configmap_header() {
   configmap_name=$1
   configmap_namespace=$2
