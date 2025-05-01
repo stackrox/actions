@@ -17,18 +17,18 @@ secret_file="${KUBE_BURNER_CONFIG_DIR}/secret.yml"
 gh_log notice "Patching $secret_template"
 sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file" 
 
-kube_burner_config_map="${KUBE_BURNER_CONFIG_DIR_BASE}/kube-burner-config.yml"
-"${DIR}"/create-combined-config-map.sh "$KUBE_BURNER_CONFIG_DIR" kube-burner-config kube-burner > "$kube_burner_config_map"
-
-metrics_config_map="${KUBE_BURNER_CONFIG_DIR_BASE}/metrics-full-config.yml"
-"${DIR}"/convert-to-config-map.sh "${KUBE_BURNER_METRICS_FILE}" kube-burner-metrics-config kube-burner metrics.yml > "$metrics_config_map"
-
 kubectl create ns kube-burner
+
+kubectl create configmap --from-file="$KUBE_BURNER_CONFIG_DIR" kube-burner-config -n kube-burner
+
+temp_metrics_file="${DIR}"/metrics.yml
+cp "${KUBE_BURNER_METRICS_FILE}" "$temp_metrics_file"
+kubectl create configmap --from-file="$temp_metrics_file" kube-burner-metrics-config -n kube-burner
+
+kubectl create configmap --from-file="$KUBE_BURNER_METRICS_FILE" kube-burner-metrics-config -n kube-burner
 
 kubectl create -f "${DIR}"/service-account.yaml
 kubectl create -f "${DIR}"/cluster-role-binding.yaml
-kubectl create -f "$kube_burner_config_map"
-kubectl create -f "$metrics_config_map"
 
 uuid="${INFRA_NAME}-$(date +%s)"
 gh_log notice "Setting uuid to $uuid"
