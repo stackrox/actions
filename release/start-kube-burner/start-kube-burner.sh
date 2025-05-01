@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+#
+# Starts kube-burner which generates load for collector and scanner
+#
+# When running locally first have a kubeconfig file, deploy ACS, and set the following
+# environment variables
+#
+# export KUBECONFIG=<kubeconfig file>
+# export KUBE_BURNER_CONFIG_DIR=<kube_burner_config_dir>
+# export UUID=<uuid_for_kube_burner_run>
+# export KUBE_BURNER_METRICS_FILE=<path_to_metrics_collected_by_kube_burner>
+# export METRICS_COLLECTION_TIME=<how_frequently_metrics_are_sent>
+# export METRICS_TIME_STEP=<the_time_between_metrics>
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
