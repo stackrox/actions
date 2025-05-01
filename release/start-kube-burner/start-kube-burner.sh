@@ -20,12 +20,15 @@ sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_fi
 kube_burner_config_map="${KUBE_BURNER_CONFIG_DIR_BASE}/kube-burner-config.yml"
 "${DIR}"/create-combined-config-map.sh "$KUBE_BURNER_CONFIG_DIR" kube-burner-config kube-burner > "$kube_burner_config_map"
 
+metrics_config_map="${KUBE_BURNER_CONFIG_DIR_BASE}/metrics-full-config.yml"
+"${DIR}"/convert-to-config-map.sh "${KUBE_BURNER_METRICS_FILE}" "$configmap_name" "$configmap_namespace" metrics.yml > "$metrics_config_map"
+
 kubectl create ns kube-burner
 
 kubectl create -f "${DIR}"/service-account.yaml
 kubectl create -f "${DIR}"/cluster-role-binding.yaml
 kubectl create -f "$kube_burner_config_map"
-kubectl create -f "${DIR}"/metrics-full-config.yml
+kubectl create -f "$metrics_config_map"
 
 uuid="${INFRA_NAME}-$(date +%s)"
 gh_log notice "Setting uuid to $uuid"
