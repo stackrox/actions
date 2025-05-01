@@ -8,6 +8,7 @@ filename=${4:-}
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# shellcheck disable=SC1091
 source "${DIR}"/configmap-utils.sh
 
 print_configmap_header "$configmap_name" "$configmap_namespace"
