@@ -21,7 +21,7 @@ kube_burner_config_map="${KUBE_BURNER_CONFIG_DIR_BASE}/kube-burner-config.yml"
 "${DIR}"/create-combined-config-map.sh "$KUBE_BURNER_CONFIG_DIR" kube-burner-config kube-burner > "$kube_burner_config_map"
 
 metrics_config_map="${KUBE_BURNER_CONFIG_DIR_BASE}/metrics-full-config.yml"
-"${DIR}"/convert-to-config-map.sh "${KUBE_BURNER_METRICS_FILE}" "$configmap_name" "$configmap_namespace" metrics.yml > "$metrics_config_map"
+"${DIR}"/convert-to-config-map.sh "${KUBE_BURNER_METRICS_FILE}" kube-burner-metrics-config kube-burner metrics.yml > "$metrics_config_map"
 
 kubectl create ns kube-burner
 
