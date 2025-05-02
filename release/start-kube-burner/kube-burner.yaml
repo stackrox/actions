@@ -27,7 +27,7 @@ spec:
             config=config.yml
             metrics_profile=/etc/kube-burner-metrics/metrics.yml
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
-            (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" || true) &
+            (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --timeout=1000h || true) &
             while true; do
               start="$(get_epoch_time)"
               sleep "$METRICS_COLLECTION_TIME"
