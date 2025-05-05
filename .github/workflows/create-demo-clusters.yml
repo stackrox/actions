@@ -488,7 +488,7 @@ jobs:
           channel-id: ${{ needs.properties.outputs.slack-channel }}
           payload: >-
             {
-              "text": "Couldn't create test cluster. Check <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.workflow}}>" for details",
+              "text": "Couldn't create test cluster. Check <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|${{github.workflow}}> for details",
 
               "blocks": [
               { "type": "section", "text": { "type": "mrkdwn", "text":
