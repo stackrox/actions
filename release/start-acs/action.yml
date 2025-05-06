@@ -10,7 +10,7 @@ inputs:
     required: true
     default: ""
   pagerduty-integration-key:
-    description: The key that will be used to send pager duty allerts
+    description: The key that will be used to send pager duty alerts
     required: false
     default: ""
   registry-username:

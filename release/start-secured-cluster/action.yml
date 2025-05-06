@@ -9,6 +9,10 @@ inputs:
     description: The kubeconfig file used to connect to kubernetes
     required: true
     default: ""
+  pagerduty-integration-key:
+    description: The key that will be used to send pager duty alerts
+    required: false
+    default: ""
   registry-username:
     description: The username used for the docker registry
     required: true
@@ -44,6 +48,7 @@ runs:
         REGISTRY_PASSWORD: ${{ inputs.registry-password }}
         ROX_ADMIN_PASSWORD: ${{ inputs.rox-admin-password }}                      
         ROX_ADMIN_USERNAME: admin
+        PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
         CENTRAL_IP: ${{ inputs.central-ip }}                                
         CLUSTER_API_ENDPOINT: https://${{ inputs.central-ip }}:443          
         API_ENDPOINT: ${{ inputs.central-ip }}:443                          
