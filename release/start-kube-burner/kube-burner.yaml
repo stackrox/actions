@@ -19,7 +19,6 @@ spec:
         command: ["/bin/sh", "-c"]
         args:
           - |
-            set -x
             get_epoch_time() {
               curl -G --silent http://monitoring.stackrox.svc.cluster.local:9090/api/v1/query --data-urlencode 'query=time()' | sed 's|.*\[||' | sed 's|\..*||'
             }
