@@ -31,7 +31,7 @@ secret_template="${KUBE_BURNER_CONFIG_DIR}/secret_template.yml"
 secret_file="${kube_burner_load_dir}/secret.yml"
 
 gh_log notice "Patching $secret_template"
-sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file" 
+sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file"
 
 kubectl create configmap --from-file="$kube_burner_load_dir" kube-burner-config -n benchmark-operator
 
