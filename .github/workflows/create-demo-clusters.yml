@@ -424,6 +424,8 @@ jobs:
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
       KUBE_BURNER_METRICS_FILE: "./.kube-burner-config/tests/performance/scale/config/metrics-full.yml"
+      VERSION: ${{inputs.version}}
+      LOAD_TYPE: "real"
     steps:
       - uses: stackrox/actions/infra/install-infractl@v1
       - name: Check out kube-burner config repository code
@@ -470,6 +472,8 @@ jobs:
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
       KUBE_BURNER_METRICS_FILE: "./.kube-burner-config/tests/performance/scale/config/metrics-full.yml"
+      VERSION: ${{inputs.version}}
+      LOAD_TYPE: "fake"
     steps:
       - uses: stackrox/actions/infra/install-infractl@v1
       - name: Check out kube-burner config repository code
