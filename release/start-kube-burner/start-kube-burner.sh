@@ -18,14 +18,14 @@ KUBE_BURNER_CONFIG_DIR_BASE="$(dirname "$KUBE_BURNER_CONFIG_DIR")"
 
 # TODO(ROX-29223): Remove once old versions can use the new script
 # Test tags such as 0.0.d should be run with the new script
-if [[ "$VERSION" =~ ^4\.[0-7].* || "$VERSION" =~ ^3\.* ]]; then
+if [[ "$STACKROX_VERSION" =~ ^4\.[0-7].* || "$STACKROX_VERSION" =~ ^3\.* ]]; then
   # Don't start kube-burner for the cluster with fake data generation for older versions
   if [[ "$LOAD_TYPE" =~ "fake" ]]; then
-    gh_log notice "Not running kube-burner for the cluster with fake workload for old version $VERSION"
+    gh_log notice "Not running kube-burner for the cluster with fake workload for old version $STACKROX_VERSION"
     exit 0
   fi
   export KUBE_BURNER_CONFIG_DIR="$KUBE_BURNER_CONFIG_DIR_BASE"
-  gh_log notice "Using old scripts for old version $VERSION"
+  gh_log notice "Using old scripts for old version $STACKROX_VERSION"
   "${DIR}"/old-start-kube-burner.sh
   exit 0
 fi
