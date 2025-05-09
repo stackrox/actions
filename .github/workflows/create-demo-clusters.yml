@@ -434,6 +434,12 @@ jobs:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
           ref: ${{ inputs.kube-burner-config-ref }}
+      # TODO(ROX-29223): Remove once old versions don't use the benchmark-operator
+      - name: Check out cloud-bulldozer/benchmark-operator code
+        run: |
+          git clone https://github.com/cloud-bulldozer/benchmark-operator.git
+          cd ${{ github.workspace }}/benchmark-operator
+          git checkout 081359d2a90ba556a603840b18015d10d05a89ec
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
