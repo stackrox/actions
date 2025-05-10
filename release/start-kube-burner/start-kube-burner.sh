@@ -57,7 +57,7 @@ kubectl create -f "${DIR}"/service-account.yaml
 kubectl create -f "${DIR}"/cluster-role-binding.yaml
 
 uuid="${INFRA_NAME}-$(date +%s)"
-gh_log notice "Setting uuid to $uuid"
+gh_summary "Setting uuid to $uuid"
 
 kubectl create secret generic kube-burner-secret \
     --from-literal=ELASTICSEARCH_URL="$ELASTICSEARCH_URL" \
