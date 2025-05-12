@@ -31,7 +31,8 @@ if [[ "$STACKROX_VERSION" =~ ^4\.[0-7]\..* || "$STACKROX_VERSION" =~ ^3\..* ]]; 
 fi
 
 # TODO(ROX-28948): When all versions using the cluster-density directory
-# are out of support, remove it from here
+# are out of support, remove it from here. The last version to use the
+# cluster-density directory was 4.7.
 if [ ! -d "$KUBE_BURNER_CONFIG_DIR" ]; then
   KUBE_BURNER_CONFIG_DIR="${KUBE_BURNER_CONFIG_DIR_BASE}/cluster-density"
 fi
