@@ -516,7 +516,6 @@ jobs:
           kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs/no-load-only-elasticsearch
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
 
-
   notify-failed-clusters:
     name: Notify about failed cluster creation
     needs:

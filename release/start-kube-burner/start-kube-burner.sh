@@ -18,7 +18,7 @@ KUBE_BURNER_CONFIG_DIR_BASE="$(dirname "$KUBE_BURNER_CONFIG_DIR")"
 
 # TODO(ROX-29223): Remove once old versions can use the new script
 # Test tags such as 0.0.d should be run with the new script
-if [[ "$STACKROX_VERSION" =~ ^4\.[0-7].* || "$STACKROX_VERSION" =~ ^3\.* ]]; then
+if [[ "$STACKROX_VERSION" =~ ^4\.[0-7]\..* || "$STACKROX_VERSION" =~ ^3\..* ]]; then
   # Don't start kube-burner for the cluster with fake data generation for older versions
   if [[ "$LOAD_TYPE" =~ "fake" ]]; then
     gh_log notice "Not running kube-burner for the cluster with fake workload for old version $STACKROX_VERSION"
@@ -57,7 +57,7 @@ kubectl create -f "${DIR}"/service-account.yaml
 kubectl create -f "${DIR}"/cluster-role-binding.yaml
 
 uuid="${INFRA_NAME}-$(date +%s)"
-gh_summary "Setting uuid to $uuid"
+gh_summary "Setting cluster uuid in Elasticsearch to $uuid"
 
 kubectl create secret generic kube-burner-secret \
     --from-literal=ELASTICSEARCH_URL="$ELASTICSEARCH_URL" \
