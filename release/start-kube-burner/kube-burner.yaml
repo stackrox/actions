@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-burner
+  namespace: kube-burner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kube-burner
+  template:
+    metadata:
+      labels:
+        app: kube-burner
+    spec:
+      containers:
+      - name: kube-burner
+        image: quay.io/kube-burner/kube-burner:v1.4.3
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            get_epoch_time() {
+              curl -G --silent http://monitoring.stackrox.svc.cluster.local:9090/api/v1/query --data-urlencode 'query=time()' | sed 's|.*\[||' | sed 's|\..*||'
+            }
+            cd /etc/kube-burner
+            config=config.yml
+            metrics_profile=/etc/kube-burner-metrics/metrics.yml
+            prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
+            (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --timeout=1000h || true) &
+            while true; do
+              start="$(get_epoch_time)"
+              sleep "$METRICS_COLLECTION_TIME"
+              end="$(get_epoch_time)"
+              kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID"
+            done
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/kube-burner"
+          readOnly: true
+        - name: metrics
+          mountPath: "/etc/kube-burner-metrics"
+        env:
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: ELASTICSEARCH_URL
+        - name: UUID
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: UUID
+        - name: METRICS_COLLECTION_TIME
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: METRICS_COLLECTION_TIME
+        - name: METRICS_TIME_STEP
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: METRICS_TIME_STEP
+      volumes:
+      - name: config
+        configMap:
+          name: kube-burner-config
+      - name: metrics
+        configMap:
+          name: kube-burner-metrics-config
+          items:
+          - key: metrics.yml
+            path: metrics.yml
+      serviceAccount: kube-burner
+      serviceAccountName: kube-burner
+

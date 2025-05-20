@@ -46,6 +46,8 @@ env:
   GH_TOKEN: ${{ github.token }}
   GH_NO_UPDATE_NOTIFIER: 1
   TIMEOUT_WAIT_FOR_IMAGES_SECONDS: 3600
+  LONG_RUNNING_CLUSTER_LIFESPAN: "168h"
+  METRICS_COLLECTION_TIME: "30m"
 
 jobs:
   properties:
@@ -230,7 +232,7 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
           name: ${{ inputs.cluster-with-fake-load-name }}
-          lifespan: 168h
+          lifespan: ${{ env.LONG_RUNNING_CLUSTER_LIFESPAN }}
           description: "Long-running cluster with fake workload (no Collector) for testing ${{ inputs.version }}"
           args: nodes=5,machine-type=e2-standard-8
           wait: true
@@ -255,7 +257,7 @@ jobs:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: gke-default
           name: ${{ inputs.cluster-with-real-load-name }}
-          lifespan: 168h
+          lifespan: ${{ env.LONG_RUNNING_CLUSTER_LIFESPAN }}
           description: "Long-running cluster with real workload (with Collector and Berserker) for testing ${{ inputs.version }}"
           args: nodes=5,machine-type=e2-standard-8
           wait: true
@@ -412,15 +414,18 @@ jobs:
           rox-admin-password: ${{ needs.start-acs.outputs.rox-password }}
           central-ip: ${{ needs.start-acs.outputs.central-ip }}
 
-  start-kube-burner:
-    name: Start kube-burner
+  start-kube-burner-for-secured-cluster:
+    name: Start kube-burner for the secured cluster
     needs: [properties, start-secured-cluster]
     runs-on: ubuntu-latest
     env:
-      SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
+      INFRA_NAME: ${{ inputs.cluster-with-real-load-name }}
       KUBECONFIG: ${{ github.workspace }}/artifacts/kubeconfig
       INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
       USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
+      KUBE_BURNER_METRICS_FILE: "./.kube-burner-config/tests/performance/scale/config/metrics-full.yml"
+      STACKROX_VERSION: ${{inputs.version}}
+      LOAD_TYPE: "real"
     steps:
       - uses: stackrox/actions/infra/install-infractl@v1
       - name: Check out kube-burner config repository code
@@ -429,6 +434,7 @@ jobs:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
           ref: ${{ inputs.kube-burner-config-ref }}
+      # TODO(ROX-29223): Remove once old versions don't use the benchmark-operator
       - name: Check out cloud-bulldozer/benchmark-operator code
         run: |
           git clone https://github.com/cloud-bulldozer/benchmark-operator.git
@@ -450,15 +456,64 @@ jobs:
       - name: Download artifacts
         id: artifacts
         run: |
-          infractl artifacts "${SECURED_CLUSTER_NAME//./-}" -d ${{ github.workspace }}/artifacts
+          infractl artifacts "${INFRA_NAME//./-}" -d ${{ github.workspace }}/artifacts
       - name: Launch kube-burner
         id: launch-kube-burner
         env:
           REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+          ELASTICSEARCH_URL: "https://${{ secrets.K6_ELASTICSEARCH_USER }}:${{ secrets.K6_ELASTICSEARCH_PASSWORD }}@${{ secrets.K6_ELASTICSEARCH_URL }}"
         uses: ./.actions/release/start-kube-burner
         with:
-          kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs
+          kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs/berserker-load
+          benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
+
+  start-kube-burner-for-central:
+    name: Start kube-burner for Central
+    needs: [properties, start-acs]
+    runs-on: ubuntu-latest
+    env:
+      INFRA_NAME: ${{ inputs.cluster-with-fake-load-name }}
+      KUBECONFIG: ${{ github.workspace }}/artifacts/kubeconfig
+      INFRA_TOKEN: ${{secrets.INFRA_TOKEN}}
+      USE_GKE_GCLOUD_AUTH_PLUGIN: "True"
+      KUBE_BURNER_METRICS_FILE: "./.kube-burner-config/tests/performance/scale/config/metrics-full.yml"
+      STACKROX_VERSION: ${{inputs.version}}
+      LOAD_TYPE: "fake"
+    steps:
+      - uses: stackrox/actions/infra/install-infractl@v1
+      - name: Check out kube-burner config repository code
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/${{ inputs.kube-burner-config-repo }}
+          path: .kube-burner-config
+          ref: ${{ inputs.kube-burner-config-ref }}
+      - name: Checkout local action
+        uses: actions/checkout@v4
+        with:
+          repository: stackrox/actions
+          path: .actions
+          ref: ${{ inputs.workflow-ref }}
+      - uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v2"
+        with:
+          install_components: "gke-gcloud-auth-plugin"
+      - name: Download artifacts
+        id: artifacts
+        run: |
+          infractl artifacts "${INFRA_NAME//./-}" -d ${{ github.workspace }}/artifacts
+      - name: Launch kube-burner
+        id: launch-kube-burner
+        env:
+          REGISTRY_USERNAME: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+          ELASTICSEARCH_URL: "https://${{ secrets.K6_ELASTICSEARCH_USER }}:${{ secrets.K6_ELASTICSEARCH_PASSWORD }}@${{ secrets.K6_ELASTICSEARCH_URL }}"
+        uses: ./.actions/release/start-kube-burner
+        with:
+          kube-burner-config-dir: ./.kube-burner-config/scripts/release-tools/kube-burner-configs/no-load-only-elasticsearch
           benchmark-operator-dir: ${{ github.workspace }}/benchmark-operator
 
   notify-failed-clusters:
