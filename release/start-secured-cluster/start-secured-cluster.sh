@@ -23,3 +23,5 @@ envsubst < "${COMMON_DIR}/../charts/monitoring/values.yaml" > "${COMMON_DIR}/../
 helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COMMON_DIR}/../charts/monitoring" --values "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml" "${helm_args[@]}"
 rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
 echo "Deployed Monitoring..."
+
+kubectl -n stackrox patch deploy/sensor --patch-file="${SCRIPT_DIR}/patch-monitoring.json"
