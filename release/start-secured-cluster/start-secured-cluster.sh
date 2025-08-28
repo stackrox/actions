@@ -24,4 +24,4 @@ helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COM
 rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
 echo "Deployed Monitoring..."
 
-kubectl -n stackrox patch deploy/sensor --patch-file="${SCRIPT_DIR}/patch-monitoring.json"
+kubectl -n stackrox patch deploy/monitoring --patch-file="${SCRIPT_DIR}/patch-monitoring.json"
