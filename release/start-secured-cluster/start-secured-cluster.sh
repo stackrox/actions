@@ -24,4 +24,8 @@ helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COM
 rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
 echo "Deployed Monitoring..."
 
-kubectl -n stackrox patch deploy/monitoring --patch-file="${SCRIPT_DIR}/patch-monitoring.json"
+#kubectl -n stackrox patch deploy/monitoring --patch-file="${SCRIPT_DIR}/patch-monitoring.json"
+
+# Replace the prometheus ConfigMap with one that won't scrape berserker containers
+kubectl -n stackrox delete configmap prometheus
+kubectl create -f ${SCRIPT_DIR}/prometheus.yaml
