@@ -53,9 +53,11 @@ data:
         relabel_configs:
           - action: labelmap
             regex: __meta_kubernetes_node_label_(.+)
-          - source_labels: [__meta_kubernetes_pod_container_name]
-            action: drop
+
+        metric_relabel_configs:
+          - source_labels: [container]
             regex: berserker
+            action: drop
 
       - job_name: stackrox
         tls_config:
