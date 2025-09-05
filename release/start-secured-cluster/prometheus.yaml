@@ -58,6 +58,9 @@ data:
           - source_labels: [container]
             regex: berserker
             action: drop
+          - source_labels: [namespace]
+            regex: berserker-*
+            action: drop
 
       - job_name: stackrox
         tls_config:
