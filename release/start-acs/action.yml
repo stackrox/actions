@@ -50,6 +50,7 @@ runs:
         STORAGE_SIZE: "100" # 100G
         MONITORING_SUPPORT: "true" # Runs monitoring
         LOAD_BALANCER: lb
+        SECURED_CLUSTER_AUTO_LOCK_PROCESS_BASELINES: "true"
         ROX_ADMIN_USERNAME: admin
         PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
         REGISTRY_USERNAME: ${{ inputs.registry-username }}
