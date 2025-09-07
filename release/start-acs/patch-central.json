@@ -9,20 +9,20 @@
                             {
                                 "name": "MUTEX_WATCHDOG_TIMEOUT_SECS",
                                 "value": "0"
-			    },
-			    {
+                            },
+                            {
                                 "name": "ROX_EXTERNAL_IPS",
                                 "value": "true"
-			    },
-			    {
+                            },
+                            {
                                 "name": "ROX_NETWORK_GRAPH_EXTERNAL_IPS",
                                 "value": "true"
                             },
-			    {
+                            {
                                 "name": "ROX_AUTOLOCK_PROCESS_BASELINES",
                                 "value": "true"
                             },
-			    {
+                            {
                                 "name": "ROX_BASELINE_GENERATION_DURATION",
                                 "value": "3m"
                             }
