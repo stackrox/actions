@@ -11,7 +11,7 @@
                                 "cpu": "1"
                             },
                             "limits": {
-                                "memory": "4Gi",
+                                "memory": "8Gi",
                                 "cpu": "1"
                             }
                         }
