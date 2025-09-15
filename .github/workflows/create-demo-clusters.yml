@@ -433,7 +433,7 @@ jobs:
         with:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
-          ref: ${{ inputs.kube-burner-config-ref }}
+          ref: jv-add-churn-to-berserker-load
       # TODO(ROX-29223): Remove once old versions don't use the benchmark-operator
       - name: Check out cloud-bulldozer/benchmark-operator code
         run: |
