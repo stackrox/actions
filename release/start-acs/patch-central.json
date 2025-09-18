@@ -19,7 +19,7 @@
                                 "value": "true"
                             },
                             {
-                                "name": "ROX_AUTOLOCK_PROCESS_BASELINES",
+                                "name": "ROX_AUTO_LOCK_PROCESS_BASELINES",
                                 "value": "true"
                             },
                             {
