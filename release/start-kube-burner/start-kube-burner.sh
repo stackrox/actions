@@ -35,7 +35,8 @@ kubectl create ns kube-burner
 kubectl create configmap --from-file="$KUBE_BURNER_CONFIG_DIR" kube-burner-config -n kube-burner
 
 temp_metrics_file="${DIR}"/metrics.yml
-cp "${KUBE_BURNER_METRICS_FILE}" "$temp_metrics_file"
+# TODO(ROX-31020): Update kube-burner to a version that can handle captureStart
+sed '/captureStart/d' "${KUBE_BURNER_METRICS_FILE}" > "$temp_metrics_file"
 kubectl create configmap --from-file="$temp_metrics_file" kube-burner-metrics-config -n kube-burner
 
 kubectl create configmap --from-file="$KUBE_BURNER_METRICS_FILE" kube-burner-metrics-config -n kube-burner
