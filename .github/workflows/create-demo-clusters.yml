@@ -433,7 +433,7 @@ jobs:
         with:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
-          ref: jv-ROX-28976-optimize-berserker-load-in-long-running-cluster
+          ref: ${{ inputs.kube-burner-config-ref }}
       # TODO(ROX-29223): Remove once old versions don't use the benchmark-operator
       - name: Check out cloud-bulldozer/benchmark-operator code
         run: |
