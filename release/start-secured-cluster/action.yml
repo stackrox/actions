@@ -59,6 +59,7 @@ runs:
         KUBECONFIG: ${{ inputs.kubeconfig }}
         STACKROX_DIR: ${{ github.workspace }}
         COMMON_DIR: ${{ github.workspace }}/deploy/common
+        SECURED_CLUSTER_AUTO_LOCK_PROCESS_BASELINES: "true"
       run: |
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
