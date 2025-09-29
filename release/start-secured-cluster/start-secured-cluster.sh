@@ -26,6 +26,6 @@ echo "Deployed Monitoring..."
 
 # Replace the prometheus ConfigMap with one that doesn't scrape as much info from berserker containers
 kubectl -n stackrox delete configmap prometheus
-kubectl create -f ${SCRIPT_DIR}/prometheus.yaml
+kubectl create -f "${SCRIPT_DIR}"/prometheus.yaml
 
 kubectl -n stackrox patch deploy/monitoring --patch-file="${SCRIPT_DIR}/patch-monitoring.json"
