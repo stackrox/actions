@@ -13,13 +13,20 @@ kubectl -n stackrox create secret generic access-rhacs \
 kubectl create -f "${SCRIPT_DIR}/collector-config.yaml"
 
 echo "Deploying Monitoring..."
+monitoring_values_file="${COMMON_DIR}/../charts/monitoring/values.yaml"
+yq -i '.resources.requests.memory = "8Gi"' "$monitoring_values_file"
+yq -i '.resources.limits.memory = "8Gi"' "$monitoring_values_file"
+
 helm_args=(
   --set persistence.type="${STORAGE}"
   --set exposure.type="${MONITORING_LOAD_BALANCER}"
 )
 
 helm dependency update "${COMMON_DIR}/../charts/monitoring"
-envsubst < "${COMMON_DIR}/../charts/monitoring/values.yaml" > "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
+envsubst < "$monitoring_values_file" > "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
 helm upgrade -n stackrox --install --create-namespace stackrox-monitoring "${COMMON_DIR}/../charts/monitoring" --values "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml" "${helm_args[@]}"
 rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
-echo "Deployed Monitoring..."
+
+# Replace the prometheus ConfigMap with one that doesn't scrape as much info from berserker containers
+kubectl -n stackrox delete configmap prometheus
+kubectl create -f "${SCRIPT_DIR}"/prometheus.yaml
