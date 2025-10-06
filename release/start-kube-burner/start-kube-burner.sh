@@ -39,8 +39,6 @@ temp_metrics_file="${DIR}"/metrics.yml
 sed '/captureStart/d' "${KUBE_BURNER_METRICS_FILE}" > "$temp_metrics_file"
 kubectl create configmap --from-file="$temp_metrics_file" kube-burner-metrics-config -n kube-burner
 
-kubectl create configmap --from-file="$KUBE_BURNER_METRICS_FILE" kube-burner-metrics-config -n kube-burner
-
 kubectl create -f "${DIR}"/service-account.yaml
 kubectl create -f "${DIR}"/cluster-role-binding.yaml
 
