@@ -71,7 +71,7 @@ jobs:
       inputs.create-long-cluster != false
     strategy:
       matrix:
-        image: [main, scanner, scanner-db, collector]
+        image: [main, scanner, scanner-db, scanner-v4, scanner-v4-db, collector]
     steps:
       - name: Checkout local action
         uses: actions/checkout@v4
