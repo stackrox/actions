@@ -30,6 +30,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
+if kubectl -n stackrox get deploy/central; then
+  gh_log error "Central is already running"
+  exit 1
+fi
+
 gh_log notice "Deploying central..."
 "${STACKROX_DIR}"/deploy/k8s/central.sh
 
