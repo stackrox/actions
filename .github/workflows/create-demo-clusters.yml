@@ -62,6 +62,31 @@ jobs:
           PROPERTIES_URL: /repos/${{ github.repository }}/contents/.github/properties?ref=${{ github.ref_name }}
         run: gh api -H "$ACCEPT_RAW" "$PROPERTIES_URL" >> "$GITHUB_OUTPUT"
 
+  parse-refs:
+    name: Parse git refs
+    runs-on: ubuntu-latest
+    outputs:
+      version-ref: ${{ steps.parse.outputs.version-ref }}
+      burner-ref: ${{ steps.parse.outputs.burner-ref }}
+    steps:
+      - name: Parse refs (extract SHA from git-describe format)
+        id: parse
+        run: |
+          parse_ref() {
+            local ref="$1"
+            if [[ "$ref" =~ -g([0-9a-f]+)$ ]]; then
+              ref="${BASH_REMATCH[1]}"
+              echo "Extracted short SHA from git-describe: ${ref}" >&2
+            fi
+            echo "$ref"
+          }
+
+          VERSION=$(parse_ref "${{ inputs.version }}")
+          echo "version-ref=${VERSION}" >> "$GITHUB_OUTPUT"
+
+          BURNER=$(parse_ref "${{ inputs.kube-burner-config-ref }}")
+          echo "burner-ref=${BURNER}" >> "$GITHUB_OUTPUT"
+
   wait-for-images:
     name: Wait for images on Quay.io
     runs-on: ubuntu-latest
@@ -264,7 +289,7 @@ jobs:
 
   start-acs:
     name: Start ACS
-    needs: [properties, create-long-running-cluster-for-fake-load]
+    needs: [properties, parse-refs, create-long-running-cluster-for-fake-load]
     runs-on: ubuntu-latest
     outputs:
       rox-password: ${{ steps.launch-central.outputs.rox-password }}
@@ -285,8 +310,13 @@ jobs:
       - name: Check out stackrox code
         uses: actions/checkout@v4
         with:
-          ref: ${{inputs.version}}
           repository: stackrox/stackrox
+          fetch-depth: 0
+      - name: Checkout specific ref
+        run: |
+          REF="${{ needs.parse-refs.outputs.version-ref }}"
+          FULL_SHA=$(git rev-parse "$REF")
+          git checkout "$FULL_SHA"
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
@@ -359,7 +389,7 @@ jobs:
 
   start-secured-cluster:
     name: Start secured cluster
-    needs: [properties, start-acs, create-long-running-cluster-for-real-load]
+    needs: [properties, parse-refs, start-acs, create-long-running-cluster-for-real-load]
     runs-on: ubuntu-latest
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
@@ -377,8 +407,13 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: ${{inputs.version}}
           repository: stackrox/stackrox
+          fetch-depth: 0
+      - name: Checkout specific ref
+        run: |
+          REF="${{ needs.parse-refs.outputs.version-ref }}"
+          FULL_SHA=$(git rev-parse "$REF")
+          git checkout "$FULL_SHA"
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
@@ -416,7 +451,7 @@ jobs:
 
   start-kube-burner-for-secured-cluster:
     name: Start kube-burner for the secured cluster
-    needs: [properties, start-secured-cluster]
+    needs: [properties, parse-refs, start-secured-cluster]
     runs-on: ubuntu-latest
     env:
       INFRA_NAME: ${{ inputs.cluster-with-real-load-name }}
@@ -433,7 +468,13 @@ jobs:
         with:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
-          ref: ${{ inputs.kube-burner-config-ref }}
+          fetch-depth: 0
+      - name: Checkout specific ref
+        working-directory: .kube-burner-config
+        run: |
+          REF="${{ needs.parse-refs.outputs.burner-ref }}"
+          FULL_SHA=$(git rev-parse "$REF")
+          git checkout "$FULL_SHA"
       # TODO(ROX-29223): Remove once old versions don't use the benchmark-operator
       - name: Check out cloud-bulldozer/benchmark-operator code
         run: |
@@ -470,7 +511,7 @@ jobs:
 
   start-kube-burner-for-central:
     name: Start kube-burner for Central
-    needs: [properties, start-acs]
+    needs: [properties, parse-refs, start-acs]
     runs-on: ubuntu-latest
     env:
       INFRA_NAME: ${{ inputs.cluster-with-fake-load-name }}
@@ -487,7 +528,13 @@ jobs:
         with:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
-          ref: ${{ inputs.kube-burner-config-ref }}
+          fetch-depth: 0
+      - name: Checkout specific ref
+        working-directory: .kube-burner-config
+        run: |
+          REF="${{ needs.parse-refs.outputs.burner-ref }}"
+          FULL_SHA=$(git rev-parse "$REF")
+          git checkout "$FULL_SHA"
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
