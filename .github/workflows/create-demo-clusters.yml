@@ -70,6 +70,9 @@ jobs:
       burner-ref: ${{ steps.parse.outputs.burner-ref }}
     steps:
       - name: Parse refs (extract SHA from git-describe format)
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_KUBE_BURNER_VERSION: ${{ inputs.kube-burner-config-ref }}
         id: parse
         run: |
           parse_ref() {
@@ -81,10 +84,10 @@ jobs:
             echo "$ref"
           }
 
-          VERSION=$(parse_ref "${{ inputs.version }}")
+          VERSION=$(parse_ref "$INPUT_VERSION")
           echo "version-ref=${VERSION}" >> "$GITHUB_OUTPUT"
 
-          BURNER=$(parse_ref "${{ inputs.kube-burner-config-ref }}")
+          BURNER=$(parse_ref "$INPUT_KUBE_BURNER_VERSION")
           echo "burner-ref=${BURNER}" >> "$GITHUB_OUTPUT"
 
   wait-for-images:
