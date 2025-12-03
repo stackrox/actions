@@ -75,8 +75,13 @@ jobs:
           INPUT_KUBE_BURNER_VERSION: ${{ inputs.kube-burner-config-ref }}
         id: parse
         run: |
+          set -euo pipefail
           parse_ref() {
             local ref="$1"
+            if [[ -z "$ref" ]]; then
+              echo "Error: Empty ref provided" >&2
+              exit 1
+           fi
             if [[ "$ref" =~ -g([0-9a-f]+)$ ]]; then
               ref="${BASH_REMATCH[1]}"
               echo "Extracted short SHA from git-describe: ${ref}" >&2
