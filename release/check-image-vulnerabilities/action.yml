@@ -49,7 +49,6 @@ runs:
         central-token: ${{ env.ROX_API_TOKEN }}
 
     - name: Scan image and check for vulnerabilities
-      id: scan
       shell: bash
       run: |
         RESULT=$(roxctl image scan --output=json --force \
