@@ -5,7 +5,12 @@ top_dir="$(git rev-parse --show-toplevel)"
 pushd "$top_dir"
 
 if command -v actionlint > /dev/null; then
-    actionlint
+    IGNORE_PATTERNS=(
+        # Newer actionlint versions complain about our use of "inputs.dry-run == true" as array index.
+        'index access of array must be type of number but got "bool"'
+    )
+    actionlint \
+        -ignore "${IGNORE_PATTERNS[@]}"
 else
     echo "You need to install actionlint"
     exit 1
