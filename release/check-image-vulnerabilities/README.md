@@ -33,7 +33,7 @@ permissions:
 
 #### image
 
-Image name without the registry prefix. The action will automatically prepend `quay.io/rhacs-eng/` to construct the full image reference.
+Image name without the registry prefix. The action will automatically prepend `quay.io/` to construct the full image reference.
 
 Example: `"main"`
 
@@ -98,7 +98,7 @@ jobs:
     steps:
     - uses: stackrox/actions/release/check-image-vulnerabilities@v1
       with:
-        image: main
+        image: rhacs-eng/main
         version: 3.76.1
         summary-title: "Main Image Scan"
         quay-bearer-token: ${{ secrets.QUAY_BEARER_TOKEN }}
@@ -109,7 +109,7 @@ jobs:
 
 The action performs the following steps:
 
-1. **Wait for image**: Waits for `quay.io/rhacs-eng/$IMAGE:$VERSION` to be available on Quay.io
+1. **Wait for image**: Waits for `quay.io/$IMAGE:$VERSION` to be available on Quay.io
 2. **Login to Central**: Authenticates with ACS Central using OIDC
 3. **Install roxctl**: Installs the roxctl CLI tool
 4. **Scan image**: Scans the image for vulnerabilities

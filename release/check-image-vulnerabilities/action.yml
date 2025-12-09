@@ -30,11 +30,11 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: "Wait for image to be built: quay.io/rhacs-eng/${{ inputs.image }}:${{ inputs.version }}"
+    - name: "Wait for image to be built: quay.io/${{ inputs.image }}:${{ inputs.version }}"
       uses: stackrox/actions/release/wait-for-image@v1
       with:
         token: ${{ inputs.quay-bearer-token }}
-        image: rhacs-eng/${{ inputs.image }}:${{ inputs.version }}
+        image: ${{ inputs.image }}:${{ inputs.version }}
         limit: ${{ inputs.wait-limit }}
 
     - name: Central login
