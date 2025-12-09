@@ -12,7 +12,7 @@ inputs:
     description: "Maximum time to wait for image (seconds)"
     required: false
     default: "7200"
-  summary-title:
+  summary-prefix:
     description: "Title prefix for the GitHub step summary"
     required: true
   quay-bearer-token:
@@ -50,4 +50,5 @@ runs:
         "${{ github.action_path }}/../../common/common.sh" \
           "${{ github.action_path }}/check-image-vulnerabilities.sh" \
           "${{ inputs.image }}" \
-          "${{ inputs.version }}"
+          "${{ inputs.version }}" \
+          "${{ inputs.summary-prefix }}"

@@ -10,10 +10,12 @@ set -euo pipefail
 
 IMAGE="${1:-}"
 VERSION="${2:-}"
+SUMMARY_PREFIX="${3:-}"
 
 check_not_empty \
     IMAGE \
-    VERSION
+    VERSION \
+    SUMMARY_PREFIX
 
 function count_fixable_vulnerabilities() {
   local severity="$1"
@@ -90,7 +92,7 @@ for severity in CRITICAL IMPORTANT MODERATE; do
 done
 
 # Print the summary of the vulnerabilities.
-gh_summary "### $IMAGE:$VERSION"
+gh_summary "### $SUMMARY_PREFIX: $IMAGE:$VERSION"
 print_vulnerability_status vuln_counts fixable_counts
 
 # Print the vulnerabilities table in a collapsible section.
