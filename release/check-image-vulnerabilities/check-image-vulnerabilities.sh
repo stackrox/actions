@@ -107,16 +107,20 @@ function print_vulnerability_status() {
 # Prints a markdown table of the vulnerabilities, sorted by severity.
 function print_table() {
   local result_path="$1"
-    jq -r '
-        .result.vulnerabilities // []
-        | (["COMPONENT","VERSION","CVE","SEVERITY","FIXED_VERSION","LINK"] | @csv),
-        (["---","---","---","---","---","---"] | @csv),
-        (.[] | [.componentName // "", .componentVersion // "", .cveId // "", .cveSeverity // "", .componentFixedVersion // "", .cveInfo // ""] | @csv)
-    ' <(cat "$result_path") \
-    | sed 's/,/ | /g' \
-    | sed 's/^/| /' \
-    | sed 's/$/ |/' \
-    | sed 's/"//g'
+  # Convert jq CSV output to markdown table format:
+  # - Replace commas with markdown column separators
+  # - Add left and right borders to create table rows
+  # - Remove CSV quotes
+  jq -r '
+      .result.vulnerabilities // []
+      | (["COMPONENT","VERSION","CVE","SEVERITY","FIXED_VERSION","LINK"] | @csv),
+      (["---","---","---","---","---","---"] | @csv),
+      (.[] | [.componentName // "", .componentVersion // "", .cveId // "", .cveSeverity // "", .componentFixedVersion // "", .cveInfo // ""] | @csv)
+  ' <(cat "$result_path") \
+  | sed 's/,/ | /g' \
+  | sed 's/^/| /' \
+  | sed 's/$/ |/' \
+  | sed 's/"//g'
 }
 
 main "$IMAGE" "$VERSION" "$SUMMARY_PREFIX"
