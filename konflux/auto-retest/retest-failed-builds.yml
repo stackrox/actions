@@ -1,3 +1,7 @@
+# There are two kind of comments in the GitHub pull request: conversation comments and pull request review comments.
+# Konflux monitors `/retest` conversation comments for rerunning pipelines.
+# The conversation comments belongs to `/issues/` Github API.
+
 name: Retest Failed Konflux Builds
 
 on:
@@ -21,6 +25,8 @@ jobs:
 
     permissions:
       pull-requests: write
+      # We need `issues: write` permission to delete conversation comments.
+      # See top of the file comment for `issues` explanation.
       issues: write
 
     steps:
@@ -57,6 +63,8 @@ jobs:
 
     permissions:
       pull-requests: write
+      # We need `issues: write` permission to write conversation comments.
+      # See top of the file comment for `issues` and conversation comments explanation.
       issues: write
 
     steps:
