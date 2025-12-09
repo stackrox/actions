@@ -36,8 +36,8 @@ function main() {
 
   # shellcheck disable=SC2034
   for severity in CRITICAL IMPORTANT MODERATE; do
-    vuln_counts[$severity]=$(count_vulnerabilities "$severity" "$result_path")
-    fixable_counts[$severity]=$(count_fixable_vulnerabilities "$severity" "$result_path")
+    vuln_counts[$severity]="$(count_vulnerabilities "$severity" "$result_path")"
+    fixable_counts[$severity]="$(count_fixable_vulnerabilities "$severity" "$result_path")"
   done
 
   # Print the summary of the vulnerabilities.
@@ -47,9 +47,11 @@ function main() {
   # Print the vulnerabilities table in a collapsible section.
   # For the table to render correctly, we need to add a newline after the summary.
   gh_summary "<details><summary>Click to expand details</summary>\n"
-  gh_summary "$(print_table "$result_path")"
+  gh_summary "$(print_vulnerabilities_table "$result_path")"
   gh_summary "</details>"
 
+  # If the failure flag is produced by print_vulnerability_status,
+  # exit with a failure status.
   if [[ -f failure_flag ]]; then
     exit 1
   fi
@@ -87,6 +89,7 @@ function print_vulnerability_status() {
 
   if (( fixable_counts_ref[CRITICAL] > 0 || fixable_counts_ref[IMPORTANT] > 0 )); then
     local message="Found fixable critical or important vulnerabilities. See the step summary for details."
+
     gh_log "error" "$message"
     touch failure_flag
     gh_summary "Status: ❌"
@@ -105,7 +108,7 @@ function print_vulnerability_status() {
 }
 
 # Prints a markdown table of the vulnerabilities, sorted by severity.
-function print_table() {
+function print_vulnerabilities_table() {
   local result_path="$1"
   # Convert jq CSV output to markdown table format:
   # - Replace commas with markdown column separators
