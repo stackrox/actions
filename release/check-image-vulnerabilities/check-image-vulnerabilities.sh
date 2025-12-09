@@ -56,21 +56,20 @@ function print_vulnerability_status() {
   local -n vuln_counts_ref=$1
   local -n fixable_counts_ref=$2
 
-  for severity in CRITICAL IMPORTANT MODERATE; do
-    print_summary_message "$severity" "${vuln_counts_ref[$severity]}" "${fixable_counts_ref[$severity]}"
-  done
-
   if (( fixable_counts_ref[CRITICAL] > 0 || fixable_counts_ref[IMPORTANT] > 0 )); then
     gh_log "error" "Found fixable critical or important vulnerabilities. See the step summary for details."
     touch failure_flag
+    gh_summary "Status: ❌"
+  else
+    gh_summary "Status: ✅"
   fi
-}
 
-function print_summary_message() {
-  local severity="$1"
-  local cnt="$2"
-  local fixable_cnt="$3"
-  gh_summary "* Found $cnt $severity vulnerabilities, of which $fixable_cnt are fixable."
+  gh_summary ""
+  gh_summary "| Severity | Total | Fixable |"
+  gh_summary "| --- | --- | --- |"
+  for severity in CRITICAL IMPORTANT MODERATE; do
+    gh_summary "| $severity | ${vuln_counts_ref[$severity]} | ${fixable_counts_ref[$severity]} |"
+  done
 }
 
 result_path="scan-result.json"
@@ -96,7 +95,7 @@ print_vulnerability_status vuln_counts fixable_counts
 
 # Print the vulnerabilities table in a collapsible section.
 # For the table to render correctly, we need to add a newline after the summary.
-gh_summary "<details><summary>Vulnerabilities</summary>\n"
+gh_summary "<details><summary>Click to expand details</summary>\n"
 gh_summary "$(print_table "$result_path")"
 gh_summary "</details>"
 
