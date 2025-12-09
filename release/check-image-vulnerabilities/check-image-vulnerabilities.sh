@@ -90,10 +90,10 @@ function print_vulnerability_status() {
     gh_log "error" "$message"
     touch failure_flag
     gh_summary "Status: ❌"
-    gh_summary "$message"
+    gh_summary "> $message"
   else
     gh_summary "Status: ✅"
-    gh_summary "No fixable critical or important vulnerabilities found."
+    gh_summary "> No fixable critical or important vulnerabilities found."
   fi
 
   gh_summary ""
