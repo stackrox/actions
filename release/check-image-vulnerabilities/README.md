@@ -1,8 +1,8 @@
 # Check Image Vulnerabilities
 
-Scan a container image for vulnerabilities using `roxctl image scan` and fail if critical or important vulnerabilities are found.
+Scan a container image on quay.io for vulnerabilities using `roxctl image scan` and fail if fixable critical or important vulnerabilities are found.
 
-This action waits for an image to be available on Quay.io, scans it using roxctl, and generates a detailed vulnerability report in the GitHub step summary.
+This action waits for an image to be available on Quay.io, scans it using roxctl, and generates a detailed vulnerability report in the GitHub step summary, while making the raw report available as JSON in the workspace as `scan-result.json`.
 
 ## Required permissions
 
@@ -22,12 +22,6 @@ permissions:
 | [summary-title](#summary-title)           | Title prefix for the GitHub step summary           |           |
 | [quay-bearer-token](#quay-bearer-token)   | Quay.io bearer token for wait-for-image            |           |
 | [central-url](#central-url)               | ACS Central URL                                    |           |
-
-## Outputs
-
-| Output                                    | Description                           |
-| ----------------------------------------- | ------------------------------------- |
-| [scan-result-path](#scan-result-path)     | Path to the scan result JSON file     |
 
 ### Detailed options
 
@@ -75,14 +69,6 @@ Example: `"https://central.example.com"`
 
 Default value: unset
 
-### Detailed outputs
-
-#### scan-result-path
-
-Path to the JSON file containing the complete scan results from roxctl. This file can be used for further processing or artifact storage.
-
-Example: `"scan-result.json"`
-
 ## Usage
 
 The action requires credentials for ACS Central to be available. It integrates with the `stackrox/central-login@v1` action which uses OIDC authentication.
@@ -113,8 +99,8 @@ The action performs the following steps:
 2. **Login to Central**: Authenticates with ACS Central using OIDC
 3. **Install roxctl**: Installs the roxctl CLI tool
 4. **Scan image**: Scans the image for vulnerabilities
-5. **Check results**: Fails the workflow if any CRITICAL or IMPORTANT vulnerabilities are found
-6. **Generate report**: Outputs a formatted table of vulnerabilities to the GitHub step summary
+5. **Generate report**: Outputs a formatted table of vulnerabilities to the GitHub step summary
+6. **Check results**: Fails the workflow if any CRITICAL or IMPORTANT vulnerabilities are found
 
 If vulnerabilities are found, the step summary will include:
 
