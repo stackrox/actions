@@ -24,7 +24,7 @@ jobs:
       issues: write
 
     steps:
-      - name: Remove existing /retest comments on new commit
+      - name: Remove existing /retest comments as new commits were pushed
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
