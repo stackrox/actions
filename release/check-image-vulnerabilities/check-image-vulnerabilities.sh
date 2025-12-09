@@ -92,7 +92,7 @@ for severity in CRITICAL IMPORTANT MODERATE; do
 done
 
 # Print the summary of the vulnerabilities.
-gh_summary "### $SUMMARY_PREFIX: $IMAGE:$VERSION"
+gh_summary "### $SUMMARY_PREFIX $IMAGE:$VERSION"
 print_vulnerability_status vuln_counts fixable_counts
 
 # Print the vulnerabilities table in a collapsible section.
