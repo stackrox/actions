@@ -52,6 +52,20 @@ function print_table() {
     | sed 's/"//g'
 }
 
+function print_vulnerability_status() {
+  local -n vuln_counts_ref=$1
+  local -n fixable_counts_ref=$2
+
+  for severity in CRITICAL IMPORTANT MODERATE; do
+    print_summary_message "$severity" "${vuln_counts_ref[$severity]}" "${fixable_counts_ref[$severity]}"
+  done
+
+  if (( fixable_counts_ref[CRITICAL] > 0 || fixable_counts_ref[IMPORTANT] > 0 )); then
+    gh_log "error" "Found fixable critical or important vulnerabilities. See the step summary for details."
+    touch failure_flag
+  fi
+}
+
 function print_summary_message() {
   local severity="$1"
   local cnt="$2"
@@ -62,19 +76,23 @@ function print_summary_message() {
 result_path="scan-result.json"
 scan_image "$IMAGE" "$VERSION" "$result_path"
 
-CRITICAL_CNT=$(count_vulnerabilities "CRITICAL" "$result_path")
-CRITICAL_FIXABLE_CNT=$(count_fixable_vulnerabilities "CRITICAL" "$result_path")
+# Count the number of vulnerabilities and fixable vulnerabilities for each severity.
+# Use associative arrays to store counts by severity.
+# Arrays are used via nameref parameters in print_vulnerability_status function.
+# shellcheck disable=SC2034
+declare -A vuln_counts
+# shellcheck disable=SC2034
+declare -A fixable_counts
 
-IMPORTANT_CNT=$(count_vulnerabilities "IMPORTANT" "$result_path")
-IMPORTANT_FIXABLE_CNT=$(count_fixable_vulnerabilities "IMPORTANT" "$result_path")
+# shellcheck disable=SC2034
+for severity in CRITICAL IMPORTANT MODERATE; do
+  vuln_counts[$severity]=$(count_vulnerabilities "$severity" "$result_path")
+  fixable_counts[$severity]=$(count_fixable_vulnerabilities "$severity" "$result_path")
+done
 
-MODERATE_CNT=$(count_vulnerabilities "MODERATE" "$result_path")
-MODERATE_FIXABLE_CNT=$(count_fixable_vulnerabilities "MODERATE" "$result_path")
-
+# Print the summary of the vulnerabilities.
 gh_summary "### $IMAGE:$VERSION"
-print_summary_message "CRITICAL" "$CRITICAL_CNT" "$CRITICAL_FIXABLE_CNT"
-print_summary_message "IMPORTANT" "$IMPORTANT_CNT" "$IMPORTANT_FIXABLE_CNT"
-print_summary_message "MODERATE" "$MODERATE_CNT" "$MODERATE_FIXABLE_CNT"
+print_vulnerability_status vuln_counts fixable_counts
 
 # Print the vulnerabilities table in a collapsible section.
 # For the table to render correctly, we need to add a newline after the summary.
@@ -82,7 +100,6 @@ gh_summary "<details><summary>Vulnerabilities</summary>\n"
 gh_summary "$(print_table "$result_path")"
 gh_summary "</details>"
 
-if [[ "$CRITICAL_FIXABLE_CNT" -gt 0 || "$IMPORTANT_FIXABLE_CNT" -gt 0 ]]; then
-  gh_log "error" "Found fixable critical or important vulnerabilities. See the step summary for details."
+if [[ -f failure_flag ]]; then
   exit 1
 fi
