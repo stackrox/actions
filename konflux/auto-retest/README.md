@@ -33,7 +33,7 @@ jobs:
     with:
       max_retries: 3
       check_name_suffix: '-on-push'
-    uses: stackrox/actions/konflux/auto-retest/retest-failed-builds.yml@main
+    uses: stackrox/actions/konflux/auto-retest/retest-failed-builds.yml@v1
 ```
 
 ## Inputs
