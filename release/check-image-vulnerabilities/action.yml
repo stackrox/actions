@@ -1,5 +1,5 @@
 name: "Check Image Vulnerabilities"
-description: "Scan an image for vulnerabilities and fail if fixablecritical or important ones are found"
+description: "Scan an image for vulnerabilities and fail if fixable critical or important ones are found"
 
 inputs:
   image:
