@@ -86,11 +86,14 @@ function print_vulnerability_status() {
   local -n fixable_counts_ref=$2
 
   if (( fixable_counts_ref[CRITICAL] > 0 || fixable_counts_ref[IMPORTANT] > 0 )); then
-    gh_log "error" "Found fixable critical or important vulnerabilities. See the step summary for details."
+    local message="Found fixable critical or important vulnerabilities. See the step summary for details."
+    gh_log "error" "$message"
     touch failure_flag
     gh_summary "Status: ❌"
+    gh_summary "$message"
   else
     gh_summary "Status: ✅"
+    gh_summary "No fixable critical or important vulnerabilities found."
   fi
 
   gh_summary ""
