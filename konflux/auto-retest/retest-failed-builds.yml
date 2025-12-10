@@ -1,6 +1,6 @@
 # There are two kind of comments in the GitHub pull request: conversation comments and pull request review comments.
 # Konflux monitors `/retest` conversation comments for rerunning pipelines.
-# The conversation comments belongs to `/issues/` Github API.
+# The conversation comments belong to `/issues/` Github API.
 
 name: Retest Failed Konflux Builds
 
