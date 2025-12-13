@@ -1,4 +1,4 @@
-name: "Check Image Vulnerabilities"
+name: "Scan Image Vulnerabilities"
 description: "Scan an image for vulnerabilities and fail if fixable critical or important ones are found"
 
 inputs:
@@ -43,12 +43,12 @@ runs:
         central-endpoint: ${{ inputs.central-url }}
         central-token: ${{ env.ROX_API_TOKEN }}
 
-    - name: Scan image and check for vulnerabilities
+    - name: Scan image for fixable vulnerabilities
       shell: bash
       run: |
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/check-image-vulnerabilities.sh" \
+          "${{ github.action_path }}/scan-image-vulnerabilities.sh" \
           "${{ inputs.image }}" \
           "${{ inputs.version }}" \
           "${{ inputs.summary-prefix }}"

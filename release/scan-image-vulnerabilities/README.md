@@ -1,4 +1,4 @@
-# Check Image Vulnerabilities
+# Scan Image Vulnerabilities
 
 Scan a container image on quay.io for vulnerabilities using `roxctl image scan` and fail if fixable critical or important vulnerabilities are found.
 
@@ -84,7 +84,7 @@ jobs:
     permissions:
       id-token: write  # Required for ACS Central OIDC login
     steps:
-    - uses: stackrox/actions/release/check-image-vulnerabilities@v1
+    - uses: stackrox/actions/release/scan-image-vulnerabilities@v1
       with:
         image: rhacs-eng/main
         version: 3.76.1

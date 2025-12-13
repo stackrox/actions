@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Counts the number of fixable vulnerabilities in the scan result.
+# Scans an image for vulnerabilities and prints a summary of the vulnerabilities.
 #
 # Local run:
 #
-#  test/local-env.sh release/check-image-vulnerabilities/check-image-vulnerabilities.sh <image> <version>
+#  test/local-env.sh release/scan-image-vulnerabilities/scan-image-vulnerabilities.sh <image> <version> <summary-prefix>
 #
 set -euo pipefail
 
