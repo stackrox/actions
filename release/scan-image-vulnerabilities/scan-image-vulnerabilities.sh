@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Scans an image for vulnerabilities and prints a summary of the vulnerabilities.
-# For the purpose of this script, a vulnerability is a component in a version that is affected by a CVE.
+# For the purpose of this script, a vulnerability is an image component in a version that is affected by a CVE.
 #
 # Local run:
 #
