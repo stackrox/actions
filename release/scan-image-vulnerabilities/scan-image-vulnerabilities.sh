@@ -1,30 +1,24 @@
 #!/usr/bin/env bash
 #
 # Scans an image for vulnerabilities and prints a summary of the vulnerabilities.
+# For the purpose of this script, a vulnerability is a component in a version that is affected by a CVE.
 #
 # Local run:
 #
-#  test/local-env.sh release/scan-image-vulnerabilities/scan-image-vulnerabilities.sh <image> <version> <summary-prefix>
+#  test/local-env.sh release/scan-image-vulnerabilities/scan-image-vulnerabilities.sh <image> <summary-prefix>
 #
 set -euo pipefail
 
-IMAGE="${1:-}"
-VERSION="${2:-}"
-SUMMARY_PREFIX="${3:-}"
-
-check_not_empty \
-    IMAGE \
-    VERSION \
-    SUMMARY_PREFIX
-
 function main() {
-  local image="$1"
-  local version="$2"
-  local summary_prefix="$3"
+  IMAGE="${1:-}"
+  SUMMARY_PREFIX="${2:-}"
   local result_path="scan-result.json"
 
-  # Scan the image for vulnerabilities.
-  scan_image "$image" "$version" "$result_path"
+  check_not_empty \
+      IMAGE \
+      SUMMARY_PREFIX
+
+  scan_image "$IMAGE" "$result_path"
 
   # Count the number of vulnerabilities and fixable vulnerabilities for each severity.
   # Use associative arrays to store counts by severity.
@@ -35,13 +29,12 @@ function main() {
   declare -A fixable_counts
 
   # shellcheck disable=SC2034
-  for severity in CRITICAL IMPORTANT MODERATE; do
+  for severity in CRITICAL IMPORTANT MODERATE LOW; do
     vuln_counts[$severity]="$(count_vulnerabilities "$severity" "$result_path")"
     fixable_counts[$severity]="$(count_fixable_vulnerabilities "$severity" "$result_path")"
   done
 
-  # Print the summary of the vulnerabilities.
-  gh_summary "### $summary_prefix $image:$version"
+  gh_summary "### $SUMMARY_PREFIX $IMAGE"
   print_vulnerability_status vuln_counts fixable_counts
 
   # Print the vulnerabilities table in a collapsible section.
@@ -50,21 +43,21 @@ function main() {
   gh_summary "$(print_vulnerabilities_table "$result_path")"
   gh_summary "</details>"
 
-  # If the failure flag is produced by print_vulnerability_status,
-  # exit with a failure status.
-  if [[ -f failure_flag ]]; then
-    exit 1
-  fi
+  # Fail the build if any fixable critical or important vulnerabilities are found.
+  severities=( "CRITICAL" "IMPORTANT" )
+  for severity in "${severities[@]}"; do
+    if (( fixable_counts[$severity] > 0 )); then
+      exit 1
+    fi
+  done
 }
 
 # Scans the image for vulnerabilities.
 function scan_image() {
   local image="$1"
-  local version="$2"
-  local result_path="$3"
+  local result_path="$2"
   roxctl image scan --output=json --force \
-    --severity="MODERATE,IMPORTANT,CRITICAL" \
-    --image="quay.io/${image}:${version}" > "$result_path"
+    --image="${image}" | tee "$result_path"
   gh_output result-path "$result_path"
 }
 
@@ -88,10 +81,9 @@ function print_vulnerability_status() {
   local -n fixable_counts_ref=$2
 
   if (( fixable_counts_ref[CRITICAL] > 0 || fixable_counts_ref[IMPORTANT] > 0 )); then
-    local message="Found fixable critical or important vulnerabilities. See the step summary for details."
+    local message="Found fixable critical or important vulnerabilities."
 
-    gh_log "error" "$message"
-    touch failure_flag
+    gh_log "error" "$message See the step summary for details."
     gh_summary "Status: ❌"
     gh_summary "> $message"
   else
@@ -102,28 +94,22 @@ function print_vulnerability_status() {
   gh_summary ""
   gh_summary "| Severity | Total | Fixable |"
   gh_summary "| --- | --- | --- |"
-  for severity in CRITICAL IMPORTANT MODERATE; do
+  for severity in CRITICAL IMPORTANT MODERATE LOW; do
     gh_summary "| $severity | ${vuln_counts_ref[$severity]} | ${fixable_counts_ref[$severity]} |"
   done
 }
 
 # Prints a markdown table of the vulnerabilities, sorted by severity.
+# Each row contains left, right and column separators added by jq's join function.
 function print_vulnerabilities_table() {
   local result_path="$1"
-  # Convert jq CSV output to markdown table format:
-  # - Replace commas with markdown column separators
-  # - Add left and right borders to create table rows
-  # - Remove CSV quotes
   jq -r '
       .result.vulnerabilities // []
-      | (["COMPONENT","VERSION","CVE","SEVERITY","FIXED_VERSION","LINK"] | @csv),
-      (["---","---","---","---","---","---"] | @csv),
-      (.[] | [.componentName // "", .componentVersion // "", .cveId // "", .cveSeverity // "", .componentFixedVersion // "", .cveInfo // ""] | @csv)
-  ' <(cat "$result_path") \
-  | sed 's/,/ | /g' \
-  | sed 's/^/| /' \
-  | sed 's/$/ |/' \
-  | sed 's/"//g'
+      | sort_by({"CRITICAL":0,"IMPORTANT":1,"MODERATE":2,"LOW":3}[.cveSeverity] // 4)
+      | (["COMPONENT","VERSION","CVE","SEVERITY","FIXED_VERSION","LINK"] | "| " + join(" | ") + " |"),
+      (["---","---","---","---","---","---"] | "| " + join(" | ") + " |"),
+      (.[] | [.componentName // "", .componentVersion // "", .cveId // "", .cveSeverity // "", .componentFixedVersion // "", .cveInfo // ""] | "| " + join(" | ") + " |")
+  ' "$result_path"
 }
 
-main "$IMAGE" "$VERSION" "$SUMMARY_PREFIX"
+main "$@"

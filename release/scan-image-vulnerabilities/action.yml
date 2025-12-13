@@ -49,6 +49,5 @@ runs:
         set -uo pipefail
         "${{ github.action_path }}/../../common/common.sh" \
           "${{ github.action_path }}/scan-image-vulnerabilities.sh" \
-          "${{ inputs.image }}" \
-          "${{ inputs.version }}" \
+          "quay.io/${{ inputs.image }}:${{ inputs.version }}" \
           "${{ inputs.summary-prefix }}"
