@@ -30,10 +30,13 @@ on:
 
 jobs:
   retest-failed-builds:
-    with:
-      max_retries: 3
-      check_name_suffix: '-on-push'
-    uses: stackrox/actions/konflux/auto-retest/retest-failed-builds.yml@v1
+    runs-on: ubuntu-latest
+    steps:
+    - name: Retest failed builds
+      uses: stackrox/actions/konflux/auto-retest/retest-failed-builds.yml@v1
+      with:
+        max_retries: 3
+        check_name_suffix: '-on-push'
 ```
 
 ## Inputs
