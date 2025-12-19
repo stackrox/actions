@@ -65,7 +65,7 @@ function scan_image() {
 function count_vulnerabilities() {
   local severity="$1"
   local result_path="$2"
-  jq ".result.summary.$severity" "$result_path"
+  jq "[.result.vulnerabilities // [] | .[] | select(.cveSeverity == \"$severity\")] | length" "$result_path"
 }
 
 # Counts the number of fixable vulnerabilities for a given severity.
@@ -99,7 +99,7 @@ function print_vulnerability_status() {
   done
 }
 
-# Prints a markdown table of the vulnerabilities, sorted by severity.
+# Prints a markdown table of the vulnerabilities, sorted by severity with fixable findings first.
 # Each row contains left, right and column separators added by jq's join function.
 function print_vulnerabilities_table() {
   local result_path="$1"
@@ -107,7 +107,10 @@ function print_vulnerabilities_table() {
   echo "| --- | --- | --- | --- | --- | --- |"
   jq -r '
       .result.vulnerabilities // []
-      | sort_by({"CRITICAL":0,"IMPORTANT":1,"MODERATE":2,"LOW":3}[.cveSeverity] // 4)
+      | sort_by([
+        (if ((.componentFixedVersion // "") != "") then 0 else 1 end),
+        ({"CRITICAL":0,"IMPORTANT":1,"MODERATE":2,"LOW":3}[.cveSeverity] // 4)
+      ])
       | (.[] | [.componentName // "", .componentVersion // "", .cveId // "", .cveSeverity // "", .componentFixedVersion // "", .cveInfo // ""] | "| " + join(" | ") + " |")
   ' "$result_path"
 }
