@@ -44,13 +44,10 @@ function main() {
   gh_summary "$(print_findings_table "$result_path")"
   gh_summary "</details>"
 
-  # Fail the build if any fixable critical or important findings.
-  severities=( "CRITICAL" "IMPORTANT" )
-  for severity in "${severities[@]}"; do
-    if (( fixable_counts[$severity] > 0 )); then
-      exit 1
-    fi
-  done
+  # Fail the build if any fixable findings of relevant severity are present.
+  if [ "$(assert_fixable_findings_present fixable_counts)" = "true" ]; then
+    exit 1
+  fi
 }
 
 # Scans the image for vulnerabilities.
@@ -81,7 +78,7 @@ function print_findings_status() {
   local -n total_counts_ref=$1
   local -n fixable_counts_ref=$2
 
-  if (( fixable_counts_ref[CRITICAL] > 0 || fixable_counts_ref[IMPORTANT] > 0 )); then
+  if [ "$(assert_fixable_findings_present fixable_counts_ref)" = "true" ]; then
     local message="Found fixable critical or important vulnerabilities."
 
     gh_log "error" "$message See the step summary for details."
@@ -98,6 +95,16 @@ function print_findings_status() {
   for severity in CRITICAL IMPORTANT MODERATE LOW; do
     gh_summary "| $severity | ${total_counts_ref[$severity]} | ${fixable_counts_ref[$severity]} |"
   done
+}
+
+# Asserts if any fixable findings of relevant severity are present.
+function assert_fixable_findings_present() {
+  local -n fixable_counts_map="$1"
+  if (( fixable_counts_map[CRITICAL] > 0 || fixable_counts_map[IMPORTANT] > 0 )); then
+    echo "true"
+  else
+    echo "false"
+  fi
 }
 
 # Prints a markdown table of the findings, sorted by severity with fixable findings first.
