@@ -58,3 +58,48 @@ jobs:
       dry-run: ${{github.event.inputs.dry-run == 'true'}}
       workflow-ref: v1
 ```
+
+## Auto retest failed Konflux builds
+
+### Overview
+
+When a Konflux build check fails on a pull request, this action will automatically post a `/retest <check-name>` comment to trigger a rebuild. It includes retry limits to prevent infinite retry loops and automatically cleans up old retest comments when new commits are pushed.
+
+### All options
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `max_retries` | Maximum number of retries for failed builds | No | `3` |
+| `check_name_suffix` | Suffix to filter Konflux build check names (e.g., `-on-push`) | No | `-on-push` |
+
+## Detailed options
+
+- **Automatic Retesting**: Posts `/retest` commands when Konflux builds fail
+- **Configurable Retry Limit**: Set maximum retry attempts to prevent infinite loops
+- **Auto-Cleanup**: Removes old `/retest` comments when new commits are pushed
+- **Filtered Checks**: Only retests checks matching a specific name suffix (e.g., `-on-push`)
+
+
+### Usage
+
+Add this to your repository's workflow file (e.g., `.github/workflows/konflux-auto-retest.yml`):
+
+```yaml
+name: Auto-retest Konflux Builds
+
+on:
+  check_run:
+    types: [completed]
+  pull_request:
+    types: [synchronize]
+
+jobs:
+  retest-failed-konflux-builds:
+    uses: stackrox/actions/.github/workflows/retest-konflux-builds.yml@main
+    permissions:
+      pull-requests: write
+      issues: write
+    with:
+      max_retries: 3
+      check_name_suffix: '-on-push'
+```
