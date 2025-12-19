@@ -103,12 +103,12 @@ function print_vulnerability_status() {
 # Each row contains left, right and column separators added by jq's join function.
 function print_vulnerabilities_table() {
   local result_path="$1"
+  echo "| COMPONENT | VERSION | CVE | SEVERITY | FIXED_VERSION | LINK |"
+  echo "| --- | --- | --- | --- | --- | --- |"
   jq -r '
       .result.vulnerabilities // []
       | sort_by({"CRITICAL":0,"IMPORTANT":1,"MODERATE":2,"LOW":3}[.cveSeverity] // 4)
-      | (["COMPONENT","VERSION","CVE","SEVERITY","FIXED_VERSION","LINK"] | "| " + join(" | ") + " |"),
-      (["---","---","---","---","---","---"] | "| " + join(" | ") + " |"),
-      (.[] | [.componentName // "", .componentVersion // "", .cveId // "", .cveSeverity // "", .componentFixedVersion // "", .cveInfo // ""] | "| " + join(" | ") + " |")
+      | (.[] | [.componentName // "", .componentVersion // "", .cveId // "", .cveSeverity // "", .componentFixedVersion // "", .cveInfo // ""] | "| " + join(" | ") + " |")
   ' "$result_path"
 }
 
