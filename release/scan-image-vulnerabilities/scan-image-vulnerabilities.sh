@@ -45,7 +45,7 @@ function main() {
   gh_summary "</details>"
 
   # Fail the build if any fixable findings of relevant severity are present.
-  if [[ "$(assert_fixable_findings_present fixable_counts)" = "true" ]]; then
+  if are_blocking_vulns_present fixable_counts; then
     exit 1
   fi
 }
@@ -78,7 +78,7 @@ function print_summary() {
   local -n total_counts_ref=$1
   local -n fixable_counts_ref=$2
 
-  if [[ "$(assert_fixable_findings_present fixable_counts_ref)" = "true" ]]; then
+  if are_blocking_vulns_present fixable_counts_ref; then
     local message="Found fixable critical or important vulnerabilities."
 
     gh_log "error" "$message See the step summary for details."
@@ -97,14 +97,10 @@ function print_summary() {
   done
 }
 
-# Asserts if any fixable findings of relevant severity are present.
-function assert_fixable_findings_present() {
+# Checks if any fixable findings of relevant severity are present.
+function are_blocking_vulns_present() {
   local -n fixable_counts_map="$1"
-  if (( fixable_counts_map[CRITICAL] > 0 || fixable_counts_map[IMPORTANT] > 0 )); then
-    echo "true"
-  else
-    echo "false"
-  fi
+  (( fixable_counts_map[CRITICAL] > 0 || fixable_counts_map[IMPORTANT] > 0 ))
 }
 
 # Prints a markdown table of the findings, sorted by severity with fixable findings first.
