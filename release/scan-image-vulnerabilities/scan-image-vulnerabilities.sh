@@ -11,8 +11,8 @@
 set -euo pipefail
 
 function main() {
-  IMAGE="${1:-}"
-  SUMMARY_PREFIX="${2:-}"
+  local IMAGE="${1:-}"
+  local SUMMARY_PREFIX="${2:-}"
   local result_path="scan-result.json"
 
   check_not_empty \
@@ -23,7 +23,7 @@ function main() {
 
   # Count the total and fixable number of findings for each severity.
   # Use associative arrays to store counts by severity.
-  # Arrays are used via nameref parameters in print_findings_status function.
+  # Arrays are used via nameref parameters in print_summary function.
   # shellcheck disable=SC2034
   declare -A total_counts
   # shellcheck disable=SC2034
@@ -36,16 +36,16 @@ function main() {
   done
 
   gh_summary "### $SUMMARY_PREFIX $IMAGE"
-  print_findings_status total_counts fixable_counts
+  print_summary total_counts fixable_counts
 
   # Print the findings table in a collapsible section.
   # For the table to render correctly, we need to add a newline after the summary.
   gh_summary "<details><summary>Click to expand details</summary>\n"
-  gh_summary "$(print_findings_table "$result_path")"
+  gh_summary "$(print_details_table "$result_path")"
   gh_summary "</details>"
 
   # Fail the build if any fixable findings of relevant severity are present.
-  if [ "$(assert_fixable_findings_present fixable_counts)" = "true" ]; then
+  if [[ "$(assert_fixable_findings_present fixable_counts)" = "true" ]]; then
     exit 1
   fi
 }
@@ -74,11 +74,11 @@ function count_fixable_findings() {
 }
 
 # Prints the vulnerability status and an overview table of the findings counts.
-function print_findings_status() {
+function print_summary() {
   local -n total_counts_ref=$1
   local -n fixable_counts_ref=$2
 
-  if [ "$(assert_fixable_findings_present fixable_counts_ref)" = "true" ]; then
+  if [[ "$(assert_fixable_findings_present fixable_counts_ref)" = "true" ]]; then
     local message="Found fixable critical or important vulnerabilities."
 
     gh_log "error" "$message See the step summary for details."
@@ -109,7 +109,7 @@ function assert_fixable_findings_present() {
 
 # Prints a markdown table of the findings, sorted by severity with fixable findings first.
 # Each row contains left, right and column separators added by jq's join function.
-function print_findings_table() {
+function print_details_table() {
   local result_path="$1"
   echo "| COMPONENT | VERSION | CVE | SEVERITY | FIXED_VERSION | LINK |"
   echo "| --- | --- | --- | --- | --- | --- |"

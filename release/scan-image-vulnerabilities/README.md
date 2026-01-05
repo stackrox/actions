@@ -46,7 +46,7 @@ Default: `"7200"` (2 hours)
 #### summary-prefix
 
 Prefix for the vulnerability report in the GitHub step summary. Use this to help users of the action classify images into groups when multiple matrix scans are performed in a workflow.
-	
+
 Example: `"Upstream Image Scan Results"`
 
 #### quay-bearer-token
@@ -62,9 +62,9 @@ Example: `"https://central.example.com"`
 ## Usage
 
 The action integrates with the [stackrox/central-login](https://github.com/stackrox/central-login) action, which uses OIDC login for authentication of the `roxctl` CLI.
-The ACS Central needs to be configured to allow exchanging tokens from GitHub Actions workflow runs. 
+The ACS Central needs to be configured to allow exchanging tokens from GitHub Actions workflow runs.
 
-Additionally, an image integration for Quay.io needs to be configured in the ACS Central.
+Additionally, an image integration for Quay.io must be configured in the ACS Central so that it can pull images requested for scanning.
 
 ```yaml
 name: Scan image for vulnerabilities
