@@ -22,6 +22,11 @@ inputs:
     description: "ACS Central URL"
     required: true
 
+outputs:
+  result-path:
+    description: "Path to the scan result JSON file"
+    value: ${{ steps.scan-image-vulnerabilities.outputs.result-path }}
+
 runs:
   using: composite
   steps:
@@ -44,6 +49,7 @@ runs:
         central-token: ${{ env.ROX_API_TOKEN }}
 
     - name: Scan image for fixable vulnerabilities
+      id: scan-image-vulnerabilities
       shell: bash
       run: |
         set -uo pipefail
