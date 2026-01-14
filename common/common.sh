@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # The output appears in a dedicated emphasized GitHub step box.
 # Multiple lines are not supported.
 # Markdown is not supported.

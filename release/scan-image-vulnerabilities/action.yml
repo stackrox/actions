@@ -1,0 +1,53 @@
+name: "Scan Image Vulnerabilities"
+description: "Scan an image for vulnerabilities and fail if fixable critical or important ones are found"
+
+inputs:
+  image:
+    description: "Image name (without registry prefix)"
+    required: true
+  version:
+    description: "Image version tag"
+    required: true
+  wait-limit:
+    description: "Maximum time to wait for image (seconds)"
+    required: false
+    default: "7200"
+  summary-prefix:
+    description: "Title prefix for the GitHub step summary"
+    required: true
+  quay-bearer-token:
+    description: "Quay.io bearer token for wait-for-image"
+    required: true
+  central-url:
+    description: "ACS Central URL"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: "Wait for image to be built: quay.io/${{ inputs.image }}:${{ inputs.version }}"
+      uses: stackrox/actions/release/wait-for-image@v1
+      with:
+        token: ${{ inputs.quay-bearer-token }}
+        image: ${{ inputs.image }}:${{ inputs.version }}
+        limit: ${{ inputs.wait-limit }}
+
+    - name: Central login
+      uses: stackrox/central-login@v1
+      with:
+        endpoint: ${{ inputs.central-url }}
+
+    - name: Install roxctl
+      uses: stackrox/roxctl-installer-action@v1
+      with:
+        central-endpoint: ${{ inputs.central-url }}
+        central-token: ${{ env.ROX_API_TOKEN }}
+
+    - name: Scan image for fixable vulnerabilities
+      shell: bash
+      run: |
+        set -uo pipefail
+        "${{ github.action_path }}/../../common/common.sh" \
+          "${{ github.action_path }}/scan-image-vulnerabilities.sh" \
+          "quay.io/${{ inputs.image }}:${{ inputs.version }}" \
+          "${{ inputs.summary-prefix }}"
