@@ -75,8 +75,8 @@ function count_fixable_findings() {
 
 # Prints the vulnerability status and an overview table of the findings counts.
 function print_summary() {
-  local -n total_counts_ref=$1
-  local -n fixable_counts_ref=$2
+  local -n total_counts_ref="$1"
+  local -n fixable_counts_ref="$2"
 
   if are_blocking_vulns_present fixable_counts_ref; then
     local message="Found fixable critical or important vulnerabilities."
