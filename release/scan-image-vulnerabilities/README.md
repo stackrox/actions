@@ -59,6 +59,12 @@ URL of the ACS/RHACS Central instance to use for scanning.
 
 Example: `"https://central.example.com"`
 
+## Outputs
+
+| Output         | Description                                                          |
+|----------------|----------------------------------------------------------------------|
+| `result-path`  | Path to the scan image result JSON for further inspection or upload. |
+
 ## Usage
 
 The action integrates with the [stackrox/central-login](https://github.com/stackrox/central-login) action, which uses OIDC login for authentication of the `roxctl` CLI.
