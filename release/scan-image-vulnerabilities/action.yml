@@ -24,7 +24,7 @@ inputs:
 
 outputs:
   result-path:
-    description: "Path to the scan result JSON file"
+    description: "Path to a JSON file with the scan results"
     value: ${{ steps.scan-image-vulnerabilities.outputs.result-path }}
 
 runs:
