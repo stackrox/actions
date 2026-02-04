@@ -71,13 +71,16 @@ When a Konflux build check fails on a pull request, this action will automatical
 |-------|-------------|----------|---------|
 | `max_retries` | Maximum number of retries for failed builds | No | `3` |
 | `check_name_suffix` | Suffix to filter Konflux build check names (e.g., `-on-push`) | No | `-on-push` |
+| `retest_command` | Command to trigger Konflux retest (e.g., /retest). Useful to use non default when OpenShift CI uses the same /retest syntax - prevents OpenShift CI from spamming comments saying it does not understand Konflux-specific retest commands. | No | `/retest` |
 
 ## Detailed options
 
-- **Automatic Retesting**: Posts `/retest` commands when Konflux builds fail
+- **Automatic Retesting**: Posts retest commands when Konflux builds fail
 - **Configurable Retry Limit**: Set maximum retry attempts to prevent infinite loops
-- **Auto-Cleanup**: Removes old `/retest` comments when new commits are pushed
+- **Auto-Cleanup**: Removes old retest comments when new commits are pushed
 - **Filtered Checks**: Only retests checks matching a specific name suffix (e.g., `-on-push`)
+- **Custom Retest Command**: Configure the command used to trigger retests (default: `/retest`)
+- **Disable via Label**: Add the `disable-konflux-auto-retest` label to a PR to skip automatic retesting
 
 
 ### Usage
@@ -102,4 +105,5 @@ jobs:
     with:
       max_retries: 3
       check_name_suffix: '-on-push'
+      retest_command: '/retest'
 ```

@@ -1,5 +1,5 @@
 # There are two kind of comments in the GitHub pull request: conversation comments and pull request review comments.
-# Konflux monitors `/retest` conversation comments for rerunning pipelines.
+# Konflux monitors retest conversation comments (configurable, default: `/retest`) for rerunning pipelines.
 # The conversation comments belong to `/issues/` Github API.
 
 name: Retest Failed Konflux Builds
@@ -17,10 +17,17 @@ on:
         required: false
         type: string
         default: '-on-push'
+      retest_command:
+        description: 'Command to trigger Konflux retest (e.g., /retest). Useful to use non default when OpenShift CI uses the same /retest syntax - prevents OpenShift CI from spamming comments saying it does not understand Konflux-specific retest commands.'
+        required: false
+        type: string
+        default: '/retest'
 
 jobs:
   cleanup-retest-comments:
-    if: github.event_name == 'pull_request'
+    if: |
+      github.event_name == 'pull_request' &&
+      !contains(github.event.pull_request.labels.*.name, 'disable-konflux-auto-retest')
     runs-on: ubuntu-latest
 
     permissions:
@@ -30,20 +37,21 @@ jobs:
       issues: write
 
     steps:
-      - name: Remove existing /retest comments as new commits were pushed
+      - name: Remove existing retests comments
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RETEST_COMMAND: ${{ inputs.retest_command }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
 
-          echo "New commit pushed to PR #$PR_NUMBER. Cleaning up existing /retest comments from GitHub Actions..."
+          echo "New commit pushed to PR #$PR_NUMBER. Cleaning up existing $RETEST_COMMAND comments from GitHub Actions..."
 
-          # Get all comments from github-actions bot containing /retest and ending with CHECK_NAME_SUFFIX
+          # Get all comments from github-actions bot containing retest command and ending with CHECK_NAME_SUFFIX
           COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" \
-            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("/retest") and endswith("${{ inputs.check_name_suffix }}"))) | .id')
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("'"$RETEST_COMMAND"'") and endswith("${{ inputs.check_name_suffix }}"))) | .id')
 
           if [ -z "$COMMENT_IDS" ]; then
-            echo "No /retest comments found to clean up"
+            echo "No $RETEST_COMMAND comments found to clean up"
           else
             # Delete each comment
             for COMMENT_ID in $COMMENT_IDS; do
@@ -58,7 +66,8 @@ jobs:
       github.event_name == 'check_run' &&
       github.event.check_run.pull_requests[0] != null &&
       github.event.check_run.conclusion == 'failure' &&
-      startsWith(github.event.check_run.name, 'Red Hat Konflux')
+      startsWith(github.event.check_run.name, 'Red Hat Konflux') &&
+      !contains(github.event.check_run.pull_requests[0].labels.*.name, 'disable-konflux-auto-retest')
     runs-on: ubuntu-latest
 
     permissions:
@@ -73,6 +82,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MAX_RETRIES: ${{ inputs.max_retries }}
           CHECK_NAME_SUFFIX: ${{ inputs.check_name_suffix }}
+          RETEST_COMMAND: ${{ inputs.retest_command }}
         run: |
           CHECK_NAME="${{ github.event.check_run.name }}"
 
@@ -88,11 +98,11 @@ jobs:
 
           # Count comments containing the retest command (fetches all comments via pagination)
           RETRY_COUNT="$(gh api --paginate "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" \
-            --jq '[.[] | select(.body | contains("/retest '"$CHECK_NAME"'"))] | length')"
+            --jq '[.[] | select(.body | contains("'"$RETEST_COMMAND"' '"$CHECK_NAME"'"))] | length')"
 
           if [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; then
             echo "::warning::Maximum retry limit ($MAX_RETRIES) reached for $CHECK_NAME on PR #$PR_NUMBER"
           else
             echo "Retrying $CHECK_NAME (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
-            gh pr comment "$PR_NUMBER" --repo ${{ github.repository }} --body "/retest $CHECK_NAME"
+            gh pr comment "$PR_NUMBER" --repo ${{ github.repository }} --body "$RETEST_COMMAND $CHECK_NAME"
           fi
