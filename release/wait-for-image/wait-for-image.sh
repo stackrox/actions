@@ -26,10 +26,10 @@ find_tag() {
     URL="https://quay.io/api/v1/repository/$1/tag?specificTag=$2"
     CURL_PARAMS+=( "--silent" "--show-error" "--fail" "--location" "$URL" )
     if [ -n "$QUAY_TOKEN" ]; then
-        >&2 gh_log notice "Connecting to Quay with token"
+        >&2 echo "Connecting to Quay with token"
         CURL_PARAMS+=( "-H" "Authorization: Bearer $QUAY_TOKEN" )
     else
-        >&2 gh_log notice "Connecting to Quay without token"
+        >&2 echo "Connecting to Quay without token"
     fi
     curl "${CURL_PARAMS[@]}" | jq -r ".tags[0].name"
 }
@@ -41,7 +41,7 @@ FOUND_TAG=""
 while [ "$SECONDS" -le "$TIME_LIMIT" ]; do
     FOUND_TAG=$(find_tag "$NAME" "$TAG")
     if [ "$FOUND_TAG" = "$TAG" ]; then
-        gh_log notice "Image '$NAME:$TAG' has been found on Quay.io."
+        echo "Image '$NAME:$TAG' has been found on Quay.io."
         exit 0
     fi
     if [ "$INTERVAL" -eq 0 ]; then
@@ -51,5 +51,5 @@ while [ "$SECONDS" -le "$TIME_LIMIT" ]; do
     sleep "$INTERVAL"
 done
 
-gh_log error "Image '$NAME:$TAG' has not been found on Quay.io."
+gh_log error "Image '$NAME:$TAG' has not been found on Quay.io within the time limit."
 exit 1
