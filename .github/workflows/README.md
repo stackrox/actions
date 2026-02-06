@@ -78,6 +78,7 @@ When a Konflux build check fails on a pull request, this action will automatical
 - **Configurable Retry Limit**: Set maximum retry attempts to prevent infinite loops
 - **Auto-Cleanup**: Removes old `/retest` comments when new commits are pushed
 - **Filtered Checks**: Only retests checks matching a specific name suffix (e.g., `-on-push`)
+- **Disable via Label**: Add the `disable-konflux-auto-retest` label to a PR to skip automatic retesting
 
 
 ### Usage
