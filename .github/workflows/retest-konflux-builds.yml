@@ -62,7 +62,7 @@ jobs:
   auto-retest-failed-konflux-build:
     if: |
       github.event_name == 'check_run' &&
-      github.event.check_run.pull_requests[0] != null &&
+      github.event.check_run.pull_requests.length > 0 &&
       github.event.check_run.conclusion == 'failure' &&
       startsWith(github.event.check_run.name, 'Red Hat Konflux')
     runs-on: ubuntu-latest
@@ -82,6 +82,14 @@ jobs:
           RETEST_COMMAND: ${{ inputs.retest_command }}
         run: |
           CHECK_NAME="${{ github.event.check_run.name }}"
+          PR_NUMBER="${{ github.event.check_run.pull_requests[0].number }}"
+
+          # Fetch current PR labels to avoid race conditions with stale event data
+          CURRENT_LABELS=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" --jq '.labels[].name')
+          if echo "$CURRENT_LABELS" | grep -q "^disable-konflux-auto-retest$"; then
+            echo "Skipping retest: disable-konflux-auto-retest label is present"
+            exit 0
+          fi
 
           # Check if the check name ends with the configured suffix
           if [[ ! "$CHECK_NAME" == *"$CHECK_NAME_SUFFIX" ]]; then
