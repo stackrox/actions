@@ -15,6 +15,14 @@
                                 "value": "long-running"
                             },
                             {
+                                "name": "ROX_NETFLOW_BATCHING",
+                                "value": "true"
+                            },
+                            {
+                                "name": "ROX_NETFLOW_CACHE_LIMITING",
+                                "value": "true"
+                            },
+                            {
                                 "name": "ROX_FAKE_WORKLOAD_STORAGE",
                                 "value": "/var/cache/stackrox/pebble.db"
                             }
