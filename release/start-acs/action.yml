@@ -62,8 +62,8 @@ runs:
         ROX_SCANNER_V4: "true"
       run: |
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/start-acs.sh"
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/start-acs.sh"
       shell: bash
 
 outputs:

@@ -58,8 +58,8 @@ runs:
       run: |
         echo "::add-mask::$INFRA_TOKEN"
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/create-cluster.sh" \
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/create-cluster.sh" \
           "${{ inputs.flavor }}" \
           "${{ inputs.name }}" \
           "${{ inputs.lifespan }}" \

@@ -62,6 +62,6 @@ runs:
         SECURED_CLUSTER_AUTO_LOCK_PROCESS_BASELINES: "true"
       run: |
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/start-secured-cluster.sh"
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/start-secured-cluster.sh"
       shell: bash
