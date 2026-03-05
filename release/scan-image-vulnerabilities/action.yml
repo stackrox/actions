@@ -53,7 +53,7 @@ runs:
       shell: bash
       run: |
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/scan-image-vulnerabilities.sh" \
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/scan-image-vulnerabilities.sh" \
           "quay.io/${{ inputs.image }}:${{ inputs.version }}" \
           "${{ inputs.summary-prefix }}"

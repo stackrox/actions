@@ -20,8 +20,8 @@ runs:
   steps:
     - run: |
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/wait-for-image.sh" \
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/wait-for-image.sh" \
           "${{ inputs.image }}" \
           "${{ inputs.token }}" \
           "${{ inputs.interval }}" \

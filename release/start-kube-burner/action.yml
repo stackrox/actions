@@ -18,7 +18,7 @@ runs:
         BENCHMARK_OPERATOR_DIR: ${{ inputs.benchmark-operator-dir }}
       run: |
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/start-kube-burner.sh"
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/start-kube-burner.sh"
 
       shell: bash

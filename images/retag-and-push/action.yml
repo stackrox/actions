@@ -42,7 +42,7 @@ runs:
     - shell: bash
       run: |
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/retag-and-push.sh" \
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/retag-and-push.sh" \
           "${{ inputs.src-image }}" \
           "${{ inputs.dst-image }}"

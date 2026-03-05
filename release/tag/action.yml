@@ -22,8 +22,8 @@ runs:
         DRY_RUN: ${{ inputs.dry-run }}
       run: |
         set -uo pipefail
-        "${{ github.action_path }}/../../common/common.sh" \
-          "${{ github.action_path }}/tag.sh" \
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/tag.sh" \
           "${{ inputs.tag }}"
 
       shell: bash
