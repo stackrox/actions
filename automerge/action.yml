@@ -1,0 +1,98 @@
+name: Auto-merge PRs
+description: Enable auto-merge for eligible PRs with specified labels
+
+inputs:
+  github-token:
+    description: 'GitHub token with permissions to merge PRs and approve reviews'
+    required: true
+  repository:
+    description: 'Repository in owner/repo format'
+    required: false
+    default: ${{ github.repository }}
+  label:
+    description: 'Label to filter PRs for auto-merge'
+    required: false
+    default: 'auto-merge'
+  limit:
+    description: 'Maximum number of PRs to process per run.'
+    required: false
+    default: '50'
+
+runs:
+  using: composite
+  steps:
+    - name: Find and process PRs with auto-merge labels
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -euo pipefail
+
+        # Extract repo owner and name
+        IFS='/' read -r OWNER REPO <<< "${{ inputs.repository }}"
+
+        echo "::notice::Querying PRs with '${{ inputs.label }}' label in ${{ inputs.repository }}"
+
+        # Get all PRs with auto-merge labels (non-draft, mergeable only)
+        PR_DATA=$(gh pr list \
+          --repo "${{ inputs.repository }}" \
+          --label "${{ inputs.label }}" \
+          --draft=false \
+          --state open \
+          --limit "${{ inputs.limit }}" \
+          --json number,mergeable,author \
+          --jq ".[] | select(.mergeable == \"MERGEABLE\") | {number, author: .author.login}")
+
+        if [[ -z "$PR_DATA" ]]; then
+          echo "::notice::No eligible PRs found with '${{ inputs.label }}' label"
+          exit 0
+        fi
+
+        # Process each PR
+        echo "$PR_DATA" | jq -c '.' | while read -r PR_JSON; do
+          PR_NUMBER=$(echo "$PR_JSON" | jq -r '.number')
+          AUTHOR=$(echo "$PR_JSON" | jq -r '.author')
+
+          echo "::notice::Processing PR #$PR_NUMBER (author=$AUTHOR)"
+
+          # Check if all checks have passed using GraphQL statusCheckRollup
+          STATUS=$(gh api graphql -F owner="$OWNER" -F repo="$REPO" -F number="$PR_NUMBER" -f query="
+            query(\$owner: String!, \$repo: String!, \$number: Int!) {
+              repository(owner: \$owner, name: \$repo) {
+                pullRequest(number: \$number) {
+                  commits(last: 1) {
+                    nodes {
+                      commit {
+                        statusCheckRollup {
+                          state
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          " --jq ".data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.state" || echo "null")
+
+          echo "::notice::PR #$PR_NUMBER status check rollup: $STATUS"
+
+          # Only proceed if all checks passed
+          if [[ "$STATUS" != "SUCCESS" ]]; then
+            echo "::warning::Skipping PR #$PR_NUMBER - checks not passed (status: $STATUS)"
+            continue
+          fi
+
+          # Enable auto-merge for all PRs with the label
+          echo "::notice::Enabling auto-merge for PR #$PR_NUMBER"
+          gh pr merge --repo "${{ inputs.repository }}" \
+            --auto --squash "$PR_NUMBER"
+
+          # Auto-approve only Dependabot PRs
+          if [[ "$AUTHOR" == "app/dependabot" ]]; then
+            echo "::notice::Approving Dependabot PR #$PR_NUMBER"
+            gh pr review --repo "${{ inputs.repository }}" \
+              --approve "$PR_NUMBER" || true
+          fi
+
+          echo "::notice::✓ Auto-merge enabled for PR #$PR_NUMBER"
+        done
