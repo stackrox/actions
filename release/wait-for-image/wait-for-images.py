@@ -22,7 +22,7 @@ def parse_args():
     if len(sys.argv) < 2:
         complain("Wait for images to appear in Quay.io.\n"
                  f"Usage: {os.path.basename(sys.argv[0])} <images> [token] [interval] [time-limit]\n"
-                 "  images - newline or whitespace separated repo names plus tags, e.g. 'rhacs-eng/main:4.10.3 rhacs-eng/roxctl:4.10.3'\n"
+                 "  images - newline- or whitespace-separated repo names plus tags, e.g. 'rhacs-eng/main:4.10.3 rhacs-eng/roxctl:4.10.3'\n"
                  "  token - optional quay authorization token\n"
                  f"  interval - polling interval in seconds (default: {default_interval})\n"
                  f"  time-limit - maximum duration in seconds to poll (default: {default_time_limit})\n")
