@@ -57,12 +57,12 @@ def complain(message):
 def check_images(args):
     images = args.images
     found = [False] * len(images)
-    start_time = time.time()
 
     print("Will check the following image(s):")
     for i in range(len(images)):
         print(images[i].name + ':' + images[i].tag)
 
+    start_time = time.time()
     while True:
         for i in range(len(images)):
             if found[i]:
