@@ -53,6 +53,5 @@ rm "${COMMON_DIR}/../charts/monitoring/values_substituted.yaml"
 
 # Pre-4.11 only: Replace prometheus ConfigMap
 if [[ "$is_4_11_plus" == false ]]; then
-  kubectl -n stackrox delete configmap prometheus
-  kubectl create -f "${SCRIPT_DIR}"/prometheus.yaml
+  kubectl apply -f "${SCRIPT_DIR}"/prometheus.yaml
 fi
