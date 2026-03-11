@@ -35,18 +35,13 @@ monitoring_values_file="${COMMON_DIR}/../charts/monitoring/values.yaml"
 helm_args=(
   --set persistence.type="${STORAGE}"
   --set exposure.type="${MONITORING_LOAD_BALANCER}"
+  --set resources.requests.memory="8Gi"
+  --set resources.limits.memory="8Gi"
 )
 
-# Handle memory configuration based on version
-if [[ "$is_4_11_plus" == false ]]; then
-  # Pre-4.11: Use yq to modify values file
-  yq -i '.resources.requests.memory = "8Gi"' "$monitoring_values_file"
-  yq -i '.resources.limits.memory = "8Gi"' "$monitoring_values_file"
-else
+if [[ "$is_4_11_plus" == true ]]; then
   # 4.11+: Add memory settings and metric relabel configs to helm args
   helm_args+=(
-    --set resources.requests.memory="8Gi"
-    --set resources.limits.memory="8Gi"
     --set-json 'cadvisorMetricRelabelConfigs=[{"source_labels":["container"],"regex":"berserker","action":"drop"},{"source_labels":["namespace"],"regex":"berserker-.*","action":"drop"}]'
   )
 fi
