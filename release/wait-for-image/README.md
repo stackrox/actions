@@ -10,12 +10,12 @@ permissions: {}
 
 ## All options
 
-| Input                 | Description                                                          | Default  |
-| --------------------- | -------------------------------------------------------------------- | -------- |
-| [token](#token)       | [Quay.io](quay.io) authorization token                               |          |
-| [image](#image)       | Image name with the tag                                              |          |
-| [interval](#interval) | Time interval in seconds with which to check for the image tag       | `"30"`   |
-| [limit](#limit)       | Polling time limit in seconds after which to fail if no image found  | `"2400"` |
+| Input                 | Description                                                         | Default  |
+| --------------------- |---------------------------------------------------------------------| -------- |
+| [token](#token)       | [Quay.io](quay.io) authorization token                              |          |
+| [image](#image)       | Image name with the tag (or multiple)                               |          |
+| [interval](#interval) | Time interval in seconds with which to check for the image tag      | `"30"`   |
+| [limit](#limit)       | Polling time limit in seconds after which to fail if no image found | `"2400"` |
 
 ### Detailed options
 
@@ -27,9 +27,9 @@ Default value: unset
 
 #### image
 
-Image name with the tag.
+Image name with the tag or multiple in which case they should be whitespace- or newline-separated.
 
-Example: `"rhacs-eng/main:3.76.1"`
+Example: `"rhacs-eng/main:3.76.1 rhacs-eng/operator:3.76.1"`
 
 Default value: unset
 

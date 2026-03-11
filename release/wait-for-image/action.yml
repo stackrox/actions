@@ -6,7 +6,8 @@ inputs:
     required: false
     default: ""
   image:
-    description: Image name with the tag
+    description: |
+      Image name with the tag or multiple in which case they should be whitespace- or newline-separated.
     required: true
   interval:
     description: The interval in seconds with which to check the registry
@@ -19,12 +20,9 @@ runs:
   using: composite
   steps:
     - run: |
-        set -uo pipefail
-        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
-          "${GITHUB_ACTION_PATH}/wait-for-image.sh" \
+        "${GITHUB_ACTION_PATH}/wait-for-images.py" \
           "${{ inputs.image }}" \
           "${{ inputs.token }}" \
           "${{ inputs.interval }}" \
           "${{ inputs.limit }}"
-
       shell: bash
