@@ -94,11 +94,14 @@ def check_image(image, token):
     if token:
         req.add_header('Authorization', f"Bearer {token}")
 
-    with urllib.request.urlopen(req) as resp:
-        body = resp.read().decode('utf-8')
-
-    parsed = json.loads(body)
-    return parsed["tags"] and parsed["tags"][0]["name"] == image.tag
+    try:
+        with urllib.request.urlopen(req) as resp:
+            body = resp.read().decode('utf-8')
+        parsed = json.loads(body)
+        return parsed["tags"] and parsed["tags"][0]["name"] == image.tag
+    except Exception as e:
+        complain(f"Error checking '{image.name}:{image.tag}': {e}")
+        return False
 
 
 if __name__ == '__main__':
