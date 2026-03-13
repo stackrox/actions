@@ -18,5 +18,4 @@ runs:
         | base64 -d \
         > ~/.local/bin/infractl
         chmod +x ~/.local/bin/infractl
-        echo "::debug::$(infractl --version)"
-        infractl --version > /dev/null
+        infractl --version
