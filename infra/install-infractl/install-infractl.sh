@@ -14,5 +14,3 @@ curl --fail -sL https://infra.rox.systems/v1/cli/linux/amd64/upgrade \
 > ~/.local/bin/infractl
 chmod +x ~/.local/bin/infractl
 infractl --version
-
-echo "Hi there!"
