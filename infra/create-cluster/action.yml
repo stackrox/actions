@@ -42,7 +42,9 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: stackrox/actions/infra/install-infractl@main
+    - name: Download and install infractl
+      shell: bash
+      run: "${GITHUB_ACTION_PATH}/../install-infractl/install-infractl.sh"
 
     - name: Validate the infractl install and its token
       shell: bash
