@@ -54,19 +54,14 @@ function cluster_destroying() {
 }
 
 function infra_status_summary() {
-    gh_summary <<EOF
-*$2*
-Infra status for '$1':
-\`\`\`
-$(cluster_info "$1")
-\`\`\`
-
-EOF
+    gh_log notice "$2"
+    echo "Infra status for '$1':"
+    cluster_info "$1"
 }
 
 case $(cluster_status "$CNAME") in
 "")
-    gh_summary "Cluster $CNAME doesn't exist."
+    gh_log notice "Cluster $CNAME doesn't exist."
     ;;
 FAILED)
     # Existing cluster is in failed state, i.e. not active.
