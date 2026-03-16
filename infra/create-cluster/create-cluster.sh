@@ -61,7 +61,7 @@ function infra_status_summary() {
 
 case $(cluster_status "$CNAME") in
 "")
-    gh_log notice "Cluster $CNAME doesn't exist."
+    echo "Cluster '$CNAME' doesn't exist."
     ;;
 FAILED)
     # Existing cluster is in failed state, i.e. not active.
@@ -71,29 +71,28 @@ CREATING)
     # Don't wait for the cluster being created, as another workflow could be
     # waiting for it.
     # TODO: use concurrency tweak to allow only single workflow running at once.
-    infra_status_summary "$CNAME" "Cluster is being created by another workflow"
+    infra_status_summary "$CNAME" "Cluster '$CNAME' is being created by another workflow"
     exit 0
     ;;
 READY)
     # Cluster exists already.
-    infra_status_summary "$CNAME" "Cluster already exists"
+    infra_status_summary "$CNAME" "Cluster '$CNAME' already exists"
     exit 0
     ;;
 DESTROYING)
     # Cluster is being destroyed.
-    infra_status_summary "$CNAME" "Cluster is being destroyed"
+    infra_status_summary "$CNAME" "Cluster '$CNAME' is being destroyed"
     while cluster_destroying "$CNAME"; do
-        gh_log notice "Waiting 30s for the cluster '$CNAME' to be destroyed"
+        echo "Waiting 30s for the cluster '$CNAME' to be destroyed"
         sleep 30
     done
     ;;
 FINISHED)
     # Cluster has already been destroyed. Create it again.
-    gh_log notice "Cluster \`$CNAME\` has been destroyed already."
-    infra_status_summary "$CNAME" "Cluster has been destroyed already"
+    infra_status_summary "$CNAME" "Cluster '$CNAME' has been destroyed already"
     ;;
 *)
-    infra_status_summary "$CNAME" "Unknown status"
+    infra_status_summary "$CNAME" "Unknown status of '$CNAME'"
     ;;
 esac
 
@@ -103,12 +102,12 @@ echo "Will attempt to create the cluster."
 OPTIONS=()
 if [ "$WAIT" = "true" ]; then
     OPTIONS+=("--wait")
-    gh_log warning "The job will wait for the cluster creation to finish."
+    echo "The job will wait for the cluster creation to finish."
 fi
 
 if [ "$NO_SLACK" = "true" ]; then
     OPTIONS+=("--no-slack")
-    gh_log notice "Skipping sending Slack messages for cluster \`$CNAME\`."
+    echo "Skipping sending Slack messages for cluster '$CNAME'."
 fi
 
 IFS=',' read -ra args <<<"$ARGS"
@@ -122,4 +121,4 @@ infractl_call create "$FLAVOR" "$CNAME" \
     --description "$DESCRIPTION" \
     "${OPTIONS[@]}"
 
-infra_status_summary "$CNAME" "Cluster creation has been requested"
+infra_status_summary "$CNAME" "Cluster '$CNAME' creation has been requested"
