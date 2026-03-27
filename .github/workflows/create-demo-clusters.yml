@@ -268,11 +268,11 @@ jobs:
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
-          flavor: gke-default
+          flavor: openshift-4
           name: ${{ inputs.cluster-with-fake-load-name }}
           lifespan: ${{ env.LONG_RUNNING_CLUSTER_LIFESPAN }}
           description: "Long-running cluster with fake workload (no Collector) for testing ${{ inputs.version }}"
-          args: nodes=5,machine-type=e2-standard-8
+          args: worker-node-count=4,worker-node-type=e2-standard-8,master-node-type=e2-standard-8
           wait: true
 
   # TODO ROX-19190 Don't DRY. Make this and the above into a separate action.
@@ -293,11 +293,12 @@ jobs:
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
-          flavor: gke-default
+          flavor: openshift-4
           name: ${{ inputs.cluster-with-real-load-name }}
           lifespan: ${{ env.LONG_RUNNING_CLUSTER_LIFESPAN }}
           description: "Long-running cluster with real workload (with Collector and Berserker) for testing ${{ inputs.version }}"
-          args: nodes=5,machine-type=e2-standard-8
+          #args: nodes=5,machine-type=e2-standard-8
+          args: worker-node-count=4,worker-node-type=e2-standard-8,master-node-type=e2-standard-8
           wait: true
 
   start-acs:
