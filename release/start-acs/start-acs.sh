@@ -36,14 +36,14 @@ if kubectl -n stackrox get deploy/central; then
 fi
 
 gh_log notice "Deploying central..."
-"${STACKROX_DIR}"/deploy/k8s/central.sh
+"${STACKROX_DIR}"/deploy/central.sh
 
 gh_log notice "Forwarding central port..."
 kubectl -n stackrox port-forward deploy/central 8000:8443 > /dev/null 2>&1 &
 sleep 20
 
 gh_log notice "Deploying sensor..."
-"${STACKROX_DIR}"/deploy/k8s/sensor.sh
+"${STACKROX_DIR}"/deploy/sensor.sh
 
 gh_log notice "Patching sensor deployment..."
 kubectl -n stackrox patch deploy/sensor --patch-file="${SCRIPT_DIR}/patch-sensor.json"
@@ -57,7 +57,14 @@ gh_log notice "CENTRAL_IP=$CENTRAL_IP"
 API_ENDPOINT="${CENTRAL_IP}:443"
 wait_for_central "${API_ENDPOINT}"
 
-ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/k8s/central-deploy/password)
+# shellcheck source=/dev/null
+source "${STACKROX_DIR}"/deploy/detect.sh
+
+if is_openshift; then
+    ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/openshift/central-deploy/password)
+else
+    ROX_ADMIN_PASSWORD=$(cat "${STACKROX_DIR}"/deploy/k8s/central-deploy/password)
+fi
 
 # Don't mask the password: masked values are not passed to the runner.
 gh_output rox-password "$ROX_ADMIN_PASSWORD"
