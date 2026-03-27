@@ -30,6 +30,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=/dev/null
 source "${STACKROX_DIR}"/deploy/common/deploy.sh
 
+# Use kubectl instead of oc for OpenShift deployments
+export KUBE_COMMAND=kubectl
+
 if kubectl -n stackrox get deploy/central; then
   gh_log error "Central is already running"
   exit 1
