@@ -272,7 +272,8 @@ jobs:
           name: ${{ inputs.cluster-with-fake-load-name }}
           lifespan: ${{ env.LONG_RUNNING_CLUSTER_LIFESPAN }}
           description: "Long-running cluster with fake workload (no Collector) for testing ${{ inputs.version }}"
-          args: worker-node-count=4,worker-node-type=e2-standard-8,master-node-type=e2-standard-8
+          #args: worker-node-count=4,worker-node-type=e2-standard-8,master-node-type=e2-standard-8
+          args: worker-node-count=4,master-node-count=1,worker-node-type=e2-standard-16,master-node-type=e2-standard-16
           wait: true
 
   # TODO ROX-19190 Don't DRY. Make this and the above into a separate action.
@@ -298,7 +299,7 @@ jobs:
           lifespan: ${{ env.LONG_RUNNING_CLUSTER_LIFESPAN }}
           description: "Long-running cluster with real workload (with Collector and Berserker) for testing ${{ inputs.version }}"
           #args: nodes=5,machine-type=e2-standard-8
-          args: worker-node-count=4,worker-node-type=e2-standard-8,master-node-type=e2-standard-8
+          args: worker-node-count=4,master-node-count=1,worker-node-type=e2-standard-16,master-node-type=e2-standard-16
           wait: true
 
   start-acs:
