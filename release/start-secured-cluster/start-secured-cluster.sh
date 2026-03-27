@@ -19,7 +19,7 @@ else
   echo "Using ACS pre-4.11 secured cluster setup (version: ${version_major_minor})"
 fi
 
-"${STACKROX_DIR}/deploy/k8s/sensor.sh"
+"${STACKROX_DIR}/deploy/sensor.sh"
 kubectl -n stackrox create secret generic access-rhacs \
   --from-literal="username=${ROX_ADMIN_USERNAME}" \
   --from-literal="password=${ROX_ADMIN_PASSWORD}" \
