@@ -326,7 +326,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: stackrox/stackrox
-          ref: ${{ needs.parse-refs.outputs.version-ref }}
+          ref: jv-all-process-indicator-metrics-ocp
       - name: Checkout local action
         uses: actions/checkout@v4
         with:
@@ -417,7 +417,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.parse-refs.outputs.version-ref }}
+          ref: jv-all-process-indicator-metrics-ocp
           repository: stackrox/stackrox
       - name: Checkout local action
         uses: actions/checkout@v4
