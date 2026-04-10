@@ -29,6 +29,8 @@ function main() {
     gh_log notice "Querying PRs with '${LABELS}' label(s) in ${REPOSITORY}, allowed authors: ${ALLOWED_AUTHORS}, required checks: ${REQUIRED_CHECKS}, allowed base branches: ${ALLOWED_BASE_BRANCHES}"
     gh_log notice "DRY_RUN: ${DRY_RUN}"
 
+    exit 1
+
     # Extract repo owner and name
     IFS='/' read -r OWNER REPO <<< "${REPOSITORY}"
 
