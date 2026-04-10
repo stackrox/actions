@@ -2,12 +2,12 @@ name: Auto-merge PRs
 description: Enable auto-merge for eligible PRs with specified labels
 
 inputs:
-  allowed-author:
-    description: 'Author to filter PRs for auto-merge'
+  allowed-authors:
+    description: 'Authors to filter PRs for auto-merge (regex)'
     required: false
     default: 'app/dependabot'
   allowed-base-branches:
-    description: 'Allowed base branches for auto-merge'
+    description: 'Allowed base branches for auto-merge (regex)'
     required: false
     default: '.*'
   dry-run:
@@ -17,8 +17,8 @@ inputs:
   github-token:
     description: 'GitHub token with permissions to merge PRs and approve reviews'
     required: true
-  label:
-    description: 'Label to filter PRs for auto-merge'
+  labels:
+    description: 'Labels to filter PRs for auto-merge (comma-separated `and` logic)'
     required: false
     default: 'auto-merge'
   limit:
@@ -30,7 +30,7 @@ inputs:
     required: false
     default: ${{ github.repository }}
   required-checks:
-    description: 'Required checks to pass for auto-merge'
+    description: 'Required checks to pass for auto-merge (regex)'
     required: false
     default: '.*'
 
@@ -49,7 +49,7 @@ runs:
           "${GITHUB_ACTION_PATH}/automerge.sh" \
           "${{ inputs.repository }}" \
           "${{ inputs.limit }}" \
-          "${{ inputs.label }}" \
-          "${{ inputs.allowed-author }}" \
+          "${{ inputs.labels }}" \
+          "${{ inputs.allowed-authors }}" \
           "${{ inputs.required-checks }}" \
           "${{ inputs.allowed-base-branches }}"
