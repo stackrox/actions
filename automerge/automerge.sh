@@ -98,6 +98,7 @@ function get_combined_success_status() {
     CURSOR=""
     NODES_JSON='[]'
 
+    # shellcheck disable=SC2016
     QUERY='
     query($owner: String!, $repo: String!, $number: Int!, $first: Int!, $after: String) {
         repository(owner: $owner, name: $repo) {
