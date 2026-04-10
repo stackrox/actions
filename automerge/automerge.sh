@@ -127,32 +127,32 @@ function get_combined_success_status() {
     '
 
     while true; do
-    ARGS=(
-        graphql
-        -F owner="$OWNER"
-        -F repo="$REPO"
-        -F number="$PR_NUMBER"
-        -F first="$PAGE_SIZE"
-        -f query="$QUERY"
-    )
-    if [[ -n "$CURSOR" ]]; then
-        ARGS+=(-F after="$CURSOR")
-    fi
+        ARGS=(
+            graphql
+            -F owner="$OWNER"
+            -F repo="$REPO"
+            -F number="$PR_NUMBER"
+            -F first="$PAGE_SIZE"
+            -f query="$QUERY"
+        )
+        if [[ -n "${CURSOR}" ]]; then
+            ARGS+=(-F after="${CURSOR}")
+        fi
 
-    RESP=$(gh api "${ARGS[@]}")
+        RESP=$(gh api "${ARGS[@]}")
 
-    PAGE_NODES=$(echo "$RESP" | jq '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.contexts.nodes // []')
-    NODES_JSON=$(jq -n --argjson acc "$NODES_JSON" --argjson page "$PAGE_NODES" '$acc + $page')
+        PAGE_NODES=$(echo "${RESP}" | jq '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.contexts.nodes // []')
+        NODES_JSON=$(jq -n --argjson acc "${NODES_JSON}" --argjson page "${PAGE_NODES}" '$acc + $page')
 
-    HAS_NEXT=$(echo "$RESP" | jq -r '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.contexts.pageInfo.hasNextPage // false')
-    if [[ "$HAS_NEXT" != "true" ]]; then
-        break
-    fi
-    CURSOR=$(echo "$RESP" | jq -r '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.contexts.pageInfo.endCursor // empty')
-    if [[ -z "$CURSOR" ]]; then
-        echo "::error::pagination indicated hasNextPage but endCursor is empty" >&2
-        exit 1
-    fi
+        HAS_NEXT=$(echo "${RESP}" | jq -r '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.contexts.pageInfo.hasNextPage // false')
+        if [[ "${HAS_NEXT}" != "true" ]]; then
+            break
+        fi
+        CURSOR=$(echo "${RESP}" | jq -r '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.contexts.pageInfo.endCursor // empty')
+        if [[ -z "${CURSOR}" ]]; then
+            gh_log error "Pagination indicated hasNextPage but endCursor is empty"
+            exit 1
+        fi
     done
 
     echo "$NODES_JSON" | jq '
