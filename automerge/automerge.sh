@@ -1,7 +1,4 @@
 #!/bin/bash
-
-#
-
 #
 # Enables auto-merge for eligible PRs with specified labels.
 # PRs can be filtered by labels, base branches, and allowed author.
@@ -55,9 +52,9 @@ function main() {
         AUTHOR=$(echo "$PR_JSON" | jq -r '.author')
         BASE_BRANCH=$(echo "$PR_JSON" | jq -r '.baseRefName')
 
-        gh_log notice "PR #${PR_NUMBER} - author='${AUTHOR}', base branch='${BASE_BRANCH}'"
+        gh_summary "PR #${PR_NUMBER} - author='${AUTHOR}', base branch='${BASE_BRANCH}'"
         if [[ ! "${BASE_BRANCH}" =~ ^(${ALLOWED_BASE_BRANCHES})$ ]]; then
-            gh_log warning "PR #${PR_NUMBER} skipped - base branch '${BASE_BRANCH}' not allowed"
+            gh_summary "PR #${PR_NUMBER} skipped - base branch '${BASE_BRANCH}' not allowed"
             continue
         fi
 
@@ -65,32 +62,32 @@ function main() {
 
         # Only proceed if the required checks have passed
         if [[ "${STATUS}" == "true" ]]; then
-            gh_log notice "✓ PR #${PR_NUMBER} - all required checks passed or skipped"
+            gh_summary "✓ PR #${PR_NUMBER} - all required checks passed or skipped"
         else
-            gh_log warning "x PR #${PR_NUMBER} skipped - not all required checks passed or skipped"
+            gh_summary "x PR #${PR_NUMBER} skipped - not all required checks passed or skipped"
             continue
         fi
 
         # Enable auto-merge for all PRs with the label(s)
         if [[ "${DRY_RUN}" == "true" ]]; then
-            gh_log notice "✓ PR #${PR_NUMBER} - would have enabled auto-merge [DRY RUN]"
+            gh_summary "✓ PR #${PR_NUMBER} - would have enabled auto-merge [DRY RUN]"
         else
             gh pr merge --repo "${REPOSITORY}" \
             --auto --squash "${PR_NUMBER}"
-            gh_log notice "✓ PR #${PR_NUMBER} - auto-merge enabled"
+            gh_summary "✓ PR #${PR_NUMBER} - auto-merge enabled"
         fi
 
         # Approve only PRs by allowed authors
         if [[ "${AUTHOR}" =~ ^(${ALLOWED_AUTHORS})$ ]]; then
             if [[ "${DRY_RUN}" == "true" ]]; then
-                gh_log notice "✓ PR #${PR_NUMBER} - would have approved [DRY RUN]"
+                gh_summary "✓ PR #${PR_NUMBER} - would have approved [DRY RUN]"
             else
                 gh pr review --repo "${REPOSITORY}" \
                     --approve "${PR_NUMBER}"
-                gh_log notice "✓ PR #${PR_NUMBER} - approved"
+                gh_summary "✓ PR #${PR_NUMBER} - approved"
             fi
         else
-            gh_log warning "x PR #${PR_NUMBER} not approved - author '${AUTHOR}' not in allowed authors"
+            gh_summary "x PR #${PR_NUMBER} not approved - author '${AUTHOR}' not in allowed authors"
         fi
     done
 }
