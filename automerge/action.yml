@@ -45,7 +45,7 @@ runs:
       run: |
         set -euo pipefail
 
-        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+        "${GITHUB_ACTION_PATH}/../common/common.sh" \
           "${GITHUB_ACTION_PATH}/automerge.sh" \
           "${{ inputs.repository }}" \
           "${{ inputs.limit }}" \
