@@ -1,23 +1,27 @@
 # Auto-merge Action
 
-This composite action enables auto-merge for eligible pull requests based on specified labels.
+This composite action enables auto-merge for eligible pull requests based on specified labels. Defaults to approving Dependabot PRs with green CI against all branches.
 
 ## Features
 
-- Finds PRs with specified label (default: `auto-merge`)
+- Finds PRs with specified label (default: `auto-merge`) for the allowed base branches
 - Verifies PRs are in mergeable state (non-draft)
-- Checks that all status checks have passed
+- Checks that required status checks have passed
 - Enables auto-merge with squash strategy
-- Auto-approves Dependabot PRs
+- Auto-approves PRs for allowed author
 
 ## Inputs
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
+| `allowed-authors` | Authors to filter PRs for auto-merge  (regex)| No | `app/dependabot` |
+| `allowed-base-branches` | Allowed base branches for auto-merge (regex) | No | `.*` |
+| `dry-run` | Whether to dry-run the auto-merge | No | `false` |
 | `github-token` | GitHub token with permissions to merge PRs and approve reviews (`contents: write` and `pull-requests: write` permissions) | Yes | - |
+| `labels` | Labels to filter PRs for auto-merge (comma-separated `and` logic) | No | `auto-merge` |
+| `limit` | Maximum number of PRs to process per run | No | `50` |
 | `repository` | Repository in owner/repo format | No | `${{ github.repository }}` |
-| `label` | Label to filter PRs for auto-merge | No | `auto-merge` |
-| `limit` | Maximum number of PRs to process | No | `50` |
+| `required-checks` | Required checks to pass for auto-merge (regex) | No | `.*` |
 
 ## Usage
 
