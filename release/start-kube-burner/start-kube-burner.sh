@@ -23,13 +23,6 @@ if [ ! -d "$KUBE_BURNER_CONFIG_DIR" ]; then
   KUBE_BURNER_CONFIG_DIR="${KUBE_BURNER_CONFIG_DIR_BASE}/cluster-density"
 fi
 
-dockerconfigjson="$(kubectl -n stackrox get secret stackrox -o yaml | grep dockerconfigjson | head -1 | awk '{print $2}')"
-secret_template="${KUBE_BURNER_CONFIG_DIR_BASE}/secret_template.yml"
-secret_file="${KUBE_BURNER_CONFIG_DIR}/secret.yml"
-
-gh_log notice "Patching $secret_template"
-sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file" 
-
 kubectl create ns kube-burner
 
 kubectl create configmap --from-file="$KUBE_BURNER_CONFIG_DIR" kube-burner-config -n kube-burner
