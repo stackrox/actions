@@ -14,14 +14,14 @@ This composite action enables auto-merge for eligible pull requests based on spe
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `allowed-authors` | Authors to filter PRs for auto-merge  (regex)| No | `app/dependabot` |
+| `allowed-authors` | Authors to filter PRs for auto-merge  (comma-separated list)| No | `app/dependabot` |
 | `allowed-base-branches` | Allowed base branches for auto-merge (regex) | No | `.*` |
 | `dry-run` | Whether to dry-run the auto-merge | No | `false` |
 | `github-token` | GitHub token with permissions to merge PRs and approve reviews (`contents: write` and `pull-requests: write` permissions) | Yes | - |
 | `labels` | Labels to filter PRs for auto-merge (comma-separated `and` logic) | No | `auto-merge` |
 | `limit` | Maximum number of PRs to process per run | No | `50` |
 | `repository` | Repository in owner/repo format | No | `${{ github.repository }}` |
-| `required-checks` | Required checks to pass for auto-merge (regex) | No | `.*` |
+| `required-checks` | Required checks to succeed for auto-merge (regex) | No | `.*` |
 
 ## Usage
 

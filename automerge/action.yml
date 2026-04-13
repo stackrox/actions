@@ -3,7 +3,7 @@ description: Enable auto-merge for eligible PRs with specified labels
 
 inputs:
   allowed-authors:
-    description: 'Authors to filter PRs for auto-merge (regex)'
+    description: 'Authors to filter PRs for auto-merge (comma-separated)'
     required: false
     default: 'app/dependabot'
   allowed-base-branches:

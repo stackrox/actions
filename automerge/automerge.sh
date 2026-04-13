@@ -21,9 +21,9 @@ function main() {
 
     check_not_empty \
         DRY_RUN GH_TOKEN \
-        REPOSITORY LIMIT LABELS ALLOWED_AUTHORS REQUIRED_CHECKS
+        REPOSITORY LIMIT LABELS ALLOWED_AUTHORS REQUIRED_CHECKS ALLOWED_BASE_BRANCHES
 
-    gh_log notice "Querying PRs with '${LABELS}' label(s) in ${REPOSITORY}, allowed authors: ${ALLOWED_AUTHORS}, required checks: ${REQUIRED_CHECKS}, allowed base branches: ${ALLOWED_BASE_BRANCHES}"
+    gh_log notice "Querying PRs with '${LABELS}' label(s) in '${REPOSITORY}', allowed authors: '${ALLOWED_AUTHORS}', required checks: '${REQUIRED_CHECKS}', allowed base branches: '${ALLOWED_BASE_BRANCHES}'"
     gh_log notice "DRY_RUN: ${DRY_RUN}"
 
     # Extract repo owner and name
@@ -76,7 +76,8 @@ function main() {
         fi
 
         # Approve only PRs by allowed authors
-        if [[ "${AUTHOR}" =~ ^(${ALLOWED_AUTHORS})$ ]]; then
+        IFS=',' read -r -a ALLOWED_AUTHORS_ARRAY <<< "${ALLOWED_AUTHORS}"
+        if [[ " ${ALLOWED_AUTHORS_ARRAY[*]} " =~ " ${AUTHOR} " ]]; then
             if [[ "${DRY_RUN}" == "true" ]]; then
                 echo "[DEBUG] ✓ PR #${PR_NUMBER} - would have approved [DRY RUN]"
             else
@@ -90,6 +91,8 @@ function main() {
     done
 }
 
+# Collects all status checks and checkruns for the PR and returns a boolean indicating if all required checks have passed or been skipped.
+# The REQUIRED_CHECKS regex parameter must return at least one check.
 function get_combined_success_status() {
     PAGE_SIZE=100
     CURSOR=""
@@ -114,6 +117,10 @@ function get_combined_success_status() {
                                             name
                                             status
                                             conclusion
+                                        }
+                                        ... on StatusContext {
+                                            context
+                                            state
                                         }
                                     }
                                 }
@@ -155,14 +162,17 @@ function get_combined_success_status() {
         fi
     done
 
-    echo "$NODES_JSON" | jq '
-    map(select(
-        .name != null
-        and (.name | test("'"${REQUIRED_CHECKS}"'"))
-        ))
-    | {
-        ALL_SUCCESS: (length > 0 and all(.conclusion == "SUCCESS" or .conclusion == "SKIPPED"))
-    } | .ALL_SUCCESS
+    echo "$NODES_JSON" | jq -r --arg pattern "${REQUIRED_CHECKS}" '
+        [.[]
+        | select(
+            (.name != null and (.name | test($pattern)))
+            or (.context != null and (.context | test($pattern)))
+          )
+        | if .name != null then {conclusion: .conclusion}
+          else {conclusion: .state}
+          end
+        ]
+        | length > 0 and all(.conclusion == "SUCCESS" or .conclusion == "SKIPPED")
     '
 }
 
