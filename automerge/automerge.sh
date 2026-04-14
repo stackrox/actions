@@ -76,8 +76,7 @@ function main() {
         fi
 
         # Approve only PRs by allowed authors
-        IFS=',' read -r -a ALLOWED_AUTHORS_ARRAY <<< "${ALLOWED_AUTHORS}"
-        if [[ " ${ALLOWED_AUTHORS_ARRAY[*]} " == *"${AUTHOR}"* ]]; then
+        if [[ ",${ALLOWED_AUTHORS}," == *",${AUTHOR},"* ]]; then
             if [[ "${DRY_RUN}" == "true" ]]; then
                 echo "[DEBUG] ✓ PR #${PR_NUMBER} - would have approved [DRY RUN]"
             else
