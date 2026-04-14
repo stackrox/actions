@@ -6,7 +6,7 @@
 #
 # Local run:
 #
-#  test/local-env.sh automerge/automerge.sh <repository> <limit> <label1,label2,...> <allowed-author> <required-checks> <allowed-base-branches>
+#  test/local-env.sh automerge/automerge.sh <repository> <limit> <label1,label2,...> <allowed-author1,allowed-author2,...> <required-checks> <allowed-base-branches>
 #
 
 set -euo pipefail
@@ -51,7 +51,7 @@ function main() {
         BASE_BRANCH=$(echo "$PR_JSON" | jq -r '.baseRefName')
 
         echo "[DEBUG] PR #${PR_NUMBER} - author='${AUTHOR}', base branch='${BASE_BRANCH}'"
-        if [[ ! "${BASE_BRANCH}" =~ ^(${ALLOWED_BASE_BRANCHES})$ ]]; then
+        if [[ ! "${BASE_BRANCH}" =~ ${ALLOWED_BASE_BRANCHES} ]]; then
             echo "[DEBUG] PR #${PR_NUMBER} skipped - base branch '${BASE_BRANCH}' not allowed"
             continue
         fi
@@ -71,7 +71,7 @@ function main() {
             echo "[DEBUG] ✓ PR #${PR_NUMBER} - would have enabled auto-merge [DRY RUN]"
         else
             gh pr merge --repo "${REPOSITORY}" \
-            --auto --squash "${PR_NUMBER}"
+                --auto --squash "${PR_NUMBER}"
             echo "[DEBUG] ✓ PR #${PR_NUMBER} - auto-merge enabled"
         fi
 

@@ -3,22 +3,22 @@ description: Enable auto-merge for eligible PRs with specified labels
 
 inputs:
   allowed-authors:
-    description: 'Authors to filter PRs for auto-merge (comma-separated)'
+    description: 'Authors (comma-separated) to filter PRs for auto-merge. Empty list will fail validation.'
     required: false
     default: 'app/dependabot'
   allowed-base-branches:
-    description: 'Allowed base branches for auto-merge (regex)'
+    description: 'Allowed base branches for auto-merge (regex).'
     required: false
     default: '.*'
   dry-run:
-    description: 'Whether to dry-run the auto-merge'
+    description: 'Whether to dry-run the auto-merge.'
     required: false
-    default: 'false'
+    default: 'true'
   github-token:
-    description: 'GitHub token with permissions to merge PRs and approve reviews'
+    description: 'GitHub token with permissions to merge PRs and approve reviews.'
     required: true
   labels:
-    description: 'Labels to filter PRs for auto-merge (comma-separated `and` logic)'
+    description: 'Only PRs having these labels will be merged. Multiple labels can be specified as comma-separated, each of them must be present on the PR. Empty list will fail validation.'
     required: false
     default: 'auto-merge'
   limit:
@@ -26,11 +26,11 @@ inputs:
     required: false
     default: '50'
   repository:
-    description: 'Repository in owner/repo format'
+    description: 'Repository in owner/repo format.'
     required: false
     default: ${{ github.repository }}
   required-checks:
-    description: 'Required checks to pass for auto-merge (regex)'
+    description: 'Required checks to pass for auto-merge (regex).'
     required: false
     default: '.*'
 
