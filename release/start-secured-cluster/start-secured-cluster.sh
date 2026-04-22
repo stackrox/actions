@@ -28,6 +28,18 @@ kubectl -n stackrox create secret generic access-rhacs \
 # Create the collector-config ConfigMap in order to enable external IPs
 kubectl create -f "${SCRIPT_DIR}/collector-config.yaml"
 
+# Patch the collector DaemonSet to set FACT_PATHS to monitor /tmp/data/**/*
+kubectl -n stackrox patch daemonset collector --type=strategic --patch '
+spec:
+  template:
+    spec:
+      containers:
+      - name: fact
+        env:
+        - name: FACT_PATHS
+          value: "/tmp/data/**/*"
+'
+
 echo "Deploying Monitoring..."
 monitoring_values_file="${COMMON_DIR}/../charts/monitoring/values.yaml"
 
