@@ -61,6 +61,7 @@ runs:
         COMMON_DIR: ${{ github.workspace }}/deploy/common
         SECURED_CLUSTER_AUTO_LOCK_PROCESS_BASELINES: "true"
         SFA_AGENT: "true"
+        SENSOR_HELM_DEPLOY: "true"
         ROX_NETFLOW_BATCHING: "true"
         ROX_NETFLOW_CACHE_LIMITING: "true"
       run: |
