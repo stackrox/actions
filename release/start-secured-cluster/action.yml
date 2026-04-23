@@ -62,7 +62,7 @@ runs:
         SECURED_CLUSTER_AUTO_LOCK_PROCESS_BASELINES: "true"
         SFA_AGENT: "true"
         SENSOR_HELM_DEPLOY: "true"
-        SENSOR_HELM_MANAGED: "false"
+        ROX_DEPLOY_SENSOR_WITH_CRS: "false"
         ROX_NETFLOW_BATCHING: "true"
         ROX_NETFLOW_CACHE_LIMITING: "true"
       run: |
