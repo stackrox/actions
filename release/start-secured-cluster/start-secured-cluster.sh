@@ -19,7 +19,26 @@ else
   echo "Using ACS pre-4.11 secured cluster setup (version: ${version_major_minor})"
 fi
 
+# Create namespace and image pull secrets BEFORE running sensor.sh
+kubectl create namespace stackrox || true
+
+kubectl -n stackrox create secret docker-registry stackrox \
+  --docker-server=quay.io \
+  --docker-username="${REGISTRY_USERNAME}" \
+  --docker-password="${REGISTRY_PASSWORD}" || true
+
+kubectl -n stackrox create secret docker-registry secured-cluster-services-main \
+  --docker-server=quay.io \
+  --docker-username="${REGISTRY_USERNAME}" \
+  --docker-password="${REGISTRY_PASSWORD}" || true
+
+kubectl -n stackrox create secret docker-registry secured-cluster-services-collector \
+  --docker-server=quay.io \
+  --docker-username="${REGISTRY_USERNAME}" \
+  --docker-password="${REGISTRY_PASSWORD}" || true
+
 "${STACKROX_DIR}/deploy/k8s/sensor.sh"
+
 kubectl -n stackrox create secret generic access-rhacs \
   --from-literal="username=${ROX_ADMIN_USERNAME}" \
   --from-literal="password=${ROX_ADMIN_PASSWORD}" \
