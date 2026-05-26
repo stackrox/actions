@@ -50,6 +50,7 @@ kubectl create secret generic kube-burner-secret \
     --from-literal=UUID="$uuid" \
     --from-literal=METRICS_COLLECTION_TIME="$METRICS_COLLECTION_TIME" \
     --from-literal=METRICS_TIME_STEP="5m" \
+    --from-literal=BERSERKER_OBJECTS="${BERSERKER_OBJECTS:-}" \
     --namespace=kube-burner
 
 kubectl create -f "${DIR}"/kube-burner.yaml

@@ -60,6 +60,11 @@ spec:
             secretKeyRef:
               name: kube-burner-secret
               key: METRICS_TIME_STEP
+        - name: BERSERKER_OBJECTS
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_OBJECTS
       volumes:
       - name: config
         configMap:
