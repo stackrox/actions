@@ -19,7 +19,26 @@ else
   echo "Using ACS pre-4.11 secured cluster setup (version: ${version_major_minor})"
 fi
 
+# Create namespace and image pull secrets BEFORE running sensor.sh
+kubectl create namespace stackrox || true
+
+kubectl -n stackrox create secret docker-registry stackrox \
+  --docker-server=quay.io \
+  --docker-username="${REGISTRY_USERNAME}" \
+  --docker-password="${REGISTRY_PASSWORD}" || true
+
+kubectl -n stackrox create secret docker-registry secured-cluster-services-main \
+  --docker-server=quay.io \
+  --docker-username="${REGISTRY_USERNAME}" \
+  --docker-password="${REGISTRY_PASSWORD}" || true
+
+kubectl -n stackrox create secret docker-registry secured-cluster-services-collector \
+  --docker-server=quay.io \
+  --docker-username="${REGISTRY_USERNAME}" \
+  --docker-password="${REGISTRY_PASSWORD}" || true
+
 "${STACKROX_DIR}/deploy/k8s/sensor.sh"
+
 kubectl -n stackrox create secret generic access-rhacs \
   --from-literal="username=${ROX_ADMIN_USERNAME}" \
   --from-literal="password=${ROX_ADMIN_PASSWORD}" \
@@ -27,6 +46,9 @@ kubectl -n stackrox create secret generic access-rhacs \
 
 # Create the collector-config ConfigMap in order to enable external IPs
 kubectl create -f "${SCRIPT_DIR}/collector-config.yaml"
+
+# Patch the collector DaemonSet to configure fact container
+kubectl -n stackrox set env daemonset/collector FACT_PATHS="/tmp/data/**/*" FACT_LOGLEVEL="info" -c fact
 
 echo "Deploying Monitoring..."
 monitoring_values_file="${COMMON_DIR}/../charts/monitoring/values.yaml"
