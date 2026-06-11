@@ -27,8 +27,10 @@ dockerconfigjson="$(kubectl -n stackrox get secret stackrox -o yaml | grep docke
 secret_template="${KUBE_BURNER_CONFIG_DIR_BASE}/secret_template.yml"
 secret_file="${KUBE_BURNER_CONFIG_DIR}/secret.yml"
 
-gh_log notice "Patching $secret_template"
-sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file" 
+if [ -f "$secret_template" ]; then
+  gh_log notice "Patching $secret_template"
+  sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file"
+fi
 
 kubectl create ns kube-burner
 
