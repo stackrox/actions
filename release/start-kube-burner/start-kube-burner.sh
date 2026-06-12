@@ -53,8 +53,8 @@ kubectl create secret generic kube-burner-secret \
     --from-literal=METRICS_COLLECTION_TIME="$METRICS_COLLECTION_TIME" \
     --from-literal=METRICS_TIME_STEP="5m" \
     --from-literal=BERSERKER_CONFIGMAP_TEMPLATE="${BERSERKER_CONFIGMAP_TEMPLATE}" \
-    --from-literal=BERSERKER_DAEMONSET_TEMPLATE="${BERSERKER_DAEMONSET_TEMPLATE}" \
     --from-literal=BERSERKER_SERVICE_TEMPLATE="${BERSERKER_SERVICE_TEMPLATE}" \
+    --from-literal=BERSERKER_CONTAINERS_FILE="${BERSERKER_CONTAINERS_FILE}" \
     --namespace=kube-burner
 
 kubectl create -f "${DIR}"/kube-burner.yaml

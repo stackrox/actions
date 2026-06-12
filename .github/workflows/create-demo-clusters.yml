@@ -516,8 +516,8 @@ jobs:
           REGISTRY_PASSWORD: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           ELASTICSEARCH_URL: "https://${{ secrets.K6_ELASTICSEARCH_USER }}:${{ secrets.K6_ELASTICSEARCH_PASSWORD }}@${{ secrets.K6_ELASTICSEARCH_URL }}"
           BERSERKER_CONFIGMAP_TEMPLATE: "https://raw.githubusercontent.com/${{ inputs.berserker-config-repo }}/${{ inputs.berserker-config-ref }}/cmd/config/berserker-load/berserker-all-configs.yml"
-          BERSERKER_DAEMONSET_TEMPLATE: "https://raw.githubusercontent.com/${{ inputs.berserker-config-repo }}/${{ inputs.berserker-config-ref }}/cmd/config/berserker-load/berserker-all-loads.yml"
           BERSERKER_SERVICE_TEMPLATE: "https://raw.githubusercontent.com/${{ inputs.berserker-config-repo }}/${{ inputs.berserker-config-ref }}/cmd/config/berserker-load/service.yml"
+          BERSERKER_CONTAINERS_FILE: "berserker-default-containers.yml"
         uses: ./.actions/release/start-kube-burner
         with:
           kube-burner-config-dir: ./.berserker-config/cmd/config/berserker-load
