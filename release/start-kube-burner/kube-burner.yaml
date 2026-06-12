@@ -65,16 +65,16 @@ spec:
             secretKeyRef:
               name: kube-burner-secret
               key: BERSERKER_CONFIGMAP_TEMPLATE
-        - name: BERSERKER_DAEMONSET_TEMPLATE
-          valueFrom:
-            secretKeyRef:
-              name: kube-burner-secret
-              key: BERSERKER_DAEMONSET_TEMPLATE
         - name: BERSERKER_SERVICE_TEMPLATE
           valueFrom:
             secretKeyRef:
               name: kube-burner-secret
               key: BERSERKER_SERVICE_TEMPLATE
+        - name: BERSERKER_CONTAINERS_FILE
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_CONTAINERS_FILE
       volumes:
       - name: config
         configMap:
