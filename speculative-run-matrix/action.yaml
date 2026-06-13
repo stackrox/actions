@@ -13,7 +13,7 @@ description: >
   Unknown CPUs (not in any ranking file) get rank 0 — defer to everyone.
 
   The post-step resolves the check-run:
-    job success → POST completed/success
+    job success → PATCH to completed/success
     job failure → PATCH to completed/failure
     cancelled   → no action (composite step produced 'cancelled')
 
@@ -39,8 +39,12 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
         MATRIX_JSON: ${{ toJSON(matrix) }}
+        INPUT_ENABLED: ${{ inputs.enabled }}
+        INPUT_CHECK_NAME: ${{ inputs.check-name }}
       run: |
-        if [[ "${{ inputs.enabled }}" != 'true' ]]; then
+        set -euo pipefail
+
+        if [[ "$INPUT_ENABLED" != 'true' ]]; then
           echo "Speedracer disabled — this copy always runs."
           exit 0
         fi
@@ -48,14 +52,15 @@ runs:
         my_copy="${{ matrix.speedracer }}"
         run_id="${{ github.run_id }}"
         repo="${{ github.repository }}"
+        sha="${{ github.sha }}"
+        state_prefix="/tmp/speedracer-${run_id}-${{ github.job }}"
 
-        # Validate: speedracer values must be single lowercase letters
         if [[ ! "$my_copy" =~ ^[a-z]$ ]]; then
           echo "::error::Invalid speedracer value '${my_copy}'. Use single lowercase letters: a, b, c, ..."
           exit 1
         fi
 
-        check_name="${{ inputs.check-name }}"
+        check_name="$INPUT_CHECK_NAME"
         if [[ -z "$check_name" ]]; then
           other_vals=$(echo "$MATRIX_JSON" | \
             jq -r 'del(.speedracer) | to_entries | map(.value | tostring) | join(", ")')
@@ -103,40 +108,43 @@ runs:
         ext_id=$(printf 'spec-r%03d-%s-%s-%s' "$my_rank" "$my_copy" "$run_id" "$check_name")
 
         # ── 2. Post in_progress check-run ───────────────────────────────────
-        check_id=$(gh api repos/"${repo}"/check-runs \
+        check_id=$(gh api "repos/${repo}/check-runs" \
           -f name="${check_name}" \
-          -f head_sha="${{ github.sha }}" \
+          -f head_sha="${sha}" \
           -f status=in_progress \
           -f external_id="${ext_id}" \
           --jq '.id') || {
           echo "::warning::Failed to post check-run — proceeding without speedracer"
           exit 0
         }
-        printf '%s\n' "${check_id:-}" > /tmp/speedracer-check-id
+        printf '%s\n' "${check_id:-}" > "${state_prefix}-check-id"
         echo "Posted in_progress check-run ${check_id} (${ext_id})"
 
-        printf '%s\n' "${check_name}" > /tmp/speedracer-check-name
-        printf '%s\n' "${my_copy}" > /tmp/speedracer-copy
-        printf '%s\n' "${my_rank}" > /tmp/speedracer-rank
+        printf '%s\n' "${check_name}" > "${state_prefix}-check-name"
+        printf '%s\n' "${my_copy}" > "${state_prefix}-copy"
+        printf '%s\n' "${my_rank}" > "${state_prefix}-rank"
+        printf '%s\n' "${state_prefix}" > /tmp/speedracer-state-prefix
 
         # ── 3. Poll for higher-ranked siblings ──────────────────────────────
         # Higher rank wins. Same rank → higher letter wins.
         # external_id format (spec-r{rank:03d}-{letter}-...) sorts correctly.
         echo "Polling for higher-ranked siblings..."
-        sleep $(( RANDOM % 2 + 5 ))
+        sleep $(( RANDOM % 3 + 5 ))
 
-        deadline=$(( $(date +%s) + 5 ))
+        deadline=$(( $(date +%s) + 15 ))
         while [[ $(date +%s) -lt $deadline ]]; do
-          response=$(gh api \
-            "repos/${repo}/commits/${{ github.sha }}/check-runs?per_page=100&filter=all")
-
-          siblings=$(echo "$response" | jq -r --arg run "$run_id" --arg name "$check_name" \
+          siblings=$(gh api \
+            "repos/${repo}/commits/${sha}/check-runs?per_page=100&filter=all" \
+            --jq --arg run "$run_id" --arg name "$check_name" \
             '[.check_runs[]
               | select(.external_id | startswith("spec-"))
               | select(.external_id | endswith("-" + $run + "-" + $name))
               | select(.status == "in_progress" or .conclusion == "success")
               | .external_id
-            ] | .[]')
+            ] | .[]') || {
+            echo "::warning::Failed to poll check-runs"
+            break
+          }
 
           for sid in $siblings; do
             [[ "$sid" == "$ext_id" ]] && continue
@@ -153,7 +161,7 @@ runs:
             fi
           done
 
-          sleep 2
+          sleep 3
         done
         echo "No higher-priority siblings found — proceeding."
 
@@ -167,27 +175,29 @@ runs:
         shell: bash
         run: 'true'
         post: |
+          set -euo pipefail
           export GH_TOKEN=${{ github.token }}
-          check_name=$(head -1 < /tmp/speedracer-check-name | tr -d '\n' || true)
-          my_copy=$(head -1 < /tmp/speedracer-copy | tr -d '\n' || true)
-          check_id=$(head -1 < /tmp/speedracer-check-id | tr -d '[:space:]' || true)
-          my_rank=$(head -1 < /tmp/speedracer-rank | tr -d '[:space:]' || echo 0)
-          ext_id=$(printf 'spec-r%03d-%s-%s-%s' "$my_rank" "$my_copy" "${{ github.run_id }}" "${check_name}")
+          state_prefix=$(head -1 < /tmp/speedracer-state-prefix 2>/dev/null | tr -d '\n' || true)
+          if [[ -z "$state_prefix" ]]; then
+            echo "No speedracer state — skipping post-step"
+            exit 0
+          fi
+          check_name=$(head -1 < "${state_prefix}-check-name" | tr -d '\n' || true)
+          my_copy=$(head -1 < "${state_prefix}-copy" | tr -d '\n' || true)
+          check_id=$(head -1 < "${state_prefix}-check-id" | tr -d '[:space:]' || true)
           echo "Speedracer post: job.status=${{ job.status }} copy=${my_copy} check_id=${check_id}"
 
+          [[ "$check_id" =~ ^[0-9]+$ ]] || { echo "no valid check-id, skipping"; exit 0; }
+
           if [[ "${{ job.status }}" == "success" ]]; then
-            gh api "repos/${{ github.repository }}/check-runs" \
-              -f name="${check_name}" \
-              -f head_sha="${{ github.sha }}" \
-              -f external_id="${ext_id}" \
+            gh api "repos/${{ github.repository }}/check-runs/${check_id}" -X PATCH \
               -f status=completed \
               -f conclusion=success \
               -f "output[title]=Speedracer complete" \
               -f "output[summary]=Copy ${my_copy} won." \
-              && echo "posted completed/success" \
-              || echo "::warning::POST success failed"
+              && echo "check-run → success" \
+              || echo "::warning::PATCH success failed"
           elif [[ "${{ job.status }}" == "failure" ]]; then
-            [[ "$check_id" =~ ^[0-9]+$ ]] || { echo "no valid check-id, skipping"; exit 0; }
             gh api "repos/${{ github.repository }}/check-runs/${check_id}" -X PATCH \
               -f status=completed \
               -f conclusion=failure \
