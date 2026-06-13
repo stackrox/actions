@@ -1,16 +1,16 @@
-name: Speedracer
+name: Speculative Run Matrix
 description: >
   Speculative execution for matrix jobs. Add 'speedracer: [a, b]' (or
-  [a, b, c, d]) as the LAST matrix dimension and call this as the first
+  more letters) as the LAST matrix dimension and call this as the first
   step — nothing else needed.
 
-  Each copy reads runner-pool.tsv to find its CPU rank (line number =
-  rank; higher line = faster). Copies post an in_progress check-run
-  with their rank embedded, then poll siblings. If a higher-ranked
-  sibling exists, this copy cancels itself. Same-rank ties break by
-  letter (higher letter wins).
+  Each copy looks up its CPU type in rankings/{job-name} (falling back
+  to prefix matches, then rankings/_default). Line number = rank;
+  higher line = faster. Copies post an in_progress check-run with
+  rank embedded, then poll siblings. Higher-ranked siblings win;
+  same-rank ties break by letter (higher letter wins).
 
-  Unknown CPUs (not in the TSV) get rank 0 — they defer to everyone.
+  Unknown CPUs (not in any ranking file) get rank 0 — defer to everyone.
 
   The post-step resolves the check-run:
     job success → POST completed/success
@@ -71,18 +71,31 @@ runs:
         cpu=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs || true)
         [[ -z "$cpu" ]] && cpu=$(lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print $2}' || true)
 
-        my_rank=0
-        if [[ -f "${GITHUB_ACTION_PATH}/runner-pool.tsv" ]]; then
-          line_num=0
-          while IFS=$'\t' read -r _ _ _ _ _ _ _ full_model; do
-            line_num=$((line_num + 1))
-            if [[ "$cpu" == *"$full_model"* || "$full_model" == *"$cpu"* ]]; then
-              my_rank=$line_num
-              break
-            fi
-          done < <(grep -v '^#' "${GITHUB_ACTION_PATH}/runner-pool.tsv")
-        fi
+        # Extract CPU ID with vendor prefix (e.g., "AMD EPYC 7763 64-Core Processor" → "EPYC-7763")
+        cpu_id=$(echo "$cpu" | sed 's/AMD //; s/Intel(R) Xeon(R) Platinum /Xeon-/; s/INTEL(R) XEON(R) PLATINUM /Xeon-/; s/ [0-9]*-Core Processor//; s/ CPU @ .*//; s/ /-/')
 
+        # Find ranking file: exact job name → prefix match → _default
+        ranking_dir="${GITHUB_ACTION_PATH}/rankings"
+        job_name="${{ github.job }}"
+        ranking_file=""
+        name="$job_name"
+        while [[ -n "$name" ]]; do
+          if [[ -f "$ranking_dir/$name" ]]; then
+            ranking_file="$ranking_dir/$name"
+            break
+          fi
+          name="${name%-*}"
+        done
+        [[ -z "$ranking_file" && -f "$ranking_dir/_default" ]] && ranking_file="$ranking_dir/_default"
+
+        my_rank=0
+        if [[ -n "$ranking_file" ]]; then
+          my_rank=$(grep -nxF "$cpu_id" "$ranking_file" | cut -d: -f1 || true)
+          [[ -z "$my_rank" ]] && my_rank=0
+          echo "cpu_id=${cpu_id} rank=${my_rank} file=${ranking_file#"$ranking_dir/"}"
+        else
+          echo "cpu_id=${cpu_id} rank=0 file=(none)"
+        fi
         echo "cpu=${cpu:-unknown} copy=${my_copy} rank=${my_rank}"
 
         ext_id=$(printf 'spec-r%03d-%s-%s-%s' "$my_rank" "$my_copy" "$run_id" "$check_name")
