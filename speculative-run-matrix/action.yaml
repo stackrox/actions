@@ -84,7 +84,9 @@ runs:
             ranking_file="$ranking_dir/$name"
             break
           fi
-          name="${name%-*}"
+          next="${name%-*}"
+          [[ "$next" == "$name" ]] && break
+          name="$next"
         done
         [[ -z "$ranking_file" && -f "$ranking_dir/_default" ]] && ranking_file="$ranking_dir/_default"
 
@@ -116,7 +118,7 @@ runs:
 
         # ── 3. Poll for higher-ranked siblings ──────────────────────────────
         # Higher rank wins. Same rank → higher letter wins.
-        # external_id format (spec-r{rank:02d}-{letter}-...) sorts correctly.
+        # external_id format (spec-r{rank:03d}-{letter}-...) sorts correctly.
         echo "Polling for higher-ranked siblings..."
         sleep $(( RANDOM % 2 + 5 ))
 
@@ -128,7 +130,7 @@ runs:
           siblings=$(echo "$response" | jq -r --arg run "$run_id" --arg name "$check_name" \
             '[.check_runs[]
               | select(.external_id | startswith("spec-"))
-              | select(.external_id | contains("-" + $run + "-" + $name))
+              | select(.external_id | endswith("-" + $run + "-" + $name))
               | select(.status == "in_progress" or .conclusion == "success")
               | .external_id
             ] | .[]')
