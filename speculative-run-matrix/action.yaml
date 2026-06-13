@@ -1,0 +1,162 @@
+name: Speedracer
+description: >
+  Speculative execution for matrix jobs. Add 'speedracer: [a, b]' (or
+  [a, b, c, d]) as the LAST matrix dimension and call this as the first
+  step — nothing else needed.
+
+  Each copy reads runner-pool.tsv to find its CPU rank (line number =
+  rank; higher line = faster). Copies post an in_progress check-run
+  with their rank embedded, then poll siblings. If a higher-ranked
+  sibling exists, this copy cancels itself. Same-rank ties break by
+  letter (higher letter wins).
+
+  Unknown CPUs (not in the TSV) get rank 0 — they defer to everyone.
+
+  The post-step resolves the check-run:
+    job success → POST completed/success
+    job failure → PATCH to completed/failure
+    cancelled   → no action (composite step produced 'cancelled')
+
+inputs:
+  check-name:
+    description: >
+      Override the auto-derived required check name. Auto-derived as:
+        github.job + " (" + matrix-values-excluding-speedracer + ")"
+      Only set this if the auto-derived name does not match branch protection.
+    required: false
+    default: ''
+  enabled:
+    description: 'Set to false to disable speedracer — all copies run normally'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Speedracer
+      id: speedracer
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        if [[ "${{ inputs.enabled }}" != 'true' ]]; then
+          echo "Speedracer disabled — this copy always runs."
+          exit 0
+        fi
+
+        my_copy="${{ matrix.speedracer }}"
+        run_id="${{ github.run_id }}"
+        repo="${{ github.repository }}"
+
+        # Validate: speedracer values must be single lowercase letters
+        if [[ ! "$my_copy" =~ ^[a-z]$ ]]; then
+          echo "::error::Invalid speedracer value '${my_copy}'. Use single lowercase letters: a, b, c, ..."
+          exit 1
+        fi
+
+        check_name="${{ inputs.check-name }}"
+        if [[ -z "$check_name" ]]; then
+          matrix_json='${{ toJSON(matrix) }}'
+          other_vals=$(echo "$matrix_json" | \
+            jq -r 'del(.speedracer) | to_entries | map(.value | tostring) | join(", ")')
+          if [[ -n "$other_vals" ]]; then
+            check_name="${{ github.job }} ($other_vals)"
+          else
+            check_name="${{ github.job }}"
+          fi
+          echo "Auto-derived check-name: $check_name"
+        fi
+
+        # ── 1. Rank lookup ──────────────────────────────────────────────────
+        cpu=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs || true)
+        [[ -z "$cpu" ]] && cpu=$(lscpu | awk -F: '/Model name/{gsub(/^ +/,"",$2); print $2}' || true)
+
+        my_rank=0
+        if [[ -f "${GITHUB_ACTION_PATH}/runner-pool.tsv" ]]; then
+          line_num=0
+          while IFS=$'\t' read -r _ _ _ _ _ _ _ full_model; do
+            line_num=$((line_num + 1))
+            if [[ "$cpu" == *"$full_model"* || "$full_model" == *"$cpu"* ]]; then
+              my_rank=$line_num
+              break
+            fi
+          done < <(grep -v '^#' "${GITHUB_ACTION_PATH}/runner-pool.tsv")
+        fi
+
+        echo "cpu=${cpu:-unknown} copy=${my_copy} rank=${my_rank}"
+
+        ext_id=$(printf 'spec-r%03d-%s-%s-%s' "$my_rank" "$my_copy" "$run_id" "$check_name")
+
+        # ── 2. Post in_progress check-run ───────────────────────────────────
+        check_id=$(gh api repos/"${repo}"/check-runs \
+          -f name="${check_name}" \
+          -f head_sha="${{ github.sha }}" \
+          -f status=in_progress \
+          -f external_id="${ext_id}" \
+          --jq '.id')
+        printf '%s\n' "${check_id:-}" > /tmp/speedracer-check-id
+        echo "Posted in_progress check-run ${check_id} (${ext_id})"
+
+        printf '%s\n' "${check_name}" > /tmp/speedracer-check-name
+        printf '%s\n' "${my_copy}" > /tmp/speedracer-copy
+        printf '%s\n' "${my_rank}" > /tmp/speedracer-rank
+
+        # ── 3. Poll for higher-ranked siblings ──────────────────────────────
+        # Higher rank wins. Same rank → higher letter wins.
+        # external_id format (spec-r{rank:02d}-{letter}-...) sorts correctly.
+        echo "Polling for higher-ranked siblings..."
+        sleep $(( RANDOM % 2 + 5 ))
+
+        deadline=$(( $(date +%s) + 5 ))
+        while [[ $(date +%s) -lt $deadline ]]; do
+          response=$(gh api \
+            "repos/${repo}/commits/${{ github.sha }}/check-runs?per_page=100&filter=all")
+
+          siblings=$(echo "$response" | jq -r --arg run "$run_id" --arg name "$check_name" \
+            '[.check_runs[]
+              | select(.external_id | startswith("spec-"))
+              | select(.external_id | contains("-" + $run + "-" + $name))
+              | select(.status == "in_progress" or .conclusion == "success")
+              | .external_id
+            ] | .[]')
+
+          for sid in $siblings; do
+            [[ "$sid" == "$ext_id" ]] && continue
+
+            sib_rank=$(echo "$sid" | cut -d- -f2 | tr -d 'r')
+            sib_letter=$(echo "$sid" | cut -d- -f3)
+
+            if [[ "$sib_rank" -gt "$my_rank" ]] || \
+               [[ "$sib_rank" -eq "$my_rank" && "$sib_letter" > "$my_copy" ]]; then
+              echo "Higher-priority sibling ${sid} (rank=${sib_rank}, letter=${sib_letter}) — cancelling."
+              kill -TERM "$PPID"
+              sleep 600
+            fi
+          done
+
+          sleep 2
+        done
+        echo "No higher-priority siblings found — proceeding."
+
+        echo "Speedracer ready — proceeding to work."
+
+    # ${{ job.status }} is evaluated at post-step execution time by GHA.
+    - name: Register post-hook
+      uses: gacts/run-and-post-run@598d7a875d5620e0457490555b5e18e46082aa47 # v1.4.0
+      if: inputs.enabled == 'true'
+      with:
+        shell: bash
+        run: 'true'
+        post: >-
+          export GH_TOKEN=${{ github.token }};
+          JOB_STATUS="${{ job.status }}";
+          check_name=$(head -1 < /tmp/speedracer-check-name | tr -d '\n' || true);
+          my_copy=$(head -1 < /tmp/speedracer-copy | tr -d '\n' || true);
+          check_id=$(head -1 < /tmp/speedracer-check-id | tr -d '[:space:]' || true);
+          my_rank=$(head -1 < /tmp/speedracer-rank | tr -d '[:space:]' || echo 0);
+          ext_id=$(printf 'spec-r%03d-%s-%s-%s' "$my_rank" "$my_copy" "${{ github.run_id }}" "${check_name}");
+          echo "Speedracer post: job.status=${JOB_STATUS} copy=${my_copy} check_id=${check_id}";
+          if [[ "$JOB_STATUS" == "success" ]]; then echo "Job succeeded"; gh api "repos/${{ github.repository }}/check-runs" -f name="${check_name}" -f head_sha="${{ github.sha }}" -f external_id="${ext_id}" -f status=completed -f conclusion=success -f "output[title]=Speedracer complete" -f "output[summary]=Copy ${my_copy} won." && echo "posted completed/success" || echo "::warning::POST success failed";
+          elif [[ "$JOB_STATUS" == "failure" ]]; then echo "Job failed"; [[ "$check_id" =~ ^[0-9]+$ ]] || { echo "no valid check-id, skipping"; exit 0; }; gh api "repos/${{ github.repository }}/check-runs/${check_id}" -X PATCH -f status=completed -f conclusion=failure -f 'output[title]=Speedracer cleanup' -f 'output[summary]=Job failed; check-run resolved.' && echo "check-run → failure" || echo "::warning::PATCH failure failed";
+          else echo "job.status=${JOB_STATUS} — no action taken (cancelled or other)";
+          fi
