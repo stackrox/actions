@@ -38,36 +38,37 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        SR_COPY: ${{ matrix.speedracer }}
+        SR_RUN_ID: ${{ github.run_id }}
+        SR_REPO: ${{ github.repository }}
+        SR_SHA: ${{ github.sha }}
+        SR_JOB: ${{ github.job }}
+        SR_ENABLED: ${{ inputs.enabled }}
+        SR_CHECK_NAME: ${{ inputs.check-name }}
         MATRIX_JSON: ${{ toJSON(matrix) }}
-        INPUT_ENABLED: ${{ inputs.enabled }}
-        INPUT_CHECK_NAME: ${{ inputs.check-name }}
       run: |
         set -euo pipefail
 
-        if [[ "$INPUT_ENABLED" != 'true' ]]; then
+        if [[ "$SR_ENABLED" != 'true' ]]; then
           echo "Speedracer disabled — this copy always runs."
           exit 0
         fi
 
-        my_copy="${{ matrix.speedracer }}"
-        run_id="${{ github.run_id }}"
-        repo="${{ github.repository }}"
-        sha="${{ github.sha }}"
-        state_prefix="/tmp/speedracer-${run_id}-${{ github.job }}"
+        state_prefix="/tmp/speedracer-${SR_RUN_ID}-${SR_JOB}"
 
-        if [[ ! "$my_copy" =~ ^[a-z]$ ]]; then
-          echo "::error::Invalid speedracer value '${my_copy}'. Use single lowercase letters: a, b, c, ..."
+        if [[ ! "$SR_COPY" =~ ^[a-z]$ ]]; then
+          echo "::error::Invalid speedracer value '${SR_COPY}'. Use single lowercase letters: a, b, c, ..."
           exit 1
         fi
 
-        check_name="$INPUT_CHECK_NAME"
+        check_name="$SR_CHECK_NAME"
         if [[ -z "$check_name" ]]; then
           other_vals=$(echo "$MATRIX_JSON" | \
-            jq -r 'del(.speedracer) | to_entries | map(.value | tostring) | join(", ")')
+            jq -r 'del(.speedracer) | to_entries | map(.value | tostring) | join(", ")' 2>/dev/null) || true
           if [[ -n "$other_vals" ]]; then
-            check_name="${{ github.job }} ($other_vals)"
+            check_name="${SR_JOB} ($other_vals)"
           else
-            check_name="${{ github.job }}"
+            check_name="$SR_JOB"
           fi
           echo "Auto-derived check-name: $check_name"
         fi
@@ -81,9 +82,8 @@ runs:
 
         # Find ranking file: exact job name → prefix match → _default
         ranking_dir="${GITHUB_ACTION_PATH}/rankings"
-        job_name="${{ github.job }}"
         ranking_file=""
-        name="$job_name"
+        name="$SR_JOB"
         while [[ -n "$name" ]]; do
           if [[ -f "$ranking_dir/$name" ]]; then
             ranking_file="$ranking_dir/$name"
@@ -98,19 +98,19 @@ runs:
         my_rank=0
         if [[ -n "$ranking_file" ]]; then
           my_rank=$(grep -nxF "$cpu_id" "$ranking_file" | cut -d: -f1 || true)
-          [[ -z "$my_rank" ]] && my_rank=0
+          [[ -z "$my_rank" || ! "$my_rank" =~ ^[0-9]+$ ]] && my_rank=0
           echo "cpu_id=${cpu_id} rank=${my_rank} file=${ranking_file#"$ranking_dir/"}"
         else
           echo "cpu_id=${cpu_id} rank=0 file=(none)"
         fi
-        echo "cpu=${cpu:-unknown} copy=${my_copy} rank=${my_rank}"
+        echo "cpu=${cpu:-unknown} copy=${SR_COPY} rank=${my_rank}"
 
-        ext_id=$(printf 'spec-r%03d-%s-%s-%s' "$my_rank" "$my_copy" "$run_id" "$check_name")
+        ext_id=$(printf 'spec-r%03d-%s-%s-%s' "$my_rank" "$SR_COPY" "$SR_RUN_ID" "$check_name")
 
         # ── 2. Post in_progress check-run ───────────────────────────────────
-        check_id=$(gh api "repos/${repo}/check-runs" \
+        check_id=$(gh api "repos/${SR_REPO}/check-runs" \
           -f name="${check_name}" \
-          -f head_sha="${sha}" \
+          -f head_sha="${SR_SHA}" \
           -f status=in_progress \
           -f external_id="${ext_id}" \
           --jq '.id') || {
@@ -121,9 +121,8 @@ runs:
         echo "Posted in_progress check-run ${check_id} (${ext_id})"
 
         printf '%s\n' "${check_name}" > "${state_prefix}-check-name"
-        printf '%s\n' "${my_copy}" > "${state_prefix}-copy"
+        printf '%s\n' "${SR_COPY}" > "${state_prefix}-copy"
         printf '%s\n' "${my_rank}" > "${state_prefix}-rank"
-        printf '%s\n' "${state_prefix}" > /tmp/speedracer-state-prefix
 
         # ── 3. Poll for higher-ranked siblings ──────────────────────────────
         # Higher rank wins. Same rank → higher letter wins.
@@ -133,18 +132,20 @@ runs:
 
         deadline=$(( $(date +%s) + 15 ))
         while [[ $(date +%s) -lt $deadline ]]; do
-          siblings=$(gh api \
-            "repos/${repo}/commits/${sha}/check-runs?per_page=100&filter=all" \
-            --jq --arg run "$run_id" --arg name "$check_name" \
+          response=$(gh api \
+            "repos/${SR_REPO}/commits/${SR_SHA}/check-runs?per_page=100&filter=all") || {
+            echo "::warning::Failed to poll check-runs"
+            break
+          }
+
+          siblings=$(echo "$response" | jq -r \
+            --arg run "$SR_RUN_ID" --arg name "$check_name" \
             '[.check_runs[]
               | select(.external_id | startswith("spec-"))
               | select(.external_id | endswith("-" + $run + "-" + $name))
               | select(.status == "in_progress" or .conclusion == "success")
               | .external_id
-            ] | .[]') || {
-            echo "::warning::Failed to poll check-runs"
-            break
-          }
+            ] | .[]')
 
           for sid in $siblings; do
             [[ "$sid" == "$ext_id" ]] && continue
@@ -152,8 +153,10 @@ runs:
             sib_rank=$(echo "$sid" | cut -d- -f2 | tr -d 'r')
             sib_letter=$(echo "$sid" | cut -d- -f3)
 
+            [[ "$sib_rank" =~ ^[0-9]+$ ]] || continue
+
             if [[ "$sib_rank" -gt "$my_rank" ]] || \
-               [[ "$sib_rank" -eq "$my_rank" && "$sib_letter" > "$my_copy" ]]; then
+               [[ "$sib_rank" -eq "$my_rank" && "$sib_letter" > "$SR_COPY" ]]; then
               echo "Higher-priority sibling ${sid} (rank=${sib_rank}, letter=${sib_letter}) — cancelling."
               kill -TERM "$PPID"
               # SIGTERM kills the composite step's parent; sleep prevents this script from continuing if it doesn't
@@ -177,8 +180,8 @@ runs:
         post: |
           set -euo pipefail
           export GH_TOKEN=${{ github.token }}
-          state_prefix=$(head -1 < /tmp/speedracer-state-prefix 2>/dev/null | tr -d '\n' || true)
-          if [[ -z "$state_prefix" ]]; then
+          state_prefix="/tmp/speedracer-${{ github.run_id }}-${{ github.job }}"
+          if [[ ! -f "${state_prefix}-check-id" ]]; then
             echo "No speedracer state — skipping post-step"
             exit 0
           fi
