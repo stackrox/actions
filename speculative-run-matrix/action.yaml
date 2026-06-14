@@ -171,43 +171,37 @@ runs:
         echo "Speedracer ready — proceeding to work."
 
     # ${{ job.status }} is evaluated at post-step execution time by GHA.
+    # gacts/run-and-post-run executes each line of `post:` as a separate shell
+    # process, so the entire post script must be a single line (>- folds newlines
+    # into spaces, semicolons separate statements).
     - name: Register post-hook
       uses: gacts/run-and-post-run@598d7a875d5620e0457490555b5e18e46082aa47 # v1.4.0
       if: inputs.enabled == 'true'
       with:
         shell: bash
         run: 'true'
-        post: |
-          set -euo pipefail
-          export GH_TOKEN=${{ github.token }}
-          state_prefix="/tmp/speedracer-${{ github.run_id }}-${{ github.job }}"
-          if [[ ! -f "${state_prefix}-check-id" ]]; then
-            echo "No speedracer state — skipping post-step"
-            exit 0
-          fi
-          check_name=$(head -1 < "${state_prefix}-check-name" | tr -d '\n' || true)
-          my_copy=$(head -1 < "${state_prefix}-copy" | tr -d '\n' || true)
-          check_id=$(head -1 < "${state_prefix}-check-id" | tr -d '[:space:]' || true)
-          echo "Speedracer post: job.status=${{ job.status }} copy=${my_copy} check_id=${check_id}"
-
-          [[ "$check_id" =~ ^[0-9]+$ ]] || { echo "no valid check-id, skipping"; exit 0; }
-
+        post: >-
+          export GH_TOKEN=${{ github.token }};
+          sp="/tmp/speedracer-${{ github.run_id }}-${{ github.job }}";
+          [[ -f "${sp}-check-id" ]] || { echo "No speedracer state — skipping"; exit 0; };
+          check_name=$(head -1 < "${sp}-check-name" | tr -d '\n');
+          my_copy=$(head -1 < "${sp}-copy" | tr -d '\n');
+          check_id=$(head -1 < "${sp}-check-id" | tr -d '[:space:]');
+          echo "Speedracer post: job.status=${{ job.status }} copy=${my_copy} check_id=${check_id}";
+          [[ "$check_id" =~ ^[0-9]+$ ]] || { echo "no valid check-id, skipping"; exit 0; };
           if [[ "${{ job.status }}" == "success" ]]; then
-            gh api "repos/${{ github.repository }}/check-runs/${check_id}" -X PATCH \
-              -f status=completed \
-              -f conclusion=success \
-              -f "output[title]=Speedracer complete" \
-              -f "output[summary]=Copy ${my_copy} won." \
-              && echo "check-run → success" \
-              || echo "::warning::PATCH success failed"
+          gh api "repos/${{ github.repository }}/check-runs/${check_id}" -X PATCH
+          -f status=completed -f conclusion=success
+          -f "output[title]=Speedracer complete"
+          -f "output[summary]=Copy ${my_copy} won."
+          && echo "check-run → success"
+          || echo "::warning::PATCH success failed";
           elif [[ "${{ job.status }}" == "failure" ]]; then
-            gh api "repos/${{ github.repository }}/check-runs/${check_id}" -X PATCH \
-              -f status=completed \
-              -f conclusion=failure \
-              -f 'output[title]=Speedracer cleanup' \
-              -f 'output[summary]=Job failed; check-run resolved.' \
-              && echo "check-run → failure" \
-              || echo "::warning::PATCH failure failed"
-          else
-            echo "job.status=${{ job.status }} — no action taken (cancelled or other)"
+          gh api "repos/${{ github.repository }}/check-runs/${check_id}" -X PATCH
+          -f status=completed -f conclusion=failure
+          -f "output[title]=Speedracer cleanup"
+          -f "output[summary]=Job failed; check-run resolved."
+          && echo "check-run → failure"
+          || echo "::warning::PATCH failure failed";
+          else echo "job.status=${{ job.status }} — no action taken";
           fi
