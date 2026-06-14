@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: kube-burner
-        image: quay.io/kube-burner/kube-burner:v1.4.3
+        image: quay.io/kube-burner/kube-burner:v2.6.2
         command: ["/bin/sh", "-c"]
         args:
           - |
