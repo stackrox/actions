@@ -11,11 +11,7 @@ set -euo pipefail
 RANKINGS_DIR="${BASH_SOURCE[0]%/*}/rankings"
 BAND_PCT=5        # CPUs within this % of each other are in the same band
 BQ_TABLE="acs-san-stackroxci.ci_metrics.stackrox_jobs"
-
-# Use the last full calendar month for stable averages (not a rolling window)
-month_start=$(date -u -v-1m +%Y-%m-01 2>/dev/null || date -u -d "last month" +%Y-%m-01)
-month_end=$(date -u +%Y-%m-01)
-TIME_FILTER="started_at >= '${month_start}' AND started_at < '${month_end}'"
+TIME_FILTER="started_at > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)"
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
 
@@ -36,7 +32,7 @@ cpu_id_sql="CASE
 
 # ── 1. Query BQ ────────────────────────────────────────────────────────────
 
-echo "Querying BigQuery (${month_start} to ${month_end})..."
+echo "Querying BigQuery (last 30 days)..."
 
 bq_data=$(bq query --use_legacy_sql=false --format=csv --max_rows=5000 "
 SELECT
