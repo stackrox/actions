@@ -1,0 +1,43 @@
+name: Update Speculative Run Rankings
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # ratchet:actions/checkout@v6
+
+      - uses: google-github-actions/auth@ba79af03959ebeac9769e648f473a284504d9193 # ratchet:google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_STACKROX_CI }}
+
+      - name: Generate rankings from BigQuery
+        run: bash speculative-run-matrix/generate-rankings.sh
+
+      - name: Create PR if rankings changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git diff --quiet speculative-run-matrix/rankings/ && {
+            echo "No ranking changes"
+            exit 0
+          }
+
+          branch="update-rankings-$(date -u +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add speculative-run-matrix/rankings/
+          git commit -m "data: update speculative-run-matrix rankings from BigQuery"
+          git push origin "$branch"
+
+          gh pr create \
+            --title "Update speculative-run-matrix rankings" \
+            --body "Auto-generated from BigQuery CI metrics (last 30 days).
+          Rankings with <5% difference from _default are omitted." \
+            --base main
