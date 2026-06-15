@@ -10,8 +10,12 @@ set -euo pipefail
 
 RANKINGS_DIR="${BASH_SOURCE[0]%/*}/rankings"
 BAND_PCT=5        # CPUs within this % of each other are in the same band
-LOOKBACK_DAYS=30
 BQ_TABLE="acs-san-stackroxci.ci_metrics.stackrox_jobs"
+
+# Use the last full calendar month for stable averages (not a rolling window)
+month_start=$(date -u -v-1m +%Y-%m-01 2>/dev/null || date -u -d "last month" +%Y-%m-01)
+month_end=$(date -u +%Y-%m-01)
+TIME_FILTER="started_at >= '${month_start}' AND started_at < '${month_end}'"
 DRY_RUN=false
 [[ "${1:-}" == "--dry-run" ]] && DRY_RUN=true
 
@@ -32,7 +36,7 @@ cpu_id_sql="CASE
 
 # ── 1. Query BQ ────────────────────────────────────────────────────────────
 
-echo "Querying BigQuery (last ${LOOKBACK_DAYS} days)..."
+echo "Querying BigQuery (${month_start} to ${month_end})..."
 
 bq_data=$(bq query --use_legacy_sql=false --format=csv --max_rows=5000 "
 SELECT
@@ -42,7 +46,7 @@ SELECT
   ROUND(AVG(TIMESTAMP_DIFF(stopped_at, started_at, SECOND)), 1) AS avg_sec
 FROM \`${BQ_TABLE}\`
 WHERE build IS NOT NULL AND build != '' AND build NOT LIKE 'ubuntu%'
-  AND started_at > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL ${LOOKBACK_DAYS} DAY)
+  AND ${TIME_FILTER}
   AND stopped_at IS NOT NULL AND outcome = 'success' AND ci_system = 'gha'
 GROUP BY job_name, cpu_id
 HAVING COUNT(*) > 20
@@ -59,7 +63,7 @@ SELECT
   ROUND(AVG(TIMESTAMP_DIFF(stopped_at, started_at, SECOND)), 1) AS avg_sec
 FROM \`${BQ_TABLE}\`
 WHERE build IS NOT NULL AND build != '' AND build NOT LIKE 'ubuntu%'
-  AND started_at > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL ${LOOKBACK_DAYS} DAY)
+  AND ${TIME_FILTER}
   AND stopped_at IS NOT NULL AND outcome = 'success' AND ci_system = 'gha'
 GROUP BY cpu_id
 HAVING COUNT(*) > 20
