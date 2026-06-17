@@ -31,7 +31,7 @@ spec:
               start="$(get_epoch_time)"
               sleep "$METRICS_COLLECTION_TIME"
               end="$(get_epoch_time)"
-              kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID"
+              kube-burner index --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID" --es-server "$ELASTICSEARCH_URL" --es-index kube-burner-long-running-test
             done
         volumeMounts:
         - name: config
