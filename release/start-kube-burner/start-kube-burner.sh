@@ -27,8 +27,10 @@ dockerconfigjson="$(kubectl -n stackrox get secret stackrox -o yaml | grep docke
 secret_template="${KUBE_BURNER_CONFIG_DIR_BASE}/secret_template.yml"
 secret_file="${KUBE_BURNER_CONFIG_DIR}/secret.yml"
 
-gh_log notice "Patching $secret_template"
-sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file" 
+if [ -f "$secret_template" ]; then
+  gh_log notice "Patching $secret_template"
+  sed "s|__DOCKERCONFIGJSON__|$dockerconfigjson|" "$secret_template" > "$secret_file"
+fi
 
 kubectl create ns kube-burner
 
@@ -50,6 +52,9 @@ kubectl create secret generic kube-burner-secret \
     --from-literal=UUID="$uuid" \
     --from-literal=METRICS_COLLECTION_TIME="$METRICS_COLLECTION_TIME" \
     --from-literal=METRICS_TIME_STEP="5m" \
+    --from-literal=BERSERKER_CONFIGMAP_TEMPLATE="${BERSERKER_CONFIGMAP_TEMPLATE}" \
+    --from-literal=BERSERKER_SERVICE_TEMPLATE="${BERSERKER_SERVICE_TEMPLATE}" \
+    --from-literal=BERSERKER_CONTAINERS_FILE="${BERSERKER_CONTAINERS_FILE}" \
     --namespace=kube-burner
 
 kubectl create -f "${DIR}"/kube-burner.yaml
