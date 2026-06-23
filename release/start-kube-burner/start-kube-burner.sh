@@ -16,13 +16,6 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 
 KUBE_BURNER_CONFIG_DIR_BASE="$(dirname "$KUBE_BURNER_CONFIG_DIR")"
 
-# TODO(ROX-28948): When all versions using the cluster-density directory
-# are out of support, remove it from here. The last version to use the
-# cluster-density directory was 4.7.
-if [ ! -d "$KUBE_BURNER_CONFIG_DIR" ]; then
-  KUBE_BURNER_CONFIG_DIR="${KUBE_BURNER_CONFIG_DIR_BASE}/cluster-density"
-fi
-
 dockerconfigjson="$(kubectl -n stackrox get secret stackrox -o yaml | grep dockerconfigjson | head -1 | awk '{print $2}')"
 secret_template="${KUBE_BURNER_CONFIG_DIR_BASE}/secret_template.yml"
 secret_file="${KUBE_BURNER_CONFIG_DIR}/secret.yml"
