@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: kube-burner
-        image: quay.io/kube-burner/kube-burner:v1.4.3
+        image: quay.io/kube-burner/kube-burner:v2.6.2
         command: ["/bin/sh", "-c"]
         args:
           - |
@@ -26,12 +26,12 @@ spec:
             config=config.yml
             metrics_profile=/etc/kube-burner-metrics/metrics.yml
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
-            (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --timeout=1000h || true) &
+            (kube-burner init --config="$config" --skip-log-file --timeout=1000h || true) &
             while true; do
               start="$(get_epoch_time)"
               sleep "$METRICS_COLLECTION_TIME"
               end="$(get_epoch_time)"
-              kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID"
+              kube-burner index --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID" --es-server "$ELASTICSEARCH_URL" --es-index kube-burner-long-running-test
             done
         volumeMounts:
         - name: config
@@ -60,6 +60,21 @@ spec:
             secretKeyRef:
               name: kube-burner-secret
               key: METRICS_TIME_STEP
+        - name: BERSERKER_CONFIGMAP_TEMPLATE
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_CONFIGMAP_TEMPLATE
+        - name: BERSERKER_SERVICE_TEMPLATE
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_SERVICE_TEMPLATE
+        - name: BERSERKER_CONTAINERS_FILE
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_CONTAINERS_FILE
       volumes:
       - name: config
         configMap:
