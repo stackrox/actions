@@ -1,0 +1,52 @@
+central:
+  namespace: stackrox
+  spec:
+    central:
+      exposure:
+        loadBalancer:
+          enabled: true
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "12Gi"
+          cpu: "4"
+      db:
+        persistence:
+          persistentVolumeClaim:
+            storageClassName: faster
+            size: "100Gi"
+    customize:
+      envVars:
+        - name: MUTEX_WATCHDOG_TIMEOUT_SECS
+          value: "0"
+        - name: ROX_EXTERNAL_IPS
+          value: "true"
+        - name: ROX_NETWORK_GRAPH_EXTERNAL_IPS
+          value: "true"
+        - name: ROX_AUTO_LOCK_PROCESS_BASELINES
+          value: "true"
+        - name: ROX_BASELINE_GENERATION_DURATION
+          value: "3m"
+        - name: ROX_TELEMETRY_STORAGE_KEY_V1
+          value: "R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW"
+    scannerV4:
+      scannerComponent: Enabled
+securedCluster:
+  namespace: stackrox
+  spec:
+    processBaselines:
+      autoLock: Enabled
+    customize:
+      envVars:
+        - name: MUTEX_WATCHDOG_TIMEOUT_SECS
+          value: "0"
+        - name: ROX_FAKE_KUBERNETES_WORKLOAD
+          value: "long-running"
+        - name: ROX_NETFLOW_BATCHING
+          value: "true"
+        - name: ROX_NETFLOW_CACHE_LIMITING
+          value: "true"
+        - name: ROX_FAKE_WORKLOAD_STORAGE
+          value: "/var/cache/stackrox/pebble.db"
