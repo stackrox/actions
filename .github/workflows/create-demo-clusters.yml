@@ -342,6 +342,7 @@ jobs:
         id: artifacts
         run: |
           infractl artifacts "${NAME//./-}" -d artifacts >> "$GITHUB_STEP_SUMMARY"
+      - uses: ./.actions/roxie/install-cli
       - name: Launch central
         id: launch-central
         uses: ./.actions/release/start-acs
