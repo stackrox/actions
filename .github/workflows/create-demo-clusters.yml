@@ -160,7 +160,7 @@ jobs:
   create-k8s-cluster:
     name: Create k8s cluster
     needs: [wait-for-images]
-    if: inputs.dry-run != true && inputs.create-k8s-cluster != false
+    if: "!cancelled() && !failure() && inputs.dry-run != true && inputs.create-k8s-cluster != false"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
@@ -286,6 +286,7 @@ jobs:
     name: Create GKE long-running cluster for fake load
     needs: [wait-for-images]
     if: >-
+      !cancelled() && !failure() &&
       inputs.dry-run != true &&
       inputs.create-long-cluster == true
     runs-on: ubuntu-latest
@@ -311,6 +312,7 @@ jobs:
     name: Create GKE long-running cluster for real load
     needs: [wait-for-images]
     if: >-
+      !cancelled() && !failure() &&
       inputs.dry-run != true &&
       inputs.create-long-cluster == true
     runs-on: ubuntu-latest
@@ -334,6 +336,7 @@ jobs:
   start-acs:
     name: Start ACS
     needs: [properties, parse-refs, create-long-running-cluster-for-fake-load]
+    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     outputs:
       rox-password: ${{ steps.launch-central.outputs.rox-password }}
@@ -430,6 +433,7 @@ jobs:
   start-secured-cluster:
     name: Start secured cluster
     needs: [properties, parse-refs, start-acs, create-long-running-cluster-for-real-load]
+    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
@@ -487,6 +491,7 @@ jobs:
   start-kube-burner-for-secured-cluster:
     name: Start kube-burner for the secured cluster
     needs: [properties, parse-refs, start-secured-cluster]
+    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     env:
       INFRA_NAME: ${{ inputs.cluster-with-real-load-name }}
@@ -541,6 +546,7 @@ jobs:
   start-kube-burner-for-central:
     name: Start kube-burner for Central
     needs: [properties, parse-refs, start-acs]
+    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     env:
       INFRA_NAME: ${{ inputs.cluster-with-fake-load-name }}
