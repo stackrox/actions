@@ -45,7 +45,8 @@ roxie_envrc="$(mktemp)"
 roxie deploy \
     --tag "$MAIN_IMAGE_TAG" \
     --config "${SCRIPT_DIR}/roxie-config.yaml" \
-    --envrc "$roxie_envrc"
+    --envrc "$roxie_envrc" \
+    --early-readiness
 
 # shellcheck source=/dev/null
 source "$roxie_envrc"
