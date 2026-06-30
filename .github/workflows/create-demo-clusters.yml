@@ -79,6 +79,7 @@ env:
 
 jobs:
   properties:
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       slack-channel: ${{ fromJSON(format('["{0}","{1}"]', steps.fetch.outputs.dry-slack-channel, steps.fetch.outputs.slack-channel))[inputs.dry-run != true] }}
@@ -131,10 +132,12 @@ jobs:
   wait-for-images:
     name: Wait for images on Quay.io
     runs-on: ubuntu-latest
-    if: >- # Skip if no clusters are going to be created.
+    if: >-
+      github.event_name != 'workflow_dispatch' && (
       inputs.create-k8s-cluster != false ||
       inputs.create-os4-cluster != false ||
       inputs.create-long-cluster != false
+      )
     strategy:
       matrix:
         image: [main, scanner, scanner-db, scanner-v4, scanner-v4-db, collector]
