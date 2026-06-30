@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+os=$(uname -s)
+if [[ "$os" != "Linux" ]]; then
+    echo "::error::Unsupported operating system: $os"
+    exit 1
+fi
+
 arch=$(uname -m)
 case "$arch" in
     x86_64)  arch=amd64 ;;
@@ -18,25 +24,30 @@ if [[ -z "${ROXIE_VERSION:-}" ]]; then
     echo "::notice::Resolved latest roxie version: ${ROXIE_VERSION}"
 fi
 
+url="https://github.com/stackrox/roxie/releases/download/${ROXIE_VERSION}/roxie-linux-${arch}"
+echo "::notice::Downloading roxie ${ROXIE_VERSION} (linux/${arch}) from ${url}"
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/roxie" "$url"
+curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/checksums.txt" \
+    "https://github.com/stackrox/roxie/releases/download/${ROXIE_VERSION}/checksums.txt"
+
+expected=$(grep "roxie-linux-${arch}$" "$tmpdir/checksums.txt" | awk '{print $1}')
+actual=$(sha256sum "$tmpdir/roxie" | awk '{print $1}')
+if [[ "$expected" != "$actual" ]]; then
+    echo "::error::Checksum mismatch: expected ${expected}, got ${actual}"
+    exit 1
+fi
+
 mkdir -p ~/.local/bin
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     PATH="$HOME/.local/bin:$PATH"
     echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 fi
 
-url="https://github.com/stackrox/roxie/releases/download/${ROXIE_VERSION}/roxie-linux-${arch}"
-echo "::notice::Downloading roxie ${ROXIE_VERSION} (linux/${arch}) from ${url}"
-
-curl -fsSL --retry 5 --retry-all-errors -o ~/.local/bin/roxie "$url"
+mv "$tmpdir/roxie" ~/.local/bin/roxie
 chmod +x ~/.local/bin/roxie
-
-curl -fsSL --retry 5 --retry-all-errors -o /tmp/roxie-checksums.txt \
-    "https://github.com/stackrox/roxie/releases/download/${ROXIE_VERSION}/checksums.txt"
-expected=$(grep "roxie-linux-${arch}$" /tmp/roxie-checksums.txt | awk '{print $1}')
-actual=$(sha256sum ~/.local/bin/roxie | awk '{print $1}')
-if [[ "$expected" != "$actual" ]]; then
-    echo "::error::Checksum mismatch: expected ${expected}, got ${actual}"
-    exit 1
-fi
 
 roxie version

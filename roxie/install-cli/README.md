@@ -29,7 +29,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: stackrox/actions/roxie/install-cli@main
+    - uses: stackrox/actions/roxie/install-cli@v1
       with:
         version: v0.4.2
     - run: roxie version
