@@ -15,7 +15,7 @@ central:
       db:
         persistence:
           persistentVolumeClaim:
-            storageClassName: faster
+            storageClassName: premium-rwo
             size: "100Gi"
     customize:
       envVars:
