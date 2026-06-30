@@ -24,17 +24,17 @@ if [[ -z "${ROXIE_VERSION:-}" ]]; then
     echo "::notice::Resolved latest roxie version: ${ROXIE_VERSION}"
 fi
 
-url="https://github.com/stackrox/roxie/releases/download/${ROXIE_VERSION}/roxie-linux-${arch}"
-echo "::notice::Downloading roxie ${ROXIE_VERSION} (linux/${arch}) from ${url}"
+base_url="https://github.com/stackrox/roxie/releases/download/${ROXIE_VERSION}"
+binary="roxie-linux-${arch}"
+echo "::notice::Downloading roxie ${ROXIE_VERSION} (linux/${arch}) from ${base_url}/${binary}"
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
-curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/roxie" "$url"
-curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/checksums.txt" \
-    "https://github.com/stackrox/roxie/releases/download/${ROXIE_VERSION}/checksums.txt"
+curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/roxie" "${base_url}/${binary}"
+curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/checksums.txt" "${base_url}/checksums.txt"
 
-expected=$(grep "roxie-linux-${arch}$" "$tmpdir/checksums.txt" | awk '{print $1}')
+expected=$(awk "/  ${binary}\$/ {print \$1}" "$tmpdir/checksums.txt")
 actual=$(sha256sum "$tmpdir/roxie" | awk '{print $1}')
 if [[ "$expected" != "$actual" ]]; then
     echo "::error::Checksum mismatch: expected ${expected}, got ${actual}"
