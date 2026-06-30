@@ -3,8 +3,8 @@ description: Download roxie CLI from GitHub releases to ~/.local/bin
 
 inputs:
   version:
-    description: "Release version tag to install (e.g. v0.4.2)"
-    required: true
+    description: "Release version tag to install (e.g. v0.4.2). Omit to install the latest release."
+    required: false
 
 runs:
   using: composite

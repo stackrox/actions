@@ -18,7 +18,7 @@ permissions: {}
 
 | Name | Required | Default | Description |
 | --- | --- | --- | --- |
-| `version` | yes | | Release version tag to install (e.g. `v0.4.2`) |
+| `version` | no | latest | Release version tag to install (e.g. `v0.4.2`). Omit to install the latest release. |
 
 ## Usage
 

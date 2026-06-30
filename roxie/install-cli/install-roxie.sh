@@ -12,6 +12,12 @@ case "$arch" in
         ;;
 esac
 
+if [[ -z "${ROXIE_VERSION:-}" ]]; then
+    ROXIE_VERSION=$(curl -fsSL --retry 5 --retry-all-errors \
+        https://api.github.com/repos/stackrox/roxie/releases/latest | jq -r '.tag_name')
+    echo "::notice::Resolved latest roxie version: ${ROXIE_VERSION}"
+fi
+
 mkdir -p ~/.local/bin
 if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
     PATH="$HOME/.local/bin:$PATH"
