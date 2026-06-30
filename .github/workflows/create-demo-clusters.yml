@@ -1,5 +1,33 @@
 name: Create demo clusters for version
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version of the images
+        required: true
+        type: string
+      create-long-cluster:
+        description: Create a long-running cluster
+        default: true
+        type: boolean
+      cluster-with-fake-load-name:
+        description: Fake-load cluster name
+        default: test-roxie-fl
+        type: string
+      cluster-with-real-load-name:
+        description: Real-load cluster name
+        default: test-roxie-rl
+        type: string
+      workflow-ref:
+        description: Ref for actions checkout (defaults to current branch)
+        type: string
+      kube-burner-config-ref:
+        description: Ref for kube-burner config (defaults to version)
+        type: string
+      kube-burner-config-repo:
+        description: Repo with kube-burner config
+        default: stackrox
+        type: string
   workflow_call:
     inputs:
       version:
@@ -72,7 +100,7 @@ jobs:
       - name: Parse refs (extract SHA from git-describe format)
         env:
           INPUT_VERSION: ${{ inputs.version }}
-          INPUT_KUBE_BURNER_VERSION: ${{ inputs.kube-burner-config-ref }}
+          INPUT_KUBE_BURNER_VERSION: ${{ inputs.kube-burner-config-ref || inputs.version }}
         id: parse
         run: |
           set -euo pipefail
@@ -116,7 +144,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - name: Wait for the ${{matrix.image}} image
         uses: ./.actions/release/wait-for-image
         with:
@@ -137,7 +165,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -199,7 +227,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -264,7 +292,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -289,7 +317,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -330,7 +358,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -423,7 +451,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -484,7 +512,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -532,7 +560,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref }}
+          ref: ${{ inputs.workflow-ref || github.ref_name }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
