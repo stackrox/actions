@@ -1,0 +1,21 @@
+name: "TEST: roxie start-acs"
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: ACS image version tag (e.g. 4.11.0)
+        required: true
+        type: string
+
+jobs:
+  clusters:
+    uses: ./.github/workflows/create-demo-clusters.yml
+    secrets: inherit
+    with:
+      version: ${{ inputs.version }}
+      create-long-cluster: true
+      workflow-ref: ${{ github.ref_name }}
+      kube-burner-config-ref: ${{ inputs.version }}
+      kube-burner-config-repo: stackrox
+      cluster-with-fake-load-name: test-roxie-fl
+      cluster-with-real-load-name: test-roxie-rl
