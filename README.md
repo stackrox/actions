@@ -4,6 +4,7 @@
 * [Infra / Install `infractl`](infra/install-infractl/README.md)
 * [Release / Wait for Image](release/wait-for-image/README.md)
 * [Release / Tag](release/tag/README.md)
+* [Roxie / Install CLI](roxie/install-cli/README.md)
 * [Test](test/README.md)
 
 ## Workflows
