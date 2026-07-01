@@ -190,6 +190,7 @@ jobs:
           echo "cluster-name=${NAME//./-}" >> "$GITHUB_OUTPUT"
           echo "url=https://${NAME//[.-]/}.demos.rox.systems/login" >> "$GITHUB_OUTPUT"
       - name: Post to Slack
+        if: needs.properties.outputs.slack-channel != ''
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         uses: slackapi/slack-github-action@v1.26.0
@@ -252,6 +253,7 @@ jobs:
           echo "cluster-name=${NAME//./-}" >> "$GITHUB_OUTPUT"
           echo "url=https://central-stackrox.apps.${NAME//./-}.ocp.infra.rox.systems/login" >> "$GITHUB_OUTPUT"
       - name: Post to Slack
+        if: needs.properties.outputs.slack-channel != ''
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         uses: slackapi/slack-github-action@v1.26.0
@@ -390,6 +392,7 @@ jobs:
           name: ${{ env.NAME }}
 
       - name: Post to Slack
+        if: needs.properties.outputs.slack-channel != ''
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         uses: slackapi/slack-github-action@v1.26.0
@@ -614,6 +617,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Post to Slack
+        if: needs.properties.outputs.slack-channel != ''
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         uses: slackapi/slack-github-action@v1.26.0
