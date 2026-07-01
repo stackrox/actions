@@ -1,7 +1,16 @@
 securedCluster:
   namespace: stackrox
-  resourceProfile: small
   spec:
+    sensor:
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "12Gi"
+          cpu: "4"
+    scanner:
+      scannerComponent: Enabled
     processBaselines:
       autoLock: Enabled
     perNode:
