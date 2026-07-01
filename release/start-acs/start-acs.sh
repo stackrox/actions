@@ -43,6 +43,7 @@ fi
 gh_log notice "Deploying ACS with roxie..."
 roxie_envrc="$(mktemp)"
 roxie deploy \
+    --verbose \
     --tag "$MAIN_IMAGE_TAG" \
     --config "${SCRIPT_DIR}/roxie-config.yaml" \
     --envrc "$roxie_envrc" \
@@ -69,6 +70,7 @@ fi
 # Don't mask the password: masked values are not passed to the runner.
 gh_output rox-password "$ROX_ADMIN_PASSWORD"
 gh_output central-ip "$CENTRAL_IP"
+gh_output ca-cert "$(base64 -w0 < "$ROX_CA_CERT_FILE")"
 
 gh_log notice "Creating access-rhacs secret with the username and the password..."
 kubectl -n stackrox create secret generic access-rhacs \
