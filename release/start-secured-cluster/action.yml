@@ -42,29 +42,17 @@ runs:
 
     - id: launch-secured-cluster
       env:
-        ROX_PRODUCT_BRANDING: RHACS_BRANDING
-        MAIN_IMAGE_TAG: ${{inputs.main-image-tag}} # Release version, e.g. 3.63.0-rc.2.
+        MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
         REGISTRY_USERNAME: ${{ inputs.registry-username }}
         REGISTRY_PASSWORD: ${{ inputs.registry-password }}
-        ROX_ADMIN_PASSWORD: ${{ inputs.rox-admin-password }}                      
+        ROX_ADMIN_PASSWORD: ${{ inputs.rox-admin-password }}
         ROX_ADMIN_USERNAME: admin
+        CENTRAL_IP: ${{ inputs.central-ip }}
+        CLUSTER_API_ENDPOINT: https://${{ inputs.central-ip }}:443
+        MONITORING_SUPPORT: "true"
         PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
-        CENTRAL_IP: ${{ inputs.central-ip }}                                
-        CLUSTER_API_ENDPOINT: https://${{ inputs.central-ip }}:443          
-        API_ENDPOINT: ${{ inputs.central-ip }}:443                          
-        CLUSTER: secured-cluster
-        MONITORING_SUPPORT: "true"                                                           
-        STORAGE: pvc                                                                         
-        MONITORING_LOAD_BALANCER: none
         KUBECONFIG: ${{ inputs.kubeconfig }}
         STACKROX_DIR: ${{ github.workspace }}
-        COMMON_DIR: ${{ github.workspace }}/deploy/common
-        SECURED_CLUSTER_AUTO_LOCK_PROCESS_BASELINES: "true"
-        SFA_AGENT: "true"
-        SENSOR_HELM_DEPLOY: "true"
-        ROX_DEPLOY_SENSOR_WITH_CRS: "false"
-        ROX_NETFLOW_BATCHING: "true"
-        ROX_NETFLOW_CACHE_LIMITING: "true"
       run: |
         set -uo pipefail
         "${GITHUB_ACTION_PATH}/../../common/common.sh" \
