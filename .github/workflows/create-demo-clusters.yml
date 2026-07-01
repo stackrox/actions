@@ -1,33 +1,5 @@
 name: Create demo clusters for version
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Version of the images
-        required: true
-        type: string
-      create-long-cluster:
-        description: Create a long-running cluster
-        default: true
-        type: boolean
-      cluster-with-fake-load-name:
-        description: Fake-load cluster name
-        default: test-roxie-fl
-        type: string
-      cluster-with-real-load-name:
-        description: Real-load cluster name
-        default: test-roxie-rl
-        type: string
-      workflow-ref:
-        description: Ref for actions checkout (defaults to current branch)
-        type: string
-      kube-burner-config-ref:
-        description: Ref for kube-burner config (defaults to version)
-        type: string
-      kube-burner-config-repo:
-        description: Repo with kube-burner config
-        default: stackrox
-        type: string
   workflow_call:
     inputs:
       version:
@@ -79,7 +51,6 @@ env:
 
 jobs:
   properties:
-    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       slack-channel: ${{ fromJSON(format('["{0}","{1}"]', steps.fetch.outputs.dry-slack-channel, steps.fetch.outputs.slack-channel))[inputs.dry-run != true] }}
@@ -101,7 +72,7 @@ jobs:
       - name: Parse refs (extract SHA from git-describe format)
         env:
           INPUT_VERSION: ${{ inputs.version }}
-          INPUT_KUBE_BURNER_VERSION: ${{ inputs.kube-burner-config-ref || inputs.version }}
+          INPUT_KUBE_BURNER_VERSION: ${{ inputs.kube-burner-config-ref }}
         id: parse
         run: |
           set -euo pipefail
@@ -132,12 +103,10 @@ jobs:
   wait-for-images:
     name: Wait for images on Quay.io
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name != 'workflow_dispatch' && (
+    if: >- # Skip if no clusters are going to be created.
       inputs.create-k8s-cluster != false ||
       inputs.create-os4-cluster != false ||
       inputs.create-long-cluster != false
-      )
     strategy:
       matrix:
         image: [main, scanner, scanner-db, scanner-v4, scanner-v4-db, collector]
@@ -147,7 +116,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - name: Wait for the ${{matrix.image}} image
         uses: ./.actions/release/wait-for-image
         with:
@@ -160,7 +129,7 @@ jobs:
   create-k8s-cluster:
     name: Create k8s cluster
     needs: [wait-for-images]
-    if: "!cancelled() && !failure() && inputs.dry-run != true && inputs.create-k8s-cluster != false"
+    if: inputs.dry-run != true && inputs.create-k8s-cluster != false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
@@ -168,7 +137,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -230,7 +199,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -286,7 +255,6 @@ jobs:
     name: Create GKE long-running cluster for fake load
     needs: [wait-for-images]
     if: >-
-      !cancelled() && !failure() &&
       inputs.dry-run != true &&
       inputs.create-long-cluster == true
     runs-on: ubuntu-latest
@@ -296,7 +264,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -312,7 +280,6 @@ jobs:
     name: Create GKE long-running cluster for real load
     needs: [wait-for-images]
     if: >-
-      !cancelled() && !failure() &&
       inputs.dry-run != true &&
       inputs.create-long-cluster == true
     runs-on: ubuntu-latest
@@ -322,7 +289,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: ./.actions/infra/create-cluster
         with:
           token: ${{ secrets.INFRA_TOKEN }}
@@ -336,7 +303,6 @@ jobs:
   start-acs:
     name: Start ACS
     needs: [properties, parse-refs, create-long-running-cluster-for-fake-load]
-    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     outputs:
       rox-password: ${{ steps.launch-central.outputs.rox-password }}
@@ -364,7 +330,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -433,7 +399,6 @@ jobs:
   start-secured-cluster:
     name: Start secured cluster
     needs: [properties, parse-refs, start-acs, create-long-running-cluster-for-real-load]
-    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     env:
       SECURED_CLUSTER_NAME: ${{ inputs.cluster-with-real-load-name }}
@@ -458,7 +423,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -491,7 +456,6 @@ jobs:
   start-kube-burner-for-secured-cluster:
     name: Start kube-burner for the secured cluster
     needs: [properties, parse-refs, start-secured-cluster]
-    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     env:
       INFRA_NAME: ${{ inputs.cluster-with-real-load-name }}
@@ -520,7 +484,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
@@ -546,7 +510,6 @@ jobs:
   start-kube-burner-for-central:
     name: Start kube-burner for Central
     needs: [properties, parse-refs, start-acs]
-    if: "!cancelled() && !failure()"
     runs-on: ubuntu-latest
     env:
       INFRA_NAME: ${{ inputs.cluster-with-fake-load-name }}
@@ -569,7 +532,7 @@ jobs:
         with:
           repository: stackrox/actions
           path: .actions
-          ref: ${{ inputs.workflow-ref || github.ref_name }}
+          ref: ${{ inputs.workflow-ref }}
       - uses: "google-github-actions/auth@v2"
         with:
           credentials_json: "${{ secrets.GCP_RELEASE_AUTOMATION_SA }}"
