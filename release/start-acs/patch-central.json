@@ -1,0 +1,45 @@
+{
+    "spec": {
+        "template": {
+            "spec": {
+                "containers": [
+                    {
+                        "name": "central",
+                        "env": [
+                            {
+                                "name": "MUTEX_WATCHDOG_TIMEOUT_SECS",
+                                "value": "0"
+                            },
+                            {
+                                "name": "ROX_EXTERNAL_IPS",
+                                "value": "true"
+                            },
+                            {
+                                "name": "ROX_NETWORK_GRAPH_EXTERNAL_IPS",
+                                "value": "true"
+                            },
+                            {
+                                "name": "ROX_AUTO_LOCK_PROCESS_BASELINES",
+                                "value": "true"
+                            },
+                            {
+                                "name": "ROX_BASELINE_GENERATION_DURATION",
+                                "value": "3m"
+                            }
+                        ],
+                        "resources": {
+                            "requests": {
+                                "memory": "3Gi",
+                                "cpu": "2"
+                            },
+                            "limits": {
+                                "memory": "12Gi",
+                                "cpu": "4"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    }
+}

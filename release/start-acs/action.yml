@@ -22,7 +22,7 @@ inputs:
     required: true
     default: ""
   stackrox-dir:
-    description: Where the stackrox directory is located (needed for monitoring chart)
+    description: Where the stackrox directory is located
     required: true
     default: ""
   name:
@@ -42,15 +42,24 @@ runs:
 
     - id: launch-central
       env:
+        ROX_PRODUCT_BRANDING: RHACS_BRANDING
         MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
-        MONITORING_SUPPORT: "true"
-        PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
+        API_ENDPOINT: localhost:8000
+        STORAGE: pvc # Backing storage
+        STORAGE_CLASS: faster # Runs on an SSD type
+        STORAGE_SIZE: "100" # 100G
+        MONITORING_SUPPORT: "true" # Runs monitoring
+        LOAD_BALANCER: lb
+        SECURED_CLUSTER_AUTO_LOCK_PROCESS_BASELINES: "true"
         ROX_ADMIN_USERNAME: admin
+        PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
         REGISTRY_USERNAME: ${{ inputs.registry-username }}
         REGISTRY_PASSWORD: ${{ inputs.registry-password }}
         KUBECONFIG: ${{ inputs.kubeconfig }}
         STACKROX_DIR: ${{ inputs.stackrox-dir }}
         NAME: ${{ inputs.name }}
+        ROX_TELEMETRY_STORAGE_KEY_V1: R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW
+        ROX_SCANNER_V4: "true"
       run: |
         set -uo pipefail
         "${GITHUB_ACTION_PATH}/../../common/common.sh" \
@@ -64,6 +73,3 @@ outputs:
   central-ip:
     description: The ip address of central
     value: ${{steps.launch-central.outputs.central-ip}}
-  ca-cert:
-    description: Base64-encoded Central CA certificate
-    value: ${{steps.launch-central.outputs.ca-cert}}
