@@ -64,3 +64,6 @@ outputs:
   central-ip:
     description: The ip address of central
     value: ${{steps.launch-central.outputs.central-ip}}
+  ca-cert:
+    description: Base64-encoded Central CA certificate
+    value: ${{steps.launch-central.outputs.ca-cert}}

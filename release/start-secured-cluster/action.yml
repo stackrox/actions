@@ -29,6 +29,10 @@ inputs:
     description: The IP address for central
     required: true
     default: ""
+  ca-cert:
+    description: Base64-encoded Central CA certificate
+    required: true
+    default: ""
 
 runs:
   using: composite
@@ -40,6 +44,14 @@ runs:
         username: ${{ inputs.registry-username }}
         password: ${{ inputs.registry-password }}
 
+    - name: Decode CA certificate
+      id: ca-cert
+      shell: bash
+      run: |
+        ca_cert_file="$(mktemp)"
+        echo "${{ inputs.ca-cert }}" | base64 -d > "$ca_cert_file"
+        echo "file=$ca_cert_file" >> "$GITHUB_OUTPUT"
+
     - id: launch-secured-cluster
       env:
         MAIN_IMAGE_TAG: ${{ inputs.main-image-tag }}
@@ -49,6 +61,8 @@ runs:
         ROX_ADMIN_USERNAME: admin
         CENTRAL_IP: ${{ inputs.central-ip }}
         CLUSTER_API_ENDPOINT: https://${{ inputs.central-ip }}:443
+        API_ENDPOINT: ${{ inputs.central-ip }}:443
+        ROX_CA_CERT_FILE: ${{ steps.ca-cert.outputs.file }}
         MONITORING_SUPPORT: "true"
         PAGERDUTY_INTEGRATION_KEY: ${{ inputs.pagerduty-integration-key }}
         KUBECONFIG: ${{ inputs.kubeconfig }}

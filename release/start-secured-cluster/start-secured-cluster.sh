@@ -27,6 +27,7 @@ fi
 gh_log notice "Deploying secured cluster with roxie..."
 ROX_ADMIN_PASSWORD="${ROX_ADMIN_PASSWORD}" \
 roxie deploy secured-cluster \
+    --verbose \
     --tag "$MAIN_IMAGE_TAG" \
     --config "${SCRIPT_DIR}/roxie-config.yaml" \
     --set "securedCluster.spec.centralEndpoint=${CENTRAL_IP}:443" \
