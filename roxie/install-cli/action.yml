@@ -1,0 +1,16 @@
+name: Install roxie CLI
+description: Download roxie CLI from GitHub releases to ~/.local/bin
+
+inputs:
+  version:
+    description: "Release version tag to install (e.g. v0.4.2). Omit to install the latest release."
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Download and install roxie
+      shell: bash
+      env:
+        ROXIE_VERSION: ${{ inputs.version }}
+      run: "${GITHUB_ACTION_PATH}/install-roxie.sh"
