@@ -1,5 +1,6 @@
 securedCluster:
   namespace: stackrox
+  resourceProfile: small
   spec:
     processBaselines:
       autoLock: Enabled

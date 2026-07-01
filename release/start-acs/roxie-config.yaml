@@ -1,17 +1,11 @@
 central:
   namespace: stackrox
+  resourceProfile: small
   spec:
     central:
       exposure:
         loadBalancer:
           enabled: true
-      resources:
-        requests:
-          memory: "3Gi"
-          cpu: "2"
-        limits:
-          memory: "12Gi"
-          cpu: "4"
       db:
         persistence:
           persistentVolumeClaim:
@@ -35,6 +29,7 @@ central:
       scannerComponent: Enabled
 securedCluster:
   namespace: stackrox
+  resourceProfile: small
   spec:
     processBaselines:
       autoLock: Enabled
