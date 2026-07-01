@@ -1,6 +1,7 @@
 securedCluster:
   namespace: stackrox
   spec:
+    # Match patch-sensor.json from the legacy deploy flow.
     sensor:
       resources:
         requests:
@@ -11,6 +12,21 @@ securedCluster:
           cpu: "4"
     scanner:
       scannerComponent: Enabled
+      # Legacy roxctl-generate flow produces HPA min=1/max=5 for scanner
+      # (vs Helm chart default min=2/max=5).
+      analyzer:
+        scaling:
+          autoScaling: Enabled
+          minReplicas: 1
+          maxReplicas: 5
+          replicas: 1
+    scannerV4:
+      # Legacy roxctl-generate flow produces HPA min=1/max=1 for scanner-v4
+      # (vs Helm chart default min=2/max=5). Effectively no autoscaling.
+      indexer:
+        scaling:
+          autoScaling: Disabled
+          replicas: 1
     processBaselines:
       autoLock: Enabled
     perNode:
