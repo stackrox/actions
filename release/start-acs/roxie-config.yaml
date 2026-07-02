@@ -1,0 +1,82 @@
+central:
+  namespace: stackrox
+  spec:
+    central:
+      exposure:
+        loadBalancer:
+          enabled: true
+      # Match patch-central.json from the legacy deploy flow.
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "12Gi"
+          cpu: "4"
+      db:
+        persistence:
+          persistentVolumeClaim:
+            storageClassName: premium-rwo
+            size: "100Gi"
+    scanner:
+      scannerComponent: Enabled
+      # Legacy roxctl-generate flow produces HPA min=1/max=5 for scanner
+      # (vs Helm chart default min=2/max=5).
+      analyzer:
+        scaling:
+          autoScaling: Enabled
+          minReplicas: 1
+          maxReplicas: 5
+          replicas: 1
+    customize:
+      envVars:
+        - name: MUTEX_WATCHDOG_TIMEOUT_SECS
+          value: "0"
+        - name: ROX_EXTERNAL_IPS
+          value: "true"
+        - name: ROX_NETWORK_GRAPH_EXTERNAL_IPS
+          value: "true"
+        - name: ROX_AUTO_LOCK_PROCESS_BASELINES
+          value: "true"
+        - name: ROX_BASELINE_GENERATION_DURATION
+          value: "3m"
+        - name: ROX_TELEMETRY_STORAGE_KEY_V1
+          value: "R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW"
+    scannerV4:
+      scannerComponent: Enabled
+      # Legacy roxctl-generate flow produces HPA min=1/max=1 for scanner-v4
+      # (vs Helm chart default min=2/max=5). Effectively no autoscaling.
+      indexer:
+        scaling:
+          autoScaling: Disabled
+          replicas: 1
+      matcher:
+        scaling:
+          autoScaling: Disabled
+          replicas: 1
+securedCluster:
+  namespace: stackrox
+  spec:
+    # Match patch-sensor.json from the legacy deploy flow.
+    sensor:
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "12Gi"
+          cpu: "4"
+    processBaselines:
+      autoLock: Enabled
+    customize:
+      envVars:
+        - name: MUTEX_WATCHDOG_TIMEOUT_SECS
+          value: "0"
+        - name: ROX_FAKE_KUBERNETES_WORKLOAD
+          value: "long-running"
+        - name: ROX_NETFLOW_BATCHING
+          value: "true"
+        - name: ROX_NETFLOW_CACHE_LIMITING
+          value: "true"
+        - name: ROX_FAKE_WORKLOAD_STORAGE
+          value: "/var/cache/stackrox/pebble.db"
