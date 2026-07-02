@@ -1,13 +1,16 @@
 name: Create demo clusters for version
 on:
-  # For testing this workflow directly from a branch of stackrox/actions
-  # (the normal path is workflow_call from stackrox/stackrox). To test:
-  #   1. Push your branch to stackrox/actions.
-  #   2. Create a branch in stackrox/stackrox with .github/workflows/create-clusters.yml
-  #      pointing uses: at your branch SHA and workflow-ref: at your branch name.
-  #   3. Dispatch from that stackrox/stackrox branch.
-  # Alternatively, dispatch this workflow directly from the Actions tab on the
-  # stackrox/actions repo (requires the workflow file to exist on main).
+  # For testing this workflow from a branch of stackrox/actions (the normal
+  # path is workflow_call from stackrox/stackrox). To test:
+  #   1. Push your branch to stackrox/actions, note the HEAD commit SHA.
+  #   2. Create a branch in stackrox/stackrox and edit
+  #      .github/workflows/create-clusters.yml — change these fields:
+  #        uses: stackrox/actions/...@<your-branch-HEAD-SHA>
+  #        workflow-ref: <your-branch-name>
+  #      Also change CLUSTER_WITH_FAKE_LOAD_NAME and CLUSTER_WITH_REAL_LOAD_NAME
+  #      to unique prefixes to avoid clashing with production clusters.
+  #   3. Dispatch "RELEASE: Create Clusters" from that stackrox/stackrox branch
+  #      with create-long-cluster=true and an existing ACS version (e.g. 4.11.0).
   workflow_dispatch:
     inputs:
       version:
