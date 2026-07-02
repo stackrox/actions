@@ -1,5 +1,13 @@
 name: Create demo clusters for version
 on:
+  # For testing this workflow directly from a branch of stackrox/actions
+  # (the normal path is workflow_call from stackrox/stackrox). To test:
+  #   1. Push your branch to stackrox/actions.
+  #   2. Create a branch in stackrox/stackrox with .github/workflows/create-clusters.yml
+  #      pointing uses: at your branch SHA and workflow-ref: at your branch name.
+  #   3. Dispatch from that stackrox/stackrox branch.
+  # Alternatively, dispatch this workflow directly from the Actions tab on the
+  # stackrox/actions repo (requires the workflow file to exist on main).
   workflow_dispatch:
     inputs:
       version:
@@ -10,14 +18,6 @@ on:
         description: Create a long-running cluster
         default: true
         type: boolean
-      cluster-with-fake-load-name:
-        description: Fake-load cluster name
-        default: test-roxie-fl
-        type: string
-      cluster-with-real-load-name:
-        description: Real-load cluster name
-        default: test-roxie-rl
-        type: string
       workflow-ref:
         description: Ref for actions checkout (defaults to current branch)
         type: string
@@ -27,6 +27,14 @@ on:
       kube-burner-config-repo:
         description: Repo with kube-burner config
         default: stackrox
+        type: string
+      cluster-with-fake-load-name:
+        description: Fake-load cluster name
+        default: test-fl
+        type: string
+      cluster-with-real-load-name:
+        description: Real-load cluster name
+        default: test-rl
         type: string
   workflow_call:
     inputs:

@@ -1,9 +1,9 @@
+# Resource requests, limits, and scaling settings below are tuned to match
+# the previous deploy-scripts-based flow. They may be adjusted in the future
+# to better resemble a typical customer deployment.
 securedCluster:
   namespace: stackrox
   spec:
-    # Match legacy roxctl sensor-generate defaults for the real-load cluster.
-    # Note: the fake-load cluster's sensor gets patch-sensor.json overrides
-    # via the start-acs config; this cluster uses the unpatched defaults.
     sensor:
       resources:
         requests:
@@ -12,14 +12,12 @@ securedCluster:
         limits:
           memory: "8Gi"
           cpu: "4"
-    # Match legacy roxctl-generate default (vs operator default 1Gi).
     admissionControl:
       resources:
         limits:
           memory: "500Mi"
     scanner:
       scannerComponent: AutoSense
-      # Match legacy HPA: min=2/max=5.
       analyzer:
         scaling:
           autoScaling: Enabled
@@ -27,7 +25,6 @@ securedCluster:
           maxReplicas: 5
           replicas: 2
     scannerV4:
-      # Match legacy HPA: min=2/max=5.
       indexer:
         scaling:
           autoScaling: Enabled

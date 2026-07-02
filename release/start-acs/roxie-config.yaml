@@ -1,3 +1,6 @@
+# Resource requests, limits, and scaling settings below are tuned to match
+# the previous deploy-scripts-based flow. They may be adjusted in the future
+# to better resemble a typical customer deployment.
 central:
   namespace: stackrox
   spec:
@@ -5,7 +8,6 @@ central:
       exposure:
         loadBalancer:
           enabled: true
-      # Match patch-central.json from the legacy deploy flow.
       resources:
         requests:
           memory: "3Gi"
@@ -20,8 +22,6 @@ central:
             size: "100Gi"
     scanner:
       scannerComponent: Enabled
-      # Legacy roxctl-generate flow produces HPA min=1/max=5 for scanner
-      # (vs Helm chart default min=2/max=5).
       analyzer:
         scaling:
           autoScaling: Enabled
@@ -44,15 +44,11 @@ central:
           value: "R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW"
     scannerV4:
       scannerComponent: Enabled
-      # Legacy roxctl-generate flow produces HPA min=1/max=1 for scanner-v4
-      # (vs Helm chart default min=2/max=5). Effectively no autoscaling.
       db:
-        # Match legacy roxctl-generate default (vs operator default 1 CPU).
         resources:
           requests:
             cpu: "500m"
       indexer:
-        # Match legacy roxctl-generate default (vs operator default 1500m).
         resources:
           requests:
             cpu: "400m"
@@ -60,7 +56,6 @@ central:
           autoScaling: Disabled
           replicas: 1
       matcher:
-        # Match legacy roxctl-generate default (vs operator default 500m).
         resources:
           requests:
             cpu: "400m"
@@ -70,7 +65,6 @@ central:
 securedCluster:
   namespace: stackrox
   spec:
-    # Match patch-sensor.json from the legacy deploy flow.
     sensor:
       resources:
         requests:
