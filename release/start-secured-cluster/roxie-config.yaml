@@ -1,32 +1,39 @@
 securedCluster:
   namespace: stackrox
   spec:
-    # Match patch-sensor.json from the legacy deploy flow.
+    # Match legacy roxctl sensor-generate defaults for the real-load cluster.
+    # Note: the fake-load cluster's sensor gets patch-sensor.json overrides
+    # via the start-acs config; this cluster uses the unpatched defaults.
     sensor:
       resources:
         requests:
-          memory: "3Gi"
-          cpu: "2"
+          memory: "500Mi"
+          cpu: "500m"
         limits:
-          memory: "12Gi"
+          memory: "8Gi"
           cpu: "4"
+    # Match legacy roxctl-generate default (vs operator default 1Gi).
+    admissionControl:
+      resources:
+        limits:
+          memory: "500Mi"
     scanner:
       scannerComponent: AutoSense
-      # Legacy roxctl-generate flow produces HPA min=1/max=5 for scanner
-      # (vs Helm chart default min=2/max=5).
+      # Match legacy HPA: min=2/max=5.
       analyzer:
         scaling:
           autoScaling: Enabled
-          minReplicas: 1
+          minReplicas: 2
           maxReplicas: 5
-          replicas: 1
+          replicas: 2
     scannerV4:
-      # Legacy roxctl-generate flow produces HPA min=1/max=1 for scanner-v4
-      # (vs Helm chart default min=2/max=5). Effectively no autoscaling.
+      # Match legacy HPA: min=2/max=5.
       indexer:
         scaling:
-          autoScaling: Disabled
-          replicas: 1
+          autoScaling: Enabled
+          minReplicas: 2
+          maxReplicas: 5
+          replicas: 2
     processBaselines:
       autoLock: Enabled
     perNode:
