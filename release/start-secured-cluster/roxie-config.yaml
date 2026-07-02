@@ -11,7 +11,7 @@ securedCluster:
           memory: "12Gi"
           cpu: "4"
     scanner:
-      scannerComponent: Enabled
+      scannerComponent: AutoSense
       # Legacy roxctl-generate flow produces HPA min=1/max=5 for scanner
       # (vs Helm chart default min=2/max=5).
       analyzer:
