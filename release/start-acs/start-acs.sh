@@ -51,6 +51,7 @@ roxie deploy \
 
 # shellcheck source=/dev/null
 source "$roxie_envrc"
+rm -f "$roxie_envrc"
 CENTRAL_IP="${API_ENDPOINT%:*}"
 gh_log notice "CENTRAL_IP=$CENTRAL_IP"
 
