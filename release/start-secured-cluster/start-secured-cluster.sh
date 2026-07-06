@@ -18,6 +18,7 @@ fi
 
 if ! command -v roxctl &>/dev/null; then
     gh_log notice "Installing roxctl ${MAIN_IMAGE_TAG}..."
+    mkdir -p ~/.local/bin
     curl -fsSL --retry 5 --retry-all-errors \
         -o ~/.local/bin/roxctl \
         "https://mirror.openshift.com/pub/rhacs/assets/${MAIN_IMAGE_TAG}/bin/linux/roxctl"
