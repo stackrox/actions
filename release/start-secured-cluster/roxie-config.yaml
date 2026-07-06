@@ -3,6 +3,7 @@
 # to better resemble a typical customer deployment.
 securedCluster:
   namespace: stackrox
+  pauseReconciliation: true
   spec:
     sensor:
       resources:

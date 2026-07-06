@@ -3,6 +3,7 @@
 # to better resemble a typical customer deployment.
 central:
   namespace: stackrox
+  pauseReconciliation: true
   spec:
     central:
       exposure:
@@ -16,6 +17,13 @@ central:
           memory: "12Gi"
           cpu: "4"
       db:
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "8"
+            memory: "16Gi"
         persistence:
           persistentVolumeClaim:
             storageClassName: premium-rwo
@@ -64,6 +72,7 @@ central:
           replicas: 1
 securedCluster:
   namespace: stackrox
+  pauseReconciliation: true
   spec:
     sensor:
       resources:
