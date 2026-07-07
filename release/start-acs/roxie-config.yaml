@@ -9,6 +9,8 @@ central:
       exposure:
         loadBalancer:
           enabled: true
+      monitoring:
+        exposeEndpoint: Enabled
       resources:
         requests:
           memory: "3Gi"
@@ -36,6 +38,8 @@ central:
           minReplicas: 1
           maxReplicas: 5
           replicas: 1
+      monitoring:
+        exposeEndpoint: Enabled
     customize:
       envVars:
         - name: MUTEX_WATCHDOG_TIMEOUT_SECS
@@ -52,6 +56,8 @@ central:
           value: "R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW"
     scannerV4:
       scannerComponent: Enabled
+      monitoring:
+        exposeEndpoint: Enabled
       db:
         resources:
           requests:
@@ -82,6 +88,29 @@ securedCluster:
         limits:
           memory: "12Gi"
           cpu: "4"
+    scannerV4:
+      monitoring:
+        exposeEndpoint: Enabled
+    overlays:
+      - apiVersion: v1
+        kind: Service
+        name: sensor
+        patches:
+          - path: spec.ports[-1]
+            value: |
+              name: monitoring
+              port: 9090
+              protocol: TCP
+              targetPort: 9090
+      - apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: sensor
+        patches:
+          - path: spec.ingress[-1]
+            value: |
+              ports:
+              - port: 9090
+                protocol: TCP
     processBaselines:
       autoLock: Enabled
     customize:
