@@ -234,7 +234,7 @@ jobs:
   create-os4-cluster:
     name: Create OS4 cluster
     needs: [wait-for-images]
-    if: inputs.dry-run == false && inputs.create-os4-cluster == true
+    if: "!cancelled() && !failure() && inputs.dry-run != true && inputs.create-k8s-cluster != false"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout local action
@@ -584,7 +584,7 @@ jobs:
         with:
           repository: stackrox/${{ inputs.kube-burner-config-repo }}
           path: .kube-burner-config
-          ref: ${{ needs.parse-refs.outputs.version-ref }}
+          ref: ${{ needs.parse-refs.outputs.burner-ref }}
       - name: Checkout local action
         uses: actions/checkout@v4
         with:

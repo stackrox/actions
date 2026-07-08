@@ -26,7 +26,6 @@ if ! command -v roxctl &>/dev/null; then
 fi
 
 gh_log notice "Deploying secured cluster with roxie..."
-ROX_ADMIN_PASSWORD="${ROX_ADMIN_PASSWORD}" \
 roxie deploy secured-cluster \
     --verbose \
     --tag "$MAIN_IMAGE_TAG" \
