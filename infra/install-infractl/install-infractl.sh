@@ -8,7 +8,8 @@ if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
   PATH="$HOME/.local/bin:$PATH"
   echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 fi
-curl --fail -L https://infra.rox.systems/v1/cli/linux/amd64/upgrade \
+curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 5 --location \
+https://infra.rox.systems/v1/cli/linux/amd64/upgrade \
 | jq -r ".result.fileChunk" \
 | base64 -d \
 > ~/.local/bin/infractl
