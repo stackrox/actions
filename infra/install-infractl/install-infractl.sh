@@ -12,7 +12,7 @@ echo "Downloading infractl..."
 
 upgrade_data="$(mktemp)"
 trap 'rm -f "${upgrade_data}"' EXIT
-curl --fail --silent --show-error --retry 5 --retry-all-errors --retry-delay 5 --location \
+curl --fail --silent --show-error --retry 20 --retry-all-errors --location \
   --output "${upgrade_data}" https://infra.rox.systems/v1/cli/linux/amd64/upgrade
 # jq's @base64d is not binary-safe
 jq -r .result.fileChunk "${upgrade_data}" | base64 -d > ~/.local/bin/infractl
