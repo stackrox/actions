@@ -23,10 +23,21 @@ spec:
               curl -G --silent http://monitoring.stackrox.svc.cluster.local:9090/api/v1/query --data-urlencode 'query=time()' | sed 's|.*\[||' | sed 's|\..*||'
             }
             cd /etc/kube-burner
-            config=config.yml
+            config=berserker-load.yml
             metrics_profile=/etc/kube-burner-metrics/metrics.yml
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
-            (kube-burner init --config="$config" --skip-log-file --timeout=1000h || true) &
+            (kube-burner init --config="$config" --skip-log-file --timeout=1000h \
+              --set GC="$GC" \
+              --set GC_METRICS="$GC_METRICS" \
+              --set DELETION_STRATEGY="$DELETION_STRATEGY" \
+              --set POD_READY_THRESHOLD="$POD_READY_THRESHOLD" \
+              --set ES_SERVER="$ES_SERVER" \
+              --set ES_INDEX="$ES_INDEX" \
+              --set LOCAL_INDEXING="$LOCAL_INDEXING" \
+              --set METRICS="$METRICS" \
+              --set ALERTS="$ALERTS" \
+              --set UUID="$UUID" \
+              || true) &
             while true; do
               start="$(get_epoch_time)"
               sleep "$METRICS_COLLECTION_TIME"
@@ -60,6 +71,24 @@ spec:
             secretKeyRef:
               name: kube-burner-secret
               key: METRICS_TIME_STEP
+        - name: GC
+          value: "true"
+        - name: GC_METRICS
+          value: "false"
+        - name: DELETION_STRATEGY
+          value: "gvr"
+        - name: POD_READY_THRESHOLD
+          value: "5m0s"
+        - name: ES_SERVER
+          value: ""
+        - name: ES_INDEX
+          value: ""
+        - name: LOCAL_INDEXING
+          value: "false"
+        - name: METRICS
+          value: "metrics.yml"
+        - name: ALERTS
+          value: ""
         - name: BERSERKER_CONFIGMAP_TEMPLATE
           valueFrom:
             secretKeyRef:
