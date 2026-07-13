@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Start ACS central and secured cluster and patch it so that it can be used for the long running cluster
+# Deploy ACS (Central + SecuredCluster) to a long-running cluster using roxie.
+# Most configuration is in roxie-config.yaml alongside this script.
 #
 # When running locally there should be a kubeconfig created.
 # When running locally there are some environment variables that should be set
@@ -8,17 +9,13 @@
 # export NAME=<cluster name>
 # export KUBECONFIG=/tmp/${NAME}/kubeconfig
 #
-# export ROX_IMAGE_FLAVOR=RHACS_BRANDING
 # export MAIN_IMAGE_TAG=<tag>
-# export API_ENDPOINT=localhost:8000
-# export STORAGE=pvc # Backing storage
-# export STORAGE_CLASS=faster # Runs on an SSD type
-# export STORAGE_SIZE=100 # 100G
-# export MONITORING_SUPPORT=true # Runs monitoring
-# export LOAD_BALANCER=lb
+# export MONITORING_SUPPORT=true
 # export ROX_ADMIN_USERNAME=admin
 # export STACKROX_DIR=<stackrox dir>
 # export PAGERDUTY_INTEGRATION_KEY=<PagerDuty release engineering integration key>
+# export REGISTRY_USERNAME=<quay.io username>
+# export REGISTRY_PASSWORD=<quay.io password>
 #
 # export GITHUB_OUTPUT=delete-log-github-output.txt
 # export GITHUB_STEP_SUMMARY=delete-log-start-acs.txt
