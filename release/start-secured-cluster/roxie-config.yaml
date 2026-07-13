@@ -5,6 +5,7 @@ securedCluster:
   namespace: stackrox
   pauseReconciliation: true
   spec:
+    clusterName: secured-cluster
     sensor:
       resources:
         requests:
