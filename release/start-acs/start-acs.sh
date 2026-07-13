@@ -25,7 +25,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if kubectl -n stackrox get deploy/central; then
-  gh_log error "Central is already running. It means that you are trying to deploy ACS to a cluster where it is already deployed. This can happen if you try to create a long-running cluster for a release candicate when the such a cluster already exists. Try looking for another workflow that created the cluster."
+  gh_log error "Central is already running. It means that you are trying to deploy ACS to a cluster where it is already deployed. This can happen if you try to create a long-running cluster for a release candidate when the such a cluster already exists. Try looking for another workflow that created the cluster."
   exit 1
 fi
 
