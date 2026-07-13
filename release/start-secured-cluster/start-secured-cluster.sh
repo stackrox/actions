@@ -16,15 +16,6 @@ else
   gh_log notice "Using ACS pre-4.11 secured cluster setup (version: ${version_major_minor})"
 fi
 
-if ! command -v roxctl &>/dev/null; then
-    gh_log notice "Installing roxctl ${MAIN_IMAGE_TAG}..."
-    mkdir -p ~/.local/bin
-    curl -fsSL --retry 5 --retry-all-errors \
-        -o ~/.local/bin/roxctl \
-        "https://mirror.openshift.com/pub/rhacs/assets/${MAIN_IMAGE_TAG}/bin/linux/roxctl"
-    chmod +x ~/.local/bin/roxctl
-fi
-
 gh_log notice "Deploying secured cluster with roxie..."
 roxie deploy secured-cluster \
     --verbose \
