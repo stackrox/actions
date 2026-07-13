@@ -22,6 +22,7 @@ roxie deploy secured-cluster \
     --tag "$MAIN_IMAGE_TAG" \
     --config "${SCRIPT_DIR}/roxie-config.yaml" \
     --set "securedCluster.spec.centralEndpoint=${CENTRAL_IP}:443" \
+    --set "securedCluster.spec.clusterName=${CLUSTER}" \
     --early-readiness
 
 kubectl -n stackrox create secret generic access-rhacs \

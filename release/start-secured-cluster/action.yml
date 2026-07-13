@@ -61,6 +61,7 @@ runs:
         ROX_ADMIN_USERNAME: admin
         CENTRAL_IP: ${{ inputs.central-ip }}
         CLUSTER_API_ENDPOINT: https://${{ inputs.central-ip }}:443
+        CLUSTER: secured-cluster
         API_ENDPOINT: ${{ inputs.central-ip }}:443
         ROX_CA_CERT_FILE: ${{ steps.ca-cert.outputs.file }}
         MONITORING_SUPPORT: "true"
