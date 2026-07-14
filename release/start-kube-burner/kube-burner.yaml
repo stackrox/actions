@@ -37,6 +37,18 @@ spec:
               --set METRICS="$METRICS" \
               --set ALERTS="$ALERTS" \
               --set UUID="$UUID" \
+              --set JOB_ITERATIONS="$JOB_ITERATIONS" \
+              --set JOB_PAUSE="$JOB_PAUSE" \
+              --set QPS="$QPS" \
+              --set BURST="$BURST" \
+              --set CHURN_CYCLES="$CHURN_CYCLES" \
+              --set CHURN_DURATION="$CHURN_DURATION" \
+              --set CHURN_DELAY="$CHURN_DELAY" \
+              --set CHURN_PERCENT="$CHURN_PERCENT" \
+              --set CHURN_MODE="$CHURN_MODE" \
+              --set MAX_WAIT_TIMEOUT="$MAX_WAIT_TIMEOUT" \
+              --set DAEMONSET_REPLICAS="$DAEMONSET_REPLICAS" \
+              --set SERVICE_REPLICAS="$SERVICE_REPLICAS" \
               || true) &
             while true; do
               start="$(get_epoch_time)"
@@ -89,6 +101,30 @@ spec:
           value: "metrics.yml"
         - name: ALERTS
           value: ""
+        - name: JOB_ITERATIONS
+          value: "5"
+        - name: JOB_PAUSE
+          value: "0s"
+        - name: QPS
+          value: "20"
+        - name: BURST
+          value: "20"
+        - name: CHURN_CYCLES
+          value: "0"
+        - name: CHURN_DURATION
+          value: "0s"
+        - name: CHURN_DELAY
+          value: "10m0s"
+        - name: CHURN_PERCENT
+          value: "80"
+        - name: CHURN_MODE
+          value: "objects"
+        - name: MAX_WAIT_TIMEOUT
+          value: "12m0s"
+        - name: DAEMONSET_REPLICAS
+          value: "6"
+        - name: SERVICE_REPLICAS
+          value: "6"
         - name: BERSERKER_CONFIGMAP_TEMPLATE
           valueFrom:
             secretKeyRef:
