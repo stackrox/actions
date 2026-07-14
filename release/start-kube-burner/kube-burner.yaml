@@ -26,30 +26,31 @@ spec:
             config=berserker-load.yml
             metrics_profile=/etc/kube-burner-metrics/metrics.yml
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
-            (kube-burner init --config="$config" --skip-log-file --timeout=1000h \
-              --set GC="$GC" \
-              --set GC_METRICS="$GC_METRICS" \
-              --set DELETION_STRATEGY="$DELETION_STRATEGY" \
-              --set POD_READY_THRESHOLD="$POD_READY_THRESHOLD" \
-              --set ES_SERVER="$ES_SERVER" \
-              --set ES_INDEX="$ES_INDEX" \
-              --set LOCAL_INDEXING="$LOCAL_INDEXING" \
-              --set METRICS="$METRICS" \
-              --set ALERTS="$ALERTS" \
-              --set UUID="$UUID" \
-              --set JOB_ITERATIONS="$JOB_ITERATIONS" \
-              --set JOB_PAUSE="$JOB_PAUSE" \
-              --set QPS="$QPS" \
-              --set BURST="$BURST" \
-              --set CHURN_CYCLES="$CHURN_CYCLES" \
-              --set CHURN_DURATION="$CHURN_DURATION" \
-              --set CHURN_DELAY="$CHURN_DELAY" \
-              --set CHURN_PERCENT="$CHURN_PERCENT" \
-              --set CHURN_MODE="$CHURN_MODE" \
-              --set MAX_WAIT_TIMEOUT="$MAX_WAIT_TIMEOUT" \
-              --set DAEMONSET_REPLICAS="$DAEMONSET_REPLICAS" \
-              --set SERVICE_REPLICAS="$SERVICE_REPLICAS" \
-              || true) &
+            cat > /tmp/vars.yml <<VARSEOF
+            GC: $GC
+            GC_METRICS: $GC_METRICS
+            DELETION_STRATEGY: $DELETION_STRATEGY
+            POD_READY_THRESHOLD: $POD_READY_THRESHOLD
+            ES_SERVER: "$ES_SERVER"
+            ES_INDEX: "$ES_INDEX"
+            LOCAL_INDEXING: $LOCAL_INDEXING
+            METRICS: $METRICS
+            ALERTS: "$ALERTS"
+            UUID: $UUID
+            JOB_ITERATIONS: $JOB_ITERATIONS
+            JOB_PAUSE: $JOB_PAUSE
+            QPS: $QPS
+            BURST: $BURST
+            CHURN_CYCLES: $CHURN_CYCLES
+            CHURN_DURATION: $CHURN_DURATION
+            CHURN_DELAY: $CHURN_DELAY
+            CHURN_PERCENT: $CHURN_PERCENT
+            CHURN_MODE: $CHURN_MODE
+            MAX_WAIT_TIMEOUT: $MAX_WAIT_TIMEOUT
+            DAEMONSET_REPLICAS: $DAEMONSET_REPLICAS
+            SERVICE_REPLICAS: $SERVICE_REPLICAS
+            VARSEOF
+            (kube-burner init --config="$config" --user-data=/tmp/vars.yml --skip-log-file --timeout=1000h || true) &
             while true; do
               start="$(get_epoch_time)"
               sleep "$METRICS_COLLECTION_TIME"
@@ -90,7 +91,7 @@ spec:
         - name: DELETION_STRATEGY
           value: "gvr"
         - name: POD_READY_THRESHOLD
-          value: "5m0s"
+          value: "5m"
         - name: ES_SERVER
           value: ""
         - name: ES_INDEX
