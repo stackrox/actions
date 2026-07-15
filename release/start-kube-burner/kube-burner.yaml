@@ -119,7 +119,7 @@ spec:
         - name: CHURN_PERCENT
           value: "80"
         - name: CHURN_MODE
-          value: "objects"
+          value: "namespaces"
         - name: MAX_WAIT_TIMEOUT
           value: "12m0s"
         - name: DAEMONSET_REPLICAS
