@@ -1,0 +1,127 @@
+# Resource requests, limits, and scaling settings below are tuned to match
+# the previous deploy-scripts-based flow. They may be adjusted in the future
+# to better resemble a typical customer deployment.
+central:
+  namespace: stackrox
+  pauseReconciliation: true
+  spec:
+    central:
+      exposure:
+        loadBalancer:
+          enabled: true
+      monitoring:
+        exposeEndpoint: Enabled
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "12Gi"
+          cpu: "4"
+      db:
+        resources:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "8"
+            memory: "16Gi"
+        persistence:
+          persistentVolumeClaim:
+            storageClassName: premium-rwo
+            size: "100Gi"
+    scanner:
+      scannerComponent: Enabled
+      analyzer:
+        scaling:
+          autoScaling: Enabled
+          minReplicas: 1
+          maxReplicas: 5
+          replicas: 1
+      monitoring:
+        exposeEndpoint: Enabled
+    customize:
+      envVars:
+        - name: MUTEX_WATCHDOG_TIMEOUT_SECS
+          value: "0"
+        - name: ROX_EXTERNAL_IPS
+          value: "true"
+        - name: ROX_NETWORK_GRAPH_EXTERNAL_IPS
+          value: "true"
+        - name: ROX_AUTO_LOCK_PROCESS_BASELINES
+          value: "true"
+        - name: ROX_BASELINE_GENERATION_DURATION
+          value: "3m"
+        - name: ROX_TELEMETRY_STORAGE_KEY_V1
+          value: "R5fMyO9n0gibSGzOXtlP2qCFWCGb8uoW"
+    scannerV4:
+      scannerComponent: Enabled
+      monitoring:
+        exposeEndpoint: Enabled
+      db:
+        resources:
+          requests:
+            cpu: "500m"
+      indexer:
+        resources:
+          requests:
+            cpu: "400m"
+        scaling:
+          autoScaling: Disabled
+          replicas: 1
+      matcher:
+        resources:
+          requests:
+            cpu: "400m"
+        scaling:
+          autoScaling: Disabled
+          replicas: 1
+securedCluster:
+  namespace: stackrox
+  pauseReconciliation: true
+  spec:
+    sensor:
+      resources:
+        requests:
+          memory: "3Gi"
+          cpu: "2"
+        limits:
+          memory: "12Gi"
+          cpu: "4"
+    scannerV4:
+      monitoring:
+        exposeEndpoint: Enabled
+    overlays:
+      - apiVersion: v1
+        kind: Service
+        name: sensor
+        patches:
+          - path: spec.ports[-1]
+            value: |
+              name: monitoring
+              port: 9090
+              protocol: TCP
+              targetPort: 9090
+      - apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: sensor
+        patches:
+          - path: spec.ingress[-1]
+            value: |
+              ports:
+              - port: 9090
+                protocol: TCP
+    processBaselines:
+      autoLock: Enabled
+    customize:
+      envVars:
+        - name: MUTEX_WATCHDOG_TIMEOUT_SECS
+          value: "0"
+        - name: ROX_FAKE_KUBERNETES_WORKLOAD
+          value: "long-running"
+        - name: ROX_NETFLOW_BATCHING
+          value: "true"
+        - name: ROX_NETFLOW_CACHE_LIMITING
+          value: "true"
+        - name: ROX_FAKE_WORKLOAD_STORAGE
+          value: "/var/cache/stackrox/pebble.db"

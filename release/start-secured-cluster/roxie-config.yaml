@@ -1,0 +1,79 @@
+# Resource requests, limits, and scaling settings below are tuned to match
+# the previous deploy-scripts-based flow. They may be adjusted in the future
+# to better resemble a typical customer deployment.
+securedCluster:
+  namespace: stackrox
+  pauseReconciliation: true
+  spec:
+    sensor:
+      resources:
+        requests:
+          memory: "500Mi"
+          cpu: "500m"
+        limits:
+          memory: "8Gi"
+          cpu: "4"
+    admissionControl:
+      resources:
+        limits:
+          memory: "500Mi"
+    scanner:
+      scannerComponent: AutoSense
+      analyzer:
+        scaling:
+          autoScaling: Enabled
+          minReplicas: 2
+          maxReplicas: 5
+          replicas: 2
+    scannerV4:
+      indexer:
+        scaling:
+          autoScaling: Enabled
+          minReplicas: 2
+          maxReplicas: 5
+          replicas: 2
+      monitoring:
+        exposeEndpoint: Enabled
+    processBaselines:
+      autoLock: Enabled
+    perNode:
+      fileActivityMonitoring:
+        mode: Enabled
+    customize:
+      envVars:
+        - name: ROX_NETFLOW_BATCHING
+          value: "true"
+        - name: ROX_NETFLOW_CACHE_LIMITING
+          value: "true"
+    overlays:
+      - apiVersion: v1
+        kind: Service
+        name: sensor
+        patches:
+          - path: spec.ports[-1]
+            value: |
+              name: monitoring
+              port: 9090
+              protocol: TCP
+              targetPort: 9090
+      - apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: sensor
+        patches:
+          - path: spec.ingress[-1]
+            value: |
+              ports:
+              - port: 9090
+                protocol: TCP
+      - apiVersion: apps/v1
+        kind: DaemonSet
+        name: collector
+        patches:
+          - path: spec.template.spec.containers[name:fact].env[-1]
+            value: |
+              name: FACT_PATHS
+              value: "/tmp/data/**/*"
+          - path: spec.template.spec.containers[name:fact].env[-1]
+            value: |
+              name: FACT_LOGLEVEL
+              value: "info"

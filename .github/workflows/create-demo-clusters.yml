@@ -307,6 +307,7 @@ jobs:
     outputs:
       rox-password: ${{ steps.launch-central.outputs.rox-password }}
       central-ip: ${{ steps.launch-central.outputs.central-ip }}
+      ca-cert: ${{ steps.launch-central.outputs.ca-cert }}
     env:
       NAME: ${{ inputs.cluster-with-fake-load-name }}
       KUBECONFIG: artifacts/kubeconfig
@@ -342,6 +343,9 @@ jobs:
         id: artifacts
         run: |
           infractl artifacts "${NAME//./-}" -d artifacts >> "$GITHUB_STEP_SUMMARY"
+      - uses: ./.actions/roxie/install-cli
+        with:
+          version: v0.4.3
       - name: Launch central
         id: launch-central
         uses: ./.actions/release/start-acs
@@ -440,6 +444,9 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_RHACS_ENG_RO_USERNAME }}
           password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
+      - uses: ./.actions/roxie/install-cli
+        with:
+          version: v0.4.3
       - name: Launch secured cluster
         id: launch-secured-cluster
         uses: ./.actions/release/start-secured-cluster
@@ -451,6 +458,7 @@ jobs:
           registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           rox-admin-password: ${{ needs.start-acs.outputs.rox-password }}
           central-ip: ${{ needs.start-acs.outputs.central-ip }}
+          ca-cert: ${{ needs.start-acs.outputs.ca-cert }}
 
   start-kube-burner-for-secured-cluster:
     name: Start kube-burner for the secured cluster
