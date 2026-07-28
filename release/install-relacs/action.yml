@@ -20,5 +20,5 @@ runs:
         bash <( \
           gh api \
             -H "Accept: application/vnd.github.v3.raw" \
-            "/repos/stackrox/relacs/contents/scripts/install-relacs.sh?ref=tm/add-checksum-for-install" \
+            "/repos/stackrox/relacs/contents/scripts/install-relacs.sh" \
           ) ${{ inputs.version }}
