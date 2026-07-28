@@ -1,0 +1,28 @@
+name: Install relacs CLI
+description: Download relacs CLI from GitHub releases to ~/.local/bin
+
+inputs:
+  version:
+    description: "Release version tag to install (e.g. v0.4.2). Omit to install the latest release."
+    required: false
+    default: 'latest'
+  token:
+    description: GitHub token
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download and install relacs
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+
+        bash <( \
+          gh api \
+            -H "Accept: application/vnd.github.v3.raw" \
+            "/repos/stackrox/relacs/contents/scripts/install-relacs.sh" \
+          ) ${{ inputs.version }}
