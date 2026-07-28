@@ -16,13 +16,11 @@ runs:
   steps:
     - name: Download and install relacs
       shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.token }}
       run: |
-        set -euo pipefail
+        set -exuo pipefail
 
         bash <( \
           gh api \
             -H "Accept: application/vnd.github.v3.raw" \
-            "/repos/stackrox/relacs/contents/scripts/install-relacs.sh" \
+            "/repos/stackrox/relacs/contents/scripts/install-relacs.sh?ref=tm/add-checksum-for-install" \
           ) ${{ inputs.version }}
