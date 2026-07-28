@@ -8,7 +8,7 @@ release.
 
 ## Recommended permissions
 
-The action requires permissions to download release content from GitHub.
+The action requires no special permissions.
 
 ```yaml
 permissions: {}
@@ -26,7 +26,7 @@ permissions: {}
 name: Install relacs
 
 jobs:
-  deploy:
+  demo-relacs:
     runs-on: ubuntu-latest
     steps:
     - uses: stackrox/actions/releacs/install-relacs@v1

@@ -6,10 +6,6 @@ inputs:
     description: "Release version tag to install (e.g. v0.4.2). Omit to install the latest release."
     required: false
     default: 'latest'
-  token:
-    description: GitHub token
-    required: false
-    default: ${{ github.token }}
 
 runs:
   using: composite
@@ -19,7 +15,7 @@ runs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        set -exuo pipefail
+        set -euo pipefail
 
         bash <( \
           gh api \
