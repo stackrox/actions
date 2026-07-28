@@ -29,7 +29,7 @@ jobs:
   demo-relacs:
     runs-on: ubuntu-latest
     steps:
-    - uses: stackrox/actions/releacs/install-relacs@v1
+    - uses: stackrox/actions/release/install-relacs@v1
       with:
         version: v0.4.2
 

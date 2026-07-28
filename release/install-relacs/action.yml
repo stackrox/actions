@@ -14,11 +14,17 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ inputs.version }}
       run: |
         set -euo pipefail
 
-        bash <( \
-          gh api \
-            -H "Accept: application/vnd.github.v3.raw" \
-            "/repos/stackrox/relacs/contents/scripts/install-relacs.sh" \
-          ) ${{ inputs.version }}
+        # Download installer to temp file
+        INSTALLER="$(mktemp)"
+
+        gh api \
+          -H "Accept: application/vnd.github.v3.raw" \
+          "/repos/stackrox/relacs/contents/scripts/install-relacs.sh" \
+          > "${INSTALLER}"
+
+        # Execute installer with version from environment
+        bash "${INSTALLER}" "${VERSION}"
