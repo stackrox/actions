@@ -16,6 +16,8 @@ runs:
   steps:
     - name: Download and install relacs
       shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         set -exuo pipefail
 
