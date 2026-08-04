@@ -18,7 +18,8 @@ permissions: {}
 
 | Name | Required | Default | Description |
 | --- | --- | --- | --- |
-| `version` | no | latest | Release version tag to install (e.g. `v0.4.2`). Omit to install the latest release. |
+| `token` | yes |  | GH token to use for authentication for the `relacs` repository. |
+| `version` | no | "" | Release version tag to install (e.g. `v0.4.2`). Omit to install the latest release. |
 
 ## Usage
 
@@ -31,6 +32,7 @@ jobs:
     steps:
     - uses: stackrox/actions/release/install-relacs@v1
       with:
+        token: ${{ secrets.RHACS_BOT_GITHUB_TOKEN }}
         version: v0.4.2
 
     - run: relacs version
