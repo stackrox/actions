@@ -38,7 +38,7 @@ on:
       berserker-config-ref:
         description: Ref of where the berserker kube-burner config files can be found
         type: string
-        default: jv-add-berserker-workload-2
+        default: jv-fix-runOnce
       cluster-with-fake-load-name:
         description: "The name of the long running cluster where the central deployment is run with a sensor that creates its own fake workload. Must comply to the regex: [a-z][a-z0-9-]{1,26}[a-z0-9]"
         type: string
