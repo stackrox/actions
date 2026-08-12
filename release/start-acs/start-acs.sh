@@ -70,14 +70,21 @@ kubectl -n stackrox create secret generic access-rhacs \
 
 POLICIES_DIR="${STACKROX_DIR}/scripts/release-tools/long-running-cluster/policies"
 if [[ -d "$POLICIES_DIR" ]]; then
-    gh_log notice "Applying security policies from ${POLICIES_DIR}..."
-    for policy_file in "$POLICIES_DIR"/*.yaml; do
-        if kubectl apply -f "$policy_file"; then
-            gh_log notice "Applied security policy: $(basename "$policy_file")"
-        else
-            gh_log warning "Failed to apply security policy: $(basename "$policy_file")"
-        fi
-    done
+    shopt -s nullglob
+    policy_files=("$POLICIES_DIR"/*.yaml)
+    shopt -u nullglob
+    if [[ ${#policy_files[@]} -eq 0 ]]; then
+        gh_log notice "No YAML policy files found in ${POLICIES_DIR}, skipping."
+    else
+        gh_log notice "Applying security policies from ${POLICIES_DIR}..."
+        for policy_file in "${policy_files[@]}"; do
+            if kubectl apply -f "$policy_file"; then
+                gh_log notice "Applied security policy: $(basename "$policy_file")"
+            else
+                gh_log warning "Failed to apply security policy: $(basename "$policy_file")"
+            fi
+        done
+    fi
 else
     gh_log notice "No security policies directory found at ${POLICIES_DIR}, skipping."
 fi
