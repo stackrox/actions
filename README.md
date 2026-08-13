@@ -6,6 +6,7 @@
 * [Release / Tag](release/tag/README.md)
 * [Roxie / Install CLI](roxie/install-cli/README.md)
 * [Test](test/README.md)
+* [Test / junit2jira](test/junit2jira/README.md)
 
 ## Workflows
 

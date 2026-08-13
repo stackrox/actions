@@ -1,0 +1,138 @@
+name: junit2jira
+description: Convert JUnit test failures into Jira tickets and upload test metrics
+
+inputs:
+  create-jiras:
+    description: Whether to actually create Jira issues. When false, junit2jira runs with --dry-run.
+    required: false
+    default: "true"
+  jira-user:
+    description: User used to authenticate with Jira.
+    required: true
+  jira-token:
+    description: Token used to authenticate with Jira.
+    required: true
+  jira-url:
+    description: Base URL of the Jira instance.
+    required: false
+    default: https://redhat.atlassian.net/
+  directory:
+    description: Directory containing the JUnit XML files to scan.
+    required: true
+  threshold:
+    description: Minimal number of failed tests that will result in a single cumulative Jira issue.
+    required: false
+    default: "5"
+  gcp-account:
+    description: |
+      Optional GCP service account JSON. When provided, the action authenticates
+      with gcloud itself. When omitted, the action assumes the caller has already
+      authenticated gcloud (e.g. via google-github-actions/auth).
+    required: false
+    default: ""
+  gcp-metrics:
+    description: Whether to upload test metrics to GCS for BigQuery ingestion.
+    required: false
+    default: "true"
+  gcs-bucket:
+    description: GCS bucket root used to store test metrics.
+    required: false
+    default: gs://stackrox-ci-artifacts
+  gcs-subdir:
+    description: Subdirectory (relative to the bucket root) used to store test metrics.
+    required: false
+    default: test-metrics/upload
+  version:
+    description: junit2jira release version to download.
+    required: false
+    default: v0.0.27
+
+outputs:
+  new-jiras:
+    description: Bool indicating if new Jira issues were created.
+    value: ${{ steps.run.outputs.NEW_JIRAS }}
+
+runs:
+  using: composite
+  steps:
+    - name: Download junit2jira
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        set -u
+        LOCATION="https://github.com/stackrox/junit2jira/releases/download/$VERSION/junit2jira"
+        # Skip downloading release if downloaded already, e.g. when the action is used multiple times.
+        if [[ ! -x junit2jira ]]; then
+          curl --retry 5 --retry-connrefused --silent --show-error --fail --location --output junit2jira "$LOCATION"
+          chmod +x junit2jira
+        fi
+
+    - name: Capture job failure as JUnit if no test failures exist
+      shell: bash
+      if: always()
+      env:
+        STEPS_JSON: ${{ toJSON(steps) }}
+        ARTIFACT_DIR: ${{ inputs.directory }}
+      run: |
+        set -uo pipefail
+        "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+          "${GITHUB_ACTION_PATH}/junit2jira.sh" \
+          capture_job_failure_as_junit \
+          "${{ inputs.directory }}" \
+          "${{ github.job }}" \
+          "${{ job.status }}" \
+          "$STEPS_JSON" \
+          "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    - name: Authenticate with GCP
+      if: inputs.gcp-account != ''
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ inputs.gcp-account }}
+
+    - name: Set up Cloud SDK
+      if: inputs.gcp-account != ''
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Report failures to Jira and upload metrics
+      id: run
+      shell: bash
+      env:
+        JIRA_USER: ${{ inputs.jira-user }}
+        JIRA_TOKEN: ${{ inputs.jira-token }}
+      if: ${{ env.JIRA_TOKEN != '' }}
+      run: |
+        set -uo pipefail
+        extra_args=()
+        if [[ "${{ inputs.create-jiras }}" == "false" ]]; then
+          extra_args=(--dry-run)
+        else
+          echo "Will create Jira issues for JUnit failures found in ${{ inputs.directory }}"
+        fi
+        csv_output="$(mktemp --suffix=.csv)"
+        summary_file="$(mktemp --suffix=.json)"
+        ./junit2jira \
+            -base-link "${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" \
+            -build-id "${{ github.run_id }}" \
+            -build-link "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -build-tag "${{ github.ref_name }}@${{ github.sha }}" \
+            -csv-output "${csv_output}" \
+            -jira-url "${{ inputs.jira-url }}" \
+            -job-name "${{ github.job }}" \
+            -junit-reports-dir "${{ inputs.directory }}" \
+            -orchestrator "${{ runner.name }} ${{ runner.os }}-${{ runner.arch }}" \
+            -threshold "${{ inputs.threshold }}" \
+            -summary-output "${summary_file}" \
+            "${extra_args[@]}"
+
+        echo "NEW_JIRAS=$(jq -r '.newJIRAs > 0' "${summary_file}")" >> "$GITHUB_OUTPUT"
+
+        if [[ "${{ inputs.gcp-metrics }}" == "true" ]]; then
+          "${GITHUB_ACTION_PATH}/../../common/common.sh" \
+            "${GITHUB_ACTION_PATH}/junit2jira.sh" \
+            save_test_metrics \
+            "${csv_output}" \
+            "${{ inputs.gcs-bucket }}" \
+            "${{ inputs.gcs-subdir }}"
+        fi
