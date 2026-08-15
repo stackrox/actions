@@ -68,6 +68,34 @@ kubectl -n stackrox create secret generic access-rhacs \
     --from-literal="password=${ROX_ADMIN_PASSWORD}" \
     --from-literal="central_url=https://${CENTRAL_IP}"
 
+POLICIES_DIR="${STACKROX_DIR}/scripts/release-tools/long-running-cluster/policies"
+policy_failure=false
+if [[ -d "$POLICIES_DIR" ]]; then
+    shopt -s nullglob
+    policy_files=("$POLICIES_DIR"/*.yaml)
+    shopt -u nullglob
+    if [[ ${#policy_files[@]} -eq 0 ]]; then
+        gh_log notice "No YAML policy files found in ${POLICIES_DIR}, skipping."
+    else
+        gh_log notice "Applying security policies from ${POLICIES_DIR}..."
+        for policy_file in "${policy_files[@]}"; do
+            if kubectl apply -f "$policy_file"; then
+                gh_log notice "Applied security policy: $(basename "$policy_file")"
+            else
+                gh_log error "Failed to apply security policy: $(basename "$policy_file")"
+                policy_failure=true
+            fi
+        done
+    fi
+else
+    gh_log notice "No security policies directory found at ${POLICIES_DIR}, skipping."
+fi
+
+if [[ "$policy_failure" == "true" ]]; then
+    gh_log error "One or more security policies failed to apply. Exiting."
+    exit 1
+fi
+
 gh_summary <<EOSUMMARY
 Long-running GKE cluster ${NAME//./-} has been patched.
 Access it by running:
