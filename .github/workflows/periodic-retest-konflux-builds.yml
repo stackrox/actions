@@ -31,14 +31,6 @@ on:
         required: false
         type: number
         default: 296509
-      konflux_app_name_prefix:
-        description: >
-          Prefix of the GitHub App name used in Konflux check names, including the trailing separator.
-          Varies by cluster — e.g. 'Red Hat Konflux / ' for production, 'Konflux Staging / ' for staging.
-        required: false
-        type: string
-        default: 'Red Hat Konflux / '
-
 concurrency:
   group: periodic-retest-konflux-${{ github.repository }}
   cancel-in-progress: false
@@ -65,7 +57,6 @@ jobs:
           CHECK_NAME_SUFFIX: ${{ inputs.check_name_suffix }}
           RETEST_COMMAND: ${{ inputs.retest_command }}
           KONFLUX_APP_ID: ${{ inputs.konflux_app_id }}
-          KONFLUX_APP_NAME_PREFIX: ${{ inputs.konflux_app_name_prefix }}
         run: |
           set -euo pipefail
 
@@ -93,6 +84,7 @@ jobs:
           ALL_PR_DATA="[]"
           AFTER_CURSOR=""
           HAS_NEXT_PAGE="true"
+          APP_PREFIX=""
 
           while [ "$HAS_NEXT_PAGE" = "true" ]; do
             AFTER_ARG=""
@@ -110,6 +102,7 @@ jobs:
                       committedDate
                       # Filtered to a single app, usually 1 Konflux check suite per PR in practice; 10 is a safe ceiling.
                       checkSuites(first: 10, filterBy: {appId: \$appId}) { nodes {
+                        app { name }
                         # Konflux exposes one check run per pipeline component; 50 covers even large repos.
                         checkRuns(first: 50, filterBy: {conclusions: [FAILURE]}) { nodes {
                           name
@@ -124,9 +117,17 @@ jobs:
             HAS_NEXT_PAGE=$(echo "$PAGE_RESULT" | jq -r '.data.search.pageInfo.hasNextPage')
             AFTER_CURSOR=$(echo "$PAGE_RESULT" | jq -r '.data.search.pageInfo.endCursor // ""')
 
+            # Derive the app name prefix from the first check suite found in this page.
+            # All suites are from the same app (filtered by appId), so the first one suffices.
+            if [ -z "$APP_PREFIX" ]; then
+              FOUND_APP_NAME=$(echo "$PAGE_RESULT" | jq -r \
+                '[.data.search.nodes[].commits.nodes[0].commit.checkSuites.nodes[].app.name] | first // ""')
+              [ -n "$FOUND_APP_NAME" ] && APP_PREFIX="${FOUND_APP_NAME} / "
+            fi
+
             PAGE_PR_DATA=$(echo "$PAGE_RESULT" | jq \
               --arg suffix "$CHECK_NAME_SUFFIX" \
-              --arg prefix "$KONFLUX_APP_NAME_PREFIX" \
+              --arg prefix "$APP_PREFIX" \
               '[.data.search.nodes[] | {
                 pr: .number,
                 head_sha: .commits.nodes[0].commit.oid,

@@ -77,8 +77,7 @@ Add the `disable-konflux-auto-retest` label to a PR to opt it out of automatic r
 | `max_retries` | Maximum number of retries per failed check per commit | No | `3` |
 | `check_name_suffix` | Suffix to filter Konflux check names (after stripping the app name prefix). Only checks whose name ends with this suffix are retested — e.g. `-on-push` targets build checks and excludes snapshot/validation checks like `create-custom-snapshot` or `checks`. Leave empty to retest all failed Konflux checks. | No | `-on-push` |
 | `retest_command` | Comment body used to trigger a Konflux retest. Use a non-default value when OpenShift CI shares the same `/retest` syntax, to avoid cross-system noise. | No | `/retest` |
-| `konflux_app_id` | GitHub App ID for Red Hat Konflux, used to filter check suites | No | `296509` |
-| `konflux_app_name_prefix` | Prefix of the GitHub App name used in Konflux check names, including the trailing separator. Varies by cluster — e.g. `Red Hat Konflux / ` for production, `Konflux Staging / ` for staging. | No | `Red Hat Konflux / ` |
+| `konflux_app_id` | GitHub App ID for Red Hat Konflux, used to filter check suites. The app name is resolved automatically from this ID via the GitHub API. | No | `296509` |
 
 ### Usage
 
@@ -96,5 +95,6 @@ jobs:
   retest:
     uses: stackrox/actions/.github/workflows/periodic-retest-konflux-builds.yml@v1
     with:
+      max_retries: 3
       check_name_suffix: '-on-push'
 ```
