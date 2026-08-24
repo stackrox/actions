@@ -12,15 +12,13 @@ on:
         required: false
         type: number
         default: 3
-      check_name_suffix:
+      check_name_exclude_pattern:
         description: >
-          Suffix to filter Konflux check names (after stripping the app name prefix).
-          Only checks whose name ends with this suffix are retested — e.g. use '-on-push'
-          to target build checks and exclude snapshot/validation checks like
-          'create-custom-snapshot' or 'checks'. Leave empty to retest all failed Konflux checks.
+          Regex pattern (jq `test()`) matched against Konflux check names after stripping the app
+          name prefix. Matching checks are skipped. Leave empty to retest all failed checks.
         required: false
         type: string
-        default: '-on-push'
+        default: 'conforma'
       retest_command:
         description: 'Comment body used to trigger a Konflux retest'
         required: false
@@ -54,7 +52,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MAX_RETRIES: ${{ inputs.max_retries }}
-          CHECK_NAME_SUFFIX: ${{ inputs.check_name_suffix }}
+          CHECK_NAME_EXCLUDE_PATTERN: ${{ inputs.check_name_exclude_pattern }}
           RETEST_COMMAND: ${{ inputs.retest_command }}
           KONFLUX_APP_ID: ${{ inputs.konflux_app_id }}
         run: |
@@ -126,14 +124,14 @@ jobs:
             fi
 
             PAGE_PR_DATA=$(echo "$PAGE_RESULT" | jq \
-              --arg suffix "$CHECK_NAME_SUFFIX" \
+              --arg exclude "$CHECK_NAME_EXCLUDE_PATTERN" \
               --arg prefix "$APP_PREFIX" \
               '[.data.search.nodes[] | {
                 pr: .number,
                 head_sha: .commits.nodes[0].commit.oid,
                 last_commit: .commits.nodes[0].commit.committedDate,
                 failed: [.commits.nodes[0].commit.checkSuites.nodes[].checkRuns.nodes[]
-                  | select(.name | ltrimstr($prefix) | endswith($suffix))
+                  | select(.name | ltrimstr($prefix) | if $exclude == "" then true else test($exclude) | not end)
                   | {name: (.name | ltrimstr($prefix)), completed_at: .completedAt}]
               } | select(.failed | length > 0)]')
 
