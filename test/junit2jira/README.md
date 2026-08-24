@@ -23,13 +23,14 @@ permissions: {}
 
 | Input                          | Description                                                                             | Default                        |
 | ------------------------------ | --------------------------------------------------------------------------------------- | ------------------------------ |
-| [create-jiras](#create-jiras)  | Whether to actually create Jira issues (otherwise runs `--dry-run`)                      | `true`                         |
+| [dry-run](#dry-run)            | When true, runs junit2jira with `--dry-run` and does not create Jira issues              | `false`                        |
 | [jira-user](#jira-user)        | User used to authenticate with Jira                                                      |                                |
 | [jira-token](#jira-token)      | Token used to authenticate with Jira                                                     |                                |
 | [jira-url](#jira-url)          | Base URL of the Jira instance                                                            | `https://redhat.atlassian.net/`|
 | [directory](#directory)        | Directory containing the JUnit XML files to scan                                         |                                |
 | [threshold](#threshold)        | Minimal number of failures that results in a single cumulative Jira issue                | `5`                            |
 | [gcp-account](#gcp-account)    | Optional GCP service account JSON. When set, the action authenticates gcloud itself      | unset                          |
+| [gcp-project](#gcp-project)    | GCP project to set as active when authenticating with gcp-account                        | `acs-san-stackroxci`           |
 | [gcp-metrics](#gcp-metrics)    | Whether to upload test metrics to GCS for BigQuery                                       | `true`                         |
 | [gcs-bucket](#gcs-bucket)      | GCS bucket root used to store test metrics                                               | `gs://stackrox-ci-artifacts`   |
 | [gcs-subdir](#gcs-subdir)      | Subdirectory (relative to the bucket root) used to store test metrics                    | `test-metrics/upload`          |
@@ -43,13 +44,13 @@ permissions: {}
 
 ### Detailed options
 
-#### create-jiras
+#### dry-run
 
-Whether to actually create Jira issues. When `false`, `junit2jira` runs with
-`--dry-run` and no issues are created. Commonly wired to only create issues on
-pushes: `${{ github.event_name == 'push' }}`.
+When `true`, `junit2jira` runs with `--dry-run` and no issues are created.
+Commonly wired to only create issues on pushes:
+`${{ github.event_name != 'push' }}`.
 
-Default value: `true`
+Default value: `false`
 
 #### jira-user
 
@@ -87,6 +88,12 @@ gcloud itself (via `google-github-actions/auth`). When omitted, the action
 assumes the caller has already authenticated gcloud.
 
 Default value: unset
+
+#### gcp-project
+
+GCP project to set as active when authenticating with `gcp-account`.
+
+Default value: `acs-san-stackroxci`
 
 #### gcp-metrics
 
@@ -130,7 +137,7 @@ jobs:
         id: junit2jira
         uses: stackrox/actions/test/junit2jira@main
         with:
-          create-jiras: ${{ github.event_name == 'push' }}
+          dry-run: ${{ github.event_name != 'push' }}
           jira-user: ${{ secrets.JIRA_USER }}
           jira-token: ${{ secrets.JIRA_TOKEN }}
           directory: junit-reports

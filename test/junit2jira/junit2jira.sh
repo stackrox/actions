@@ -15,13 +15,11 @@
 #
 set -euo pipefail
 
-_JUNIT_RESULT_FAILURE="FAILURE"
-
 get_junit_misc_dir() {
   echo "${ARTIFACT_DIR}/junit-misc"
 }
 
-# Returns 0 if any *.xml file under the directory contains a JUnit <failure>.
+# Exits 0 if any *.xml file under the directory contains a JUnit <failure>; exits 1 otherwise.
 junit_contains_failure() {
   local dir="$1"
   if [[ ! -d $dir ]]; then
@@ -43,17 +41,12 @@ save_junit_failure() {
     gh_log error "missing args. usage: save_junit_failure <class> <description> <details>"
     exit 1
   fi
-  _save_junit_record "${_JUNIT_RESULT_FAILURE}" "$@"
-}
-
-_save_junit_record() {
-  local disposition="$1"
-  local class="$2"
-  local description="$3"
-  local details="${4:-}"
+  local class="$1"
+  local description="$2"
+  local details="$3"
 
   if [[ -z "${ARTIFACT_DIR:-}" ]]; then
-    gh_log warning "_save_junit_record requires the ARTIFACT_DIR variable to be set"
+    gh_log warning "save_junit_failure requires the ARTIFACT_DIR variable to be set"
     return
   fi
 
@@ -68,18 +61,11 @@ _save_junit_record() {
   description="${description//</\&lt;}"
   description="${description//>/\&gt;}"
 
-  local failures=0
-  if [[ "${disposition}" == "${_JUNIT_RESULT_FAILURE}" ]]; then
-    failures=1
-  fi
-
   local junit_file="${junit_dir}/junit-${class}.xml"
   {
-    echo "<testsuite name=\"${class}\" tests=\"1\" skipped=\"0\" failures=\"${failures}\" errors=\"0\">"
+    echo "<testsuite name=\"${class}\" tests=\"1\" skipped=\"0\" failures=\"1\" errors=\"0\">"
     echo "  <testcase name=\"${description}\" classname=\"${class}\">"
-    if [[ "${disposition}" == "${_JUNIT_RESULT_FAILURE}" ]]; then
-      echo "    <failure><![CDATA[${details}]]></failure>"
-    fi
+    echo "    <failure><![CDATA[${details}]]></failure>"
     echo "  </testcase>"
     echo "</testsuite>"
   } > "${junit_file}"
