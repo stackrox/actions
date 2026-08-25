@@ -1,0 +1,205 @@
+# NOTE on `issues: write` permission: GitHub treats PR conversation comments as issue comments
+# (both share the same /issues/{number}/comments API endpoint).
+# The `pull-requests: write` permission only controls review-specific actions (approvals, review comments, dismissals).
+# To post a plain comment in a PR conversation, `issues: write` is required.
+name: Periodic Retest Failed Konflux Builds
+
+on:
+  workflow_call:
+    inputs:
+      max_retries:
+        description: 'Maximum number of retries per failed check per commit'
+        required: false
+        type: number
+        default: 3
+      check_name_exclude_pattern:
+        description: >
+          Regex pattern (jq `test()`) matched against Konflux check names after stripping the app
+          name prefix. Matching checks are skipped. Leave empty to retest all failed checks.
+        required: false
+        type: string
+        default: 'conforma'
+      retest_command:
+        description: 'Comment body used to trigger a Konflux retest'
+        required: false
+        type: string
+        default: '/retest'
+      konflux_app_id:
+        description: 'GitHub App ID for Red Hat Konflux, used to filter check suites'
+        required: false
+        type: number
+        default: 296509
+concurrency:
+  group: periodic-retest-konflux-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  periodic-retest-failed-konflux-builds:
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      # We need `issues: write` permission to write conversation comments.
+      # See top of the file comment for `issues` and conversation comments explanation.
+      issues: write
+      # required for fetching checks data via GraphQL API
+      checks: read
+      # required for getting check's content
+      contents: read
+
+    steps:
+      - name: Scan and retest failed Konflux builds
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAX_RETRIES: ${{ inputs.max_retries }}
+          CHECK_NAME_EXCLUDE_PATTERN: ${{ inputs.check_name_exclude_pattern }}
+          RETEST_COMMAND: ${{ inputs.retest_command }}
+          KONFLUX_APP_ID: ${{ inputs.konflux_app_id }}
+        run: |
+          set -euo pipefail
+
+          echo "Starting periodic scan for failed Konflux builds..."
+
+          # Reject decimal or negative values: Bash [ -ge ] silently misbehaves on decimals
+          # and GraphQL Int! rejects non-integers.
+          if ! [[ "$MAX_RETRIES" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Error: max_retries must be a positive integer, got: $MAX_RETRIES"
+            exit 1
+          fi
+          if ! [[ "$KONFLUX_APP_ID" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Error: konflux_app_id must be a positive integer, got: $KONFLUX_APP_ID"
+            exit 1
+          fi
+
+          # A paginated GraphQL query returns all open PRs with failed Konflux check names and
+          # the last commit time, avoiding per-PR gh-pr-checks calls.
+          # filterBy:{conclusions:[FAILURE]} only matches completed runs, so in-progress
+          # re-runs are naturally excluded.
+          # Konflux ignores /retest commands sent to already-running pipelines, so any duplicate
+          # comment posted between a /retest and Konflux picking it up is harmless.
+          # ${{ github.repository }} is expanded by GHA before the shell sees the string;
+          # \$appId is a GraphQL variable, not a shell variable.
+          ALL_PR_DATA="[]"
+          AFTER_CURSOR=""
+          HAS_NEXT_PAGE="true"
+          APP_PREFIX=""
+
+          while [ "$HAS_NEXT_PAGE" = "true" ]; do
+            AFTER_ARG=""
+            [ -n "$AFTER_CURSOR" ] && AFTER_ARG=", after: \"$AFTER_CURSOR\""
+
+            # shellcheck disable=SC2016
+            PAGE_RESULT=$(gh api graphql \
+              -F appId="${KONFLUX_APP_ID}" \
+              -f query="query(\$appId: Int!) {
+                search(query: \"repo:${{ github.repository }} is:pr is:open -label:disable-konflux-auto-retest\", type: ISSUE, first: 100${AFTER_ARG}) {
+                  pageInfo { hasNextPage endCursor }
+                  nodes { ... on PullRequest { number
+                    commits(last: 1) { nodes { commit {
+                      oid
+                      committedDate
+                      # Filtered to a single app, usually 1 Konflux check suite per PR in practice; 10 is a safe ceiling.
+                      checkSuites(first: 10, filterBy: {appId: \$appId}) { nodes {
+                        app { name }
+                        # Konflux exposes one check run per pipeline component; 50 covers even large repos.
+                        checkRuns(first: 50, filterBy: {conclusions: [FAILURE]}) { nodes {
+                          name
+                          completedAt
+                        }}
+                      }}
+                    }}}
+                  }}
+                }
+              }")
+
+            HAS_NEXT_PAGE=$(echo "$PAGE_RESULT" | jq -r '.data.search.pageInfo.hasNextPage')
+            AFTER_CURSOR=$(echo "$PAGE_RESULT" | jq -r '.data.search.pageInfo.endCursor // ""')
+
+            # Derive the app name prefix from the first check suite found in this page.
+            # All suites are from the same app (filtered by appId), so the first one suffices.
+            if [ -z "$APP_PREFIX" ]; then
+              FOUND_APP_NAME=$(echo "$PAGE_RESULT" | jq -r \
+                '[.data.search.nodes[].commits.nodes[0].commit.checkSuites.nodes[].app.name] | first // ""')
+              [ -n "$FOUND_APP_NAME" ] && APP_PREFIX="${FOUND_APP_NAME} / "
+            fi
+
+            PAGE_PR_DATA=$(echo "$PAGE_RESULT" | jq \
+              --arg exclude "$CHECK_NAME_EXCLUDE_PATTERN" \
+              --arg prefix "$APP_PREFIX" \
+              '[.data.search.nodes[] | {
+                pr: .number,
+                head_sha: .commits.nodes[0].commit.oid,
+                last_commit: .commits.nodes[0].commit.committedDate,
+                failed: [.commits.nodes[0].commit.checkSuites.nodes[].checkRuns.nodes[]
+                  | select(.name | ltrimstr($prefix) | if $exclude == "" then true else test($exclude) | not end)
+                  | {name: (.name | ltrimstr($prefix)), completed_at: .completedAt}]
+              } | select(.failed | length > 0)]')
+
+            ALL_PR_DATA=$(jq -n --argjson a "$ALL_PR_DATA" --argjson b "$PAGE_PR_DATA" '$a + $b')
+          done
+
+          PR_DATA="$ALL_PR_DATA"
+          PR_COUNT=$(echo "$PR_DATA" | jq 'length')
+          if [ "$PR_COUNT" -eq 0 ]; then
+            echo "No open PRs with failed Konflux checks found"
+            exit 0
+          fi
+
+          echo "Found $PR_COUNT PRs with failed Konflux checks"
+
+          echo "$PR_DATA" | jq -c '.[]' | while read -r PR_ENTRY; do
+            PR_NUMBER=$(echo "$PR_ENTRY" | jq -r '.pr')
+            LAST_COMMIT_TIME=$(echo "$PR_ENTRY" | jq -r '.last_commit')
+            SNAPSHOT_HEAD=$(echo "$PR_ENTRY" | jq -r '.head_sha')
+            echo ""
+            echo "Processing PR #$PR_NUMBER (last commit: $LAST_COMMIT_TIME)..."
+
+            # Revalidate the PR head before mutating comments: a new commit since the query
+            # snapshot means the failed checks are stale and must not be retested.
+            CURRENT_HEAD=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER" --jq '.head.sha')
+            if [ "$CURRENT_HEAD" != "$SNAPSHOT_HEAD" ]; then
+              echo "  PR #$PR_NUMBER head changed since snapshot (was: $SNAPSHOT_HEAD, now: $CURRENT_HEAD), skipping"
+              continue
+            fi
+
+            echo "$PR_ENTRY" | jq -c '.failed[]' | while IFS= read -r CHECK_ENTRY; do
+              BASE_CHECK_NAME=$(echo "$CHECK_ENTRY" | jq -r '.name')
+              COMPLETED_AT=$(echo "$CHECK_ENTRY" | jq -r '.completed_at')
+
+              if [ -z "$BASE_CHECK_NAME" ]; then
+                continue
+              fi
+
+              echo "  Found failed check: $BASE_CHECK_NAME (failed at: $COMPLETED_AT)"
+
+              # Delete retest comments from previous commit cycles so they cannot be
+              # miscounted against the current commit's retry budget.
+              gh api --paginate "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" \
+                --jq '[.[] | select(
+                  .user.login == "github-actions[bot]" and
+                  (.body | contains("'"$RETEST_COMMAND $BASE_CHECK_NAME"'")) and
+                  .created_at < "'"$LAST_COMMIT_TIME"'"
+                ) | .id] | .[]' | \
+              while read -r COMMENT_ID; do
+                gh api -X DELETE "repos/${{ github.repository }}/issues/comments/$COMMENT_ID"
+              done
+
+              # Count retest comments posted since the last commit.
+              RETRY_COUNT="$(gh api --paginate "repos/${{ github.repository }}/issues/$PR_NUMBER/comments" \
+                --jq '[.[] | select(
+                  .user.login == "github-actions[bot]" and
+                  (.body | contains("'"$RETEST_COMMAND $BASE_CHECK_NAME"'")) and
+                  .created_at > "'"$LAST_COMMIT_TIME"'"
+                )] | length')"
+
+              if [ "$RETRY_COUNT" -ge "$MAX_RETRIES" ]; then
+                echo "  Maximum retry limit ($MAX_RETRIES) reached for $BASE_CHECK_NAME on PR #$PR_NUMBER"
+              else
+                echo "  Retrying $BASE_CHECK_NAME (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
+                gh pr comment "$PR_NUMBER" --repo ${{ github.repository }} --body "$RETEST_COMMAND $BASE_CHECK_NAME"
+              fi
+            done
+          done
+
+          echo ""
+          echo "Periodic scan complete"

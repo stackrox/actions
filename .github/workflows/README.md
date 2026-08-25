@@ -59,51 +59,43 @@ jobs:
       workflow-ref: v1
 ```
 
-## Auto retest failed Konflux builds
+## Periodic retest failed Konflux builds
 
 ### Overview
 
-When a Konflux build check fails on a pull request, this action will automatically post a `/retest <check-name>` comment to trigger a rebuild. It includes retry limits to prevent infinite retry loops and automatically cleans up old retest comments when new commits are pushed.
+Periodically scans all open pull requests for failed Konflux build checks and posts a
+`/retest <check-name>` comment to trigger a rebuild. Retries up to `max_retries` times
+per check per commit, then stops. Old retest comments from previous commit cycles are
+cleaned up automatically so the retry counter always reflects the current commit only.
+
+Add the `disable-konflux-auto-retest` label to a PR to opt it out of automatic retesting.
 
 ### All options
 
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
-| `max_retries` | Maximum number of retries for failed builds | No | `3` |
-| `check_name_suffix` | Suffix to filter Konflux build check names (e.g., `-on-push`) | No | `-on-push` |
-| `retest_command` | Command to trigger Konflux retest (e.g., /retest). Useful to use non default when OpenShift CI uses the same /retest syntax - prevents OpenShift CI from spamming comments saying it does not understand Konflux-specific retest commands. | No | `/retest` |
-
-## Detailed options
-
-- **Automatic Retesting**: Posts retest commands when Konflux builds fail
-- **Configurable Retry Limit**: Set maximum retry attempts to prevent infinite loops
-- **Auto-Cleanup**: Removes old retest comments when new commits are pushed
-- **Filtered Checks**: Only retests checks matching a specific name suffix (e.g., `-on-push`)
-- **Custom Retest Command**: Configure the command used to trigger retests (default: `/retest`)
-- **Disable via Label**: Add the `disable-konflux-auto-retest` label to a PR to skip automatic retesting
-
+| `max_retries` | Maximum number of retries per failed check per commit | No | `3` |
+| `check_name_exclude_pattern` | Regex pattern matched against Konflux check names (after stripping the app name prefix). Matching checks are skipped. Leave empty to retest all failed checks. | No | `conforma` |
+| `retest_command` | Comment body used to trigger a Konflux retest. Use a non-default value when OpenShift CI shares the same `/retest` syntax, to avoid cross-system noise. | No | `/retest` |
+| `konflux_app_id` | GitHub App ID for Red Hat Konflux, used to filter check suites. The app name is resolved automatically from this ID via the GitHub API. | No | `296509` |
 
 ### Usage
 
-Add this to your repository's workflow file (e.g., `.github/workflows/konflux-auto-retest.yml`):
+Create a workflow file in your repository (e.g. `.github/workflows/konflux-retest-periodic.yml`):
 
 ```yaml
-name: Auto-retest Konflux Builds
+name: Periodic Retest Failed Konflux Builds
 
 on:
-  check_run:
-    types: [completed]
-  pull_request:
-    types: [synchronize]
+  schedule:
+    - cron: '5,15,25,35,45,55 * * * *' # every 10 minutes
+  workflow_dispatch:
 
 jobs:
-  retest-failed-konflux-builds:
-    uses: stackrox/actions/.github/workflows/retest-konflux-builds.yml@v1
-    permissions:
-      pull-requests: write
-      issues: write
+  retest:
+    uses: stackrox/actions/.github/workflows/periodic-retest-konflux-builds.yml@v1
     with:
       max_retries: 3
-      check_name_suffix: '-on-push'
-      retest_command: '/retest'
+      check_name_exclude_pattern: 'conforma'
+      retest_command: '/konflux-retest'
 ```
