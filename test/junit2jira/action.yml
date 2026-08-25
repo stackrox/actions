@@ -53,8 +53,10 @@ inputs:
 
 outputs:
   new-jiras:
-    description: Bool indicating if new Jira issues were created.
-    value: ${{ steps.run.outputs.NEW_JIRAS }}
+    description: |
+      Bool indicating if new Jira issues were created. Explicitly "false" when
+      jira-token is empty and Jira reporting was skipped.
+    value: ${{ steps.run.outputs.NEW_JIRAS || 'false' }}
 
 runs:
   using: composite
