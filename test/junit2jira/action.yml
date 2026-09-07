@@ -49,7 +49,7 @@ inputs:
   version:
     description: junit2jira release version to download.
     required: false
-    default: v0.0.27
+    default: v0.0.28
 
 outputs:
   new-jiras:
