@@ -5,7 +5,7 @@ inputs:
   binary_dir:
     description: "Directory where to install `relacs` binary"
     required: false
-    default: "${HOME}/.local/bin"
+    default: ""
   token:
     description: "GitHub token to use for authentication"
     required: true
@@ -17,13 +17,19 @@ inputs:
 runs:
   using: composite
   steps:
-    # Input defaults are literal strings, so we need to resolve them first if they include env vars.
+    # Input defaults are literal strings; resolve $HOME in bash when unset.
     - name: Resolve binary directory
       id: binary-dir
       shell: bash
       env:
         BINARY_DIR: ${{ inputs.binary_dir }}
       run: |
+        if [ -z "${BINARY_DIR}" ]; then
+          BINARY_DIR="${HOME}/.local/bin"
+        else
+          BINARY_DIR="${BINARY_DIR//\$\{HOME\}/$HOME}"
+          BINARY_DIR="${BINARY_DIR//\$HOME/$HOME}"
+        fi
         echo "path=${BINARY_DIR}" >> "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version

@@ -20,7 +20,7 @@ permissions: {}
 
 | Name | Required | Default | Description |
 | --- | --- | --- | --- |
-| `binary_dir` | no | `$HOME/.local/bin` | Directory where to install `relacs` binary. |
+| `binary_dir` | no | `$HOME/.local/bin` | Directory where to install `relacs` binary. Omit to use `$HOME/.local/bin`. |
 | `token` | yes |  | GH token to use for authentication for the `relacs` repository. |
 | `version` | no | "" | Release version tag to install (e.g. `v0.4.2`). Omit to install the latest release. |
 
