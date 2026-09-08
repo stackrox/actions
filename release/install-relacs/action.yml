@@ -18,6 +18,7 @@ runs:
   using: composite
   steps:
     # Input defaults are literal strings; resolve $HOME in bash when unset.
+    # All other environment variables are intentionally not resolved due to security considerations.
     - name: Resolve binary directory
       id: binary-dir
       shell: bash
