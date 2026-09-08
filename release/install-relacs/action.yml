@@ -1,7 +1,11 @@
 name: Install relacs CLI
-description: Download relacs CLI from GitHub releases to ~/.local/bin
+description: Download relacs CLI from GitHub releases to a specified directory
 
 inputs:
+  binary_dir:
+    description: "Directory where to install `relacs` binary"
+    required: false
+    default: "${HOME}/.local/bin"
   token:
     description: "GitHub token to use for authentication"
     required: true
@@ -13,11 +17,38 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Download and install relacs
+    # Detect desired or latest relacs version
+    - name: Get desired relacs version
+      id: relacs-version
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
         VERSION: ${{ inputs.version }}
+      run: |
+        if [ -n "${VERSION:-}" ]; then
+          echo "Using version override: ${VERSION}"
+        else
+          VERSION=$(gh release view --repo stackrox/relacs --json tagName --jq .tagName)
+          echo "Using actual latest version: ${VERSION}"
+        fi
+        echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+    # Restore relacs binary from cache to avoid re-downloading the same version
+    - name: Restore relacs binary from cache
+      id: get-relacs-from-cache
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/restore@v6
+      with:
+        path: ${{ inputs.binary_dir }}/relacs
+        key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
+
+    # Only install if cache missed
+    - name: Download and install relacs
+      if: steps.get-relacs-from-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        BINARY_DIR: ${{ inputs.binary_dir }}
+        GH_TOKEN: ${{ inputs.token }}
+        VERSION: ${{ steps.relacs-version.outputs.version }}
       run: |
         set -euo pipefail
 
@@ -26,8 +57,16 @@ runs:
 
         gh api \
           -H "Accept: application/vnd.github.v3.raw" \
-          "/repos/stackrox/relacs/contents/scripts/install-relacs.sh" \
+          "/repos/stackrox/relacs/contents/scripts/install-relacs.sh?ref=tm/install-relacs-improvement" \
           > "${INSTALLER}"
 
         # Execute installer with version from environment
         bash "${INSTALLER}" "${VERSION}"
+
+    # Save cache only if install succeeded (prevents caching wrong version on install failure)
+    - name: Save relacs binary to cache
+      if: always() && steps.get-relacs-from-cache.outputs.cache-hit != 'true' && steps.install-relacs.outcome == 'success'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/save@v6
+      with:
+        path: ${{ inputs.binary_dir }}/relacs
+        key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
