@@ -49,7 +49,7 @@ inputs:
   version:
     description: junit2jira release version to download.
     required: false
-    default: v0.0.27
+    default: v0.0.28
 
 outputs:
   new-jiras:
@@ -65,15 +65,37 @@ runs:
       shell: bash
       env:
         VERSION: ${{ inputs.version }}
+        RUNNER_ARCH: ${{ runner.arch }}
       run: |
         set -euo pipefail
-        BIN_DIR="${RUNNER_TEMP}/junit2jira/${VERSION}"
+        # Map the GitHub Actions runner architecture to its Go equivalent.
+        case "$RUNNER_ARCH" in
+          X64) goarch=amd64 ;;
+          ARM64) goarch=arm64 ;;
+          PPC64LE) goarch=ppc64le ;;
+          S390X) goarch=s390x ;;
+          *)
+            echo "::error::Unsupported runner.arch '${RUNNER_ARCH}' - no junit2jira binary is published for this architecture." >&2
+            exit 1
+            ;;
+        esac
+
+        BIN_DIR="${RUNNER_TEMP}/junit2jira/${VERSION}/${goarch}"
         BIN_PATH="${BIN_DIR}/junit2jira"
+        ASSET="junit2jira-linux-${goarch}"
+        # v0.0.27 predates architecture-specific release assets.
+        if [[ "$VERSION" == "v0.0.27" ]]; then
+          if [[ "$goarch" != "amd64" ]]; then
+            echo "::error::junit2jira ${VERSION} only provides an amd64 binary. Select a release with a junit2jira-linux-${goarch} asset." >&2
+            exit 1
+          fi
+          ASSET="junit2jira"
+        fi
         # Skip downloading release if downloaded already, e.g. when the action is used multiple times.
         if [[ ! -x "$BIN_PATH" ]]; then
           mkdir -p "$BIN_DIR"
           curl --retry 5 --retry-connrefused --silent --show-error --fail --location \
-            --output "$BIN_PATH" "https://github.com/stackrox/junit2jira/releases/download/${VERSION}/junit2jira"
+            --output "$BIN_PATH" "https://github.com/stackrox/junit2jira/releases/download/${VERSION}/${ASSET}"
           chmod +x "$BIN_PATH"
         fi
         echo "JUNIT2JIRA_BIN=${BIN_PATH}" >> "$GITHUB_ENV"

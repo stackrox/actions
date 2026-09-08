@@ -87,6 +87,9 @@ capture_job_failure_as_junit() {
 
   export ARTIFACT_DIR="${directory}"
 
+  # junit2jira treats a missing reports directory as an error.
+  mkdir -p "${directory}"
+
   # Only process failures.
   if [[ "$job_status" != "failure" ]]; then
     gh_log debug "Job status: ${job_status} - no failure record needed"
