@@ -17,6 +17,15 @@ inputs:
 runs:
   using: composite
   steps:
+    # Input defaults are literal strings, so we need to resolve them first if they include env vars.
+    - name: Resolve binary directory
+      id: binary-dir
+      shell: bash
+      env:
+        BINARY_DIR: ${{ inputs.binary_dir }}
+      run: |
+        echo "path=${BINARY_DIR}" >> "${GITHUB_OUTPUT}"
+
     # Detect desired or latest relacs version
     - name: Get desired relacs version
       id: relacs-version
@@ -38,15 +47,16 @@ runs:
       id: get-relacs-from-cache
       uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/restore@v6
       with:
-        path: ${{ inputs.binary_dir }}/relacs
+        path: ${{ steps.binary-dir.outputs.path }}/relacs
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
 
     # Only install if cache missed
     - name: Download and install relacs
+      id: install-relacs
       if: steps.get-relacs-from-cache.outputs.cache-hit != 'true'
       shell: bash
       env:
-        BINARY_DIR: ${{ inputs.binary_dir }}
+        BINARY_DIR: ${{ steps.binary-dir.outputs.path }}
         GH_TOKEN: ${{ inputs.token }}
         VERSION: ${{ steps.relacs-version.outputs.version }}
       run: |
@@ -63,10 +73,14 @@ runs:
         # Execute installer with version from environment
         bash "${INSTALLER}" "${VERSION}"
 
+    - name: Add binary directory to PATH
+      shell: bash
+      run: echo "${{ steps.binary-dir.outputs.path }}" >> "${GITHUB_PATH}"
+
     # Save cache only if install succeeded (prevents caching wrong version on install failure)
     - name: Save relacs binary to cache
       if: always() && steps.get-relacs-from-cache.outputs.cache-hit != 'true' && steps.install-relacs.outcome == 'success'
       uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/save@v6
       with:
-        path: ${{ inputs.binary_dir }}/relacs
+        path: ${{ steps.binary-dir.outputs.path }}/relacs
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
