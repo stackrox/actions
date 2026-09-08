@@ -82,7 +82,9 @@ runs:
 
     - name: Add binary directory to PATH
       shell: bash
-      run: echo "${{ steps.binary-dir.outputs.path }}" >> "${GITHUB_PATH}"
+      env:
+        BINARY_DIR: ${{ steps.binary-dir.outputs.path }}
+      run: printf '%s\n' "$BINARY_DIR" >> "${GITHUB_PATH}"
 
     # Save cache only if install succeeded (prevents caching wrong version on install failure)
     - name: Save relacs binary to cache
