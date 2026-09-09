@@ -25,13 +25,13 @@ runs:
       env:
         BINARY_DIR: ${{ inputs.binary_dir }}
       run: |
-        if [ -z "${BINARY_DIR}" ]; then
+        if [[ -z "${BINARY_DIR}" ]]; then
           BINARY_DIR="${HOME}/.local/bin"
         else
           BINARY_DIR="${BINARY_DIR//\$\{HOME\}/$HOME}"
           BINARY_DIR="${BINARY_DIR//\$HOME/$HOME}"
         fi
-        echo "path=${BINARY_DIR}" >> "${GITHUB_OUTPUT}"
+        echo "path=${BINARY_DIR}" | tee -a "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version
     - name: Get desired relacs version
@@ -41,13 +41,13 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
         VERSION: ${{ inputs.version }}
       run: |
-        if [ -n "${VERSION:-}" ]; then
+        if [[ -n "${VERSION:-}" ]]; then
           echo "Using version override: ${VERSION}"
         else
-          VERSION=$(gh release view --repo stackrox/relacs --json tagName --jq .tagName)
+          VERSION="$(gh release view --repo stackrox/relacs --json tagName --jq .tagName)"
           echo "Using actual latest version: ${VERSION}"
         fi
-        echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+        echo "version=${VERSION}" | tee -a "${GITHUB_OUTPUT}"
 
     # Restore relacs binary from cache to avoid re-downloading the same version
     - name: Restore relacs binary from cache
@@ -84,7 +84,7 @@ runs:
       shell: bash
       env:
         BINARY_DIR: ${{ steps.binary-dir.outputs.path }}
-      run: printf '%s\n' "$BINARY_DIR" >> "${GITHUB_PATH}"
+      run: printf '%s\n' "${BINARY_DIR}" | tee -a "${GITHUB_PATH}"
 
     # Save cache only if install succeeded (prevents caching wrong version on install failure)
     - name: Save relacs binary to cache
