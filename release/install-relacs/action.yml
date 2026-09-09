@@ -2,8 +2,8 @@ name: Install relacs CLI
 description: Download relacs CLI from GitHub releases to a specified directory
 
 inputs:
-  binary_dir:
-    description: "Directory where to install `relacs` binary"
+  relacs_install_dir:
+    description: "Directory where to install `relacs` binary. Defaults to `${HOME}/.local/bin`."
     required: false
     default: ""
   token:
@@ -20,18 +20,18 @@ runs:
     # Input defaults are literal strings; resolve $HOME in bash when unset.
     # All other environment variables are intentionally not resolved due to security considerations.
     - name: Resolve binary directory
-      id: binary-dir
+      id: relacs-install-dir
       shell: bash
       env:
-        BINARY_DIR: ${{ inputs.binary_dir }}
+        RELACS_INSTALL_DIR: ${{ inputs.relacs_install_dir }}
       run: |
-        if [[ -z "${BINARY_DIR}" ]]; then
-          BINARY_DIR="${HOME}/.local/bin"
+        if [[ -z "${RELACS_INSTALL_DIR}" ]]; then
+          RELACS_INSTALL_DIR="${HOME}/.local/bin"
         else
-          BINARY_DIR="${BINARY_DIR//\$\{HOME\}/$HOME}"
-          BINARY_DIR="${BINARY_DIR//\$HOME/$HOME}"
+          RELACS_INSTALL_DIR="${RELACS_INSTALL_DIR//\$\{HOME\}/$HOME}"
+          RELACS_INSTALL_DIR="${RELACS_INSTALL_DIR//\$HOME/$HOME}"
         fi
-        echo "path=${BINARY_DIR}" | tee -a "${GITHUB_OUTPUT}"
+        echo "path=${RELACS_INSTALL_DIR}" | tee -a "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version
     - name: Get desired relacs version
@@ -54,7 +54,7 @@ runs:
       id: get-relacs-from-cache
       uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/restore@v6
       with:
-        path: ${{ steps.binary-dir.outputs.path }}/relacs
+        path: ${{ steps.relacs-install-dir.outputs.path }}/relacs
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
 
     # Only install if cache missed
@@ -63,7 +63,7 @@ runs:
       if: steps.get-relacs-from-cache.outputs.cache-hit != 'true'
       shell: bash
       env:
-        BINARY_DIR: ${{ steps.binary-dir.outputs.path }}
+        RELACS_INSTALL_DIR: ${{ steps.relacs-install-dir.outputs.path }}
         GH_TOKEN: ${{ inputs.token }}
         VERSION: ${{ steps.relacs-version.outputs.version }}
       run: |
@@ -83,13 +83,13 @@ runs:
     - name: Add binary directory to PATH
       shell: bash
       env:
-        BINARY_DIR: ${{ steps.binary-dir.outputs.path }}
-      run: printf '%s\n' "${BINARY_DIR}" | tee -a "${GITHUB_PATH}"
+        RELACS_INSTALL_DIR: ${{ steps.relacs-install-dir.outputs.path }}
+      run: printf '%s\n' "${RELACS_INSTALL_DIR}" | tee -a "${GITHUB_PATH}"
 
     # Save cache only if install succeeded (prevents caching wrong version on install failure)
     - name: Save relacs binary to cache
       if: always() && steps.get-relacs-from-cache.outputs.cache-hit != 'true' && steps.install-relacs.outcome == 'success'
       uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/save@v6
       with:
-        path: ${{ steps.binary-dir.outputs.path }}/relacs
+        path: ${{ steps.relacs-install-dir.outputs.path }}/relacs
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
