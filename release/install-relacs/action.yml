@@ -28,11 +28,11 @@ runs:
         if [[ -z "${RELACS_INSTALL_PATH}" ]]; then
           RELACS_INSTALL_PATH="${HOME}/.local/bin/relacs"
         else
-        # TODO: HOME_SWEET_HOME...
-          # Expand $HOME and ${HOME} in custom paths
-          RELACS_INSTALL_PATH="${RELACS_INSTALL_PATH//\$\{HOME\}/$HOME}"
-          RELACS_INSTALL_PATH="${RELACS_INSTALL_PATH//\$HOME/$HOME}"
-        fi
+        RELACS_INSTALL_PATH="$(printf '%s' "${RELACS_INSTALL_PATH}" | sed \
+          -e "s|\${HOME}/|$HOME/|g" \
+          -e "s|\${HOME}\$|$HOME|g" \
+          -e "s|\$HOME/|$HOME/|g" \
+          -e "s|\$HOME\$|$HOME|g")"
         echo "path=${RELACS_INSTALL_PATH}" | tee -a "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version
