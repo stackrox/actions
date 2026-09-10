@@ -89,6 +89,7 @@ runs:
       run: |
         set -euo pipefail
         relacs_path="$(dirname "${RELACS_INSTALL_PATH}")"
+        # Use printf to prevent command injection from the relacs_path variable
         printf '%s\n' "${relacs_path}" | tee -a "${GITHUB_PATH}"
 
     # Save cache only if install succeeded (prevents caching wrong version on install failure)
