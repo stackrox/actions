@@ -3,7 +3,7 @@ description: Download relacs CLI from GitHub releases to a specified directory
 
 inputs:
   relacs_install_dir:
-    description: "Directory where to install `relacs` binary. Defaults to `${HOME}/.local/bin`."
+    description: "Directory where to install `relacs` binary. Defaults to `${HOME}/.local/bin`. Supports expansion of `$HOME` and `${HOME}` in custom paths (other environment variables are not expanded)."
     required: false
     default: ""
   token:
@@ -28,6 +28,7 @@ runs:
         if [[ -z "${RELACS_INSTALL_DIR}" ]]; then
           RELACS_INSTALL_DIR="${HOME}/.local/bin"
         else
+          # Expand $HOME and ${HOME} in custom paths
           RELACS_INSTALL_DIR="${RELACS_INSTALL_DIR//\$\{HOME\}/$HOME}"
           RELACS_INSTALL_DIR="${RELACS_INSTALL_DIR//\$HOME/$HOME}"
         fi
