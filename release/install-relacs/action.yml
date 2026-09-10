@@ -76,7 +76,7 @@ runs:
 
         gh api \
           -H "Accept: application/vnd.github.v3.raw" \
-          "/repos/stackrox/relacs/contents/scripts/install-relacs.sh?ref=tm/install-relacs-improvement" \
+          "/repos/stackrox/relacs/contents/scripts/install-relacs.sh" \
           > "${INSTALLER}"
 
         # Execute installer with version from environment
