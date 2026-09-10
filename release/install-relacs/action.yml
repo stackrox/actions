@@ -2,6 +2,10 @@ name: Install relacs CLI
 description: Download relacs CLI from GitHub releases to a specified directory
 
 inputs:
+  relacs_binary:
+    description: "Binary name to install. Defaults to `relacs`."
+    required: false
+    default: "relacs"
   relacs_install_dir:
     description: "Directory where to install `relacs` binary. Defaults to `${HOME}/.local/bin`. Supports expansion of `$HOME` and `${HOME}` in custom paths (other environment variables are not expanded)."
     required: false
@@ -24,6 +28,7 @@ runs:
       shell: bash
       env:
         RELACS_INSTALL_DIR: ${{ inputs.relacs_install_dir }}
+        RELACS_BINARY: ${{ inputs.relacs_binary }}
       run: |
         if [[ -z "${RELACS_INSTALL_DIR}" ]]; then
           RELACS_INSTALL_DIR="${HOME}/.local/bin"
@@ -55,7 +60,7 @@ runs:
       id: get-relacs-from-cache
       uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/restore@v6
       with:
-        path: ${{ steps.relacs-install-dir.outputs.path }}/relacs
+        path: ${{ steps.relacs-install-dir.outputs.path }}/${{ inputs.relacs_binary }}
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
 
     # Only install if cache missed
@@ -92,5 +97,5 @@ runs:
       if: always() && steps.get-relacs-from-cache.outputs.cache-hit != 'true' && steps.install-relacs.outcome == 'success'
       uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/save@v6
       with:
-        path: ${{ steps.relacs-install-dir.outputs.path }}/relacs
+        path: ${{ steps.relacs-install-dir.outputs.path }}/${{ inputs.relacs_binary }}
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
