@@ -2,12 +2,8 @@ name: Install relacs CLI
 description: Download relacs CLI from GitHub releases to a specified directory
 
 inputs:
-  relacs_binary:
-    description: "Binary name to install. Defaults to `relacs`."
-    required: false
-    default: "relacs"
-  relacs_install_dir:
-    description: "Directory where to install `relacs` binary. Defaults to `${HOME}/.local/bin`. Supports expansion of `$HOME` and `${HOME}` in custom paths (other environment variables are not expanded)."
+  relacs_install_path:
+    description: "Path where to install `relacs` binary. Defaults to `${HOME}/.local/bin/relacs`. Supports expansion of `$HOME` and `${HOME}` in custom paths (other environment variables are not expanded)."
     required: false
     default: ""
   token:
@@ -23,21 +19,21 @@ runs:
   steps:
     # Input defaults are literal strings; resolve $HOME in bash when unset.
     # All other environment variables are intentionally not resolved due to security considerations.
-    - name: Resolve binary directory
-      id: relacs-install-dir
+    - name: Resolve relacs install path
+      id: relacs-install-path
       shell: bash
       env:
-        RELACS_INSTALL_DIR: ${{ inputs.relacs_install_dir }}
-        RELACS_BINARY: ${{ inputs.relacs_binary }}
+        RELACS_INSTALL_PATH: ${{ inputs.relacs_install_path }}
       run: |
-        if [[ -z "${RELACS_INSTALL_DIR}" ]]; then
-          RELACS_INSTALL_DIR="${HOME}/.local/bin"
+        if [[ -z "${RELACS_INSTALL_PATH}" ]]; then
+          RELACS_INSTALL_PATH="${HOME}/.local/bin/relacs"
         else
+        # TODO: HOME_SWEET_HOME...
           # Expand $HOME and ${HOME} in custom paths
-          RELACS_INSTALL_DIR="${RELACS_INSTALL_DIR//\$\{HOME\}/$HOME}"
-          RELACS_INSTALL_DIR="${RELACS_INSTALL_DIR//\$HOME/$HOME}"
+          RELACS_INSTALL_PATH="${RELACS_INSTALL_PATH//\$\{HOME\}/$HOME}"
+          RELACS_INSTALL_PATH="${RELACS_INSTALL_PATH//\$HOME/$HOME}"
         fi
-        echo "path=${RELACS_INSTALL_DIR}" | tee -a "${GITHUB_OUTPUT}"
+        echo "path=${RELACS_INSTALL_PATH}" | tee -a "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version
     - name: Get desired relacs version
@@ -60,7 +56,7 @@ runs:
       id: get-relacs-from-cache
       uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/restore@v6
       with:
-        path: ${{ steps.relacs-install-dir.outputs.path }}/${{ inputs.relacs_binary }}
+        path: ${{ steps.relacs-install-path.outputs.path }}
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
 
     # Only install if cache missed
@@ -69,7 +65,7 @@ runs:
       if: steps.get-relacs-from-cache.outputs.cache-hit != 'true'
       shell: bash
       env:
-        RELACS_INSTALL_DIR: ${{ steps.relacs-install-dir.outputs.path }}
+        RELACS_INSTALL_PATH: ${{ steps.relacs-install-path.outputs.path }}
         GH_TOKEN: ${{ inputs.token }}
         VERSION: ${{ steps.relacs-version.outputs.version }}
       run: |
@@ -86,16 +82,19 @@ runs:
         # Execute installer with version from environment
         bash "${INSTALLER}" "${VERSION}"
 
-    - name: Add binary directory to PATH
+    - name: Add relacs install path to PATH
       shell: bash
       env:
-        RELACS_INSTALL_DIR: ${{ steps.relacs-install-dir.outputs.path }}
-      run: printf '%s\n' "${RELACS_INSTALL_DIR}" | tee -a "${GITHUB_PATH}"
+        RELACS_INSTALL_PATH: ${{ steps.relacs-install-path.outputs.path }}
+      run: |
+        set -euo pipefail
+        relacs_path="$(dirname "${RELACS_INSTALL_PATH}")"
+        printf '%s\n' "${relacs_path}" | tee -a "${GITHUB_PATH}"
 
     # Save cache only if install succeeded (prevents caching wrong version on install failure)
     - name: Save relacs binary to cache
       if: always() && steps.get-relacs-from-cache.outputs.cache-hit != 'true' && steps.install-relacs.outcome == 'success'
       uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/save@v6
       with:
-        path: ${{ steps.relacs-install-dir.outputs.path }}/${{ inputs.relacs_binary }}
+        path: ${{ steps.relacs-install-path.outputs.path }}
         key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
