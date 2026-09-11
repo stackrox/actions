@@ -29,6 +29,8 @@ runs:
         if [[ -z "${RELACS_INSTALL_PATH:-}" ]]; then
           RELACS_INSTALL_PATH="${HOME}/.local/bin/relacs"
         else
+          # Expand $HOME and ${HOME} while preserving variables like $HOME_SWEET_HOME.
+          # Note: \$ in double quotes becomes $ (end-of-line anchor) in sed, not a literal $.
           RELACS_INSTALL_PATH="$(printf '%s' "${RELACS_INSTALL_PATH}" | sed \
             -e "s|\${HOME}/|$HOME/|g" \
             -e "s|\${HOME}\$|$HOME|g" \
