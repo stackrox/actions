@@ -25,7 +25,8 @@ runs:
       env:
         RELACS_INSTALL_PATH: ${{ inputs.relacs_install_path }}
       run: |
-        if [[ -z "${RELACS_INSTALL_PATH}" ]]; then
+        set -u
+        if [[ -z "${RELACS_INSTALL_PATH:-}" ]]; then
           RELACS_INSTALL_PATH="${HOME}/.local/bin/relacs"
         else
           RELACS_INSTALL_PATH="$(printf '%s' "${RELACS_INSTALL_PATH}" | sed \
