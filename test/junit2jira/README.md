@@ -6,7 +6,8 @@ Optionally uploads a CSV of test metrics to GCS for BigQuery ingestion.
 
 If the GitHub job failed but produced no test-level `<failure>` records, the
 action synthesises a JUnit failure so infrastructure/setup failures are still
-reported.
+reported. Dry runs upload a seven-day `junit2jira-dry-run-preview` artifact
+containing the CLI's available Jira-reporting outputs.
 
 The action is self-contained: it bundles its own helper scripts and does not
 require the calling repository to provide any `scripts/ci` helpers.
@@ -49,6 +50,21 @@ permissions: {}
 When `true`, `junit2jira` runs with `--dry-run` and no issues are created.
 Commonly wired to only create issues on pushes:
 `${{ github.event_name != 'push' }}`.
+
+After a successful authenticated dry run, the action uploads a
+`junit2jira-dry-run-preview` artifact containing:
+
+- `slack.json`, with failed-test names, truncated failure text, and matched
+  Jira keys where available.
+- `issues.html`, listing matched Jira issue keys and summaries.
+- `summary.json`, with aggregate reporting counts.
+- `test-metrics.csv`, with the parsed test metrics.
+
+The artifact does not contain the exact Jira issue descriptions or comments:
+the bundled `junit2jira` release does not expose those payloads. The artifact
+is retained for seven days. Dry runs retain the existing metrics-upload
+behavior; set `gcp-metrics: false` when testing if metrics should not be sent
+to GCS.
 
 Default value: `false`
 

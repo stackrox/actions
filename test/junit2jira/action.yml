@@ -147,6 +147,17 @@ runs:
         fi
         csv_output="$(mktemp --suffix=.csv)"
         summary_file="$(mktemp --suffix=.json)"
+        preview_args=()
+        if [[ "$DRY_RUN" == "true" ]]; then
+          preview_dir="$(mktemp -d "${RUNNER_TEMP}/junit2jira-preview.XXXXXX")"
+          csv_output="${preview_dir}/test-metrics.csv"
+          summary_file="${preview_dir}/summary.json"
+          preview_args=(
+            -html-output "${preview_dir}/issues.html"
+            -slack-output "${preview_dir}/slack.json"
+          )
+          echo "PREVIEW_DIR=${preview_dir}" >> "$GITHUB_ENV"
+        fi
         "$JUNIT2JIRA_BIN" \
             -base-link "$BASE_LINK" \
             -build-id "$BUILD_ID" \
@@ -159,10 +170,19 @@ runs:
             -orchestrator "$ORCHESTRATOR" \
             -threshold "$THRESHOLD" \
             -summary-output "${summary_file}" \
+            "${preview_args[@]}" \
             "${extra_args[@]}"
 
         echo "NEW_JIRAS=$(jq -r '.newJIRAs > 0' "${summary_file}")" >> "$GITHUB_OUTPUT"
         echo "CSV_OUTPUT=${csv_output}" >> "$GITHUB_ENV"
+
+    - name: Upload Jira dry-run preview
+      if: inputs.dry-run == 'true' && steps.run.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: junit2jira-dry-run-preview
+        path: ${{ env.PREVIEW_DIR }}
+        retention-days: 7
 
     - name: Authenticate with GCP
       if: inputs.gcp-metrics == 'true' && inputs.gcp-account != ''
