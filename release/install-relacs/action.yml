@@ -1,7 +1,11 @@
 name: Install relacs CLI
-description: Download relacs CLI from GitHub releases to ~/.local/bin
+description: Download relacs CLI from GitHub releases to a specified directory
 
 inputs:
+  relacs_install_path:
+    description: "Path where to install `relacs` binary. Defaults to `${HOME}/.local/bin/relacs`. Supports expansion of `$HOME` and `${HOME}` in custom paths (other environment variables are not expanded)."
+    required: false
+    default: ""
   token:
     description: "GitHub token to use for authentication"
     required: true
@@ -13,11 +17,61 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Download and install relacs
+    # Input defaults are literal strings; resolve $HOME in bash when unset.
+    # All other environment variables are intentionally not resolved due to security considerations.
+    - name: Resolve relacs install path
+      id: relacs-install-path
+      shell: bash
+      env:
+        RELACS_INSTALL_PATH: ${{ inputs.relacs_install_path }}
+      run: |
+        set -u
+        if [[ -z "${RELACS_INSTALL_PATH:-}" ]]; then
+          RELACS_INSTALL_PATH="${HOME}/.local/bin/relacs"
+        else
+          # Expand $HOME and ${HOME} while preserving variables like $HOME_SWEET_HOME.
+          # Note: \$ in double quotes becomes $ (end-of-line anchor) in sed, not a literal $.
+          RELACS_INSTALL_PATH="$(printf '%s' "${RELACS_INSTALL_PATH}" | sed \
+            -e "s|\${HOME}/|$HOME/|g" \
+            -e "s|\${HOME}\$|$HOME|g" \
+            -e "s|\$HOME/|$HOME/|g" \
+            -e "s|\$HOME\$|$HOME|g")"
+        fi
+        echo "path=${RELACS_INSTALL_PATH}" | tee -a "${GITHUB_OUTPUT}"
+
+    # Detect desired or latest relacs version
+    - name: Get desired relacs version
+      id: relacs-version
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
         VERSION: ${{ inputs.version }}
+      run: |
+        if [[ -n "${VERSION:-}" ]]; then
+          echo "Using version override: ${VERSION}"
+        else
+          VERSION="$(gh release view --repo stackrox/relacs --json tagName --jq .tagName)"
+          echo "Using actual latest version: ${VERSION}"
+        fi
+        echo "version=${VERSION}" | tee -a "${GITHUB_OUTPUT}"
+
+    # Restore relacs binary from cache to avoid re-downloading the same version
+    - name: Restore relacs binary from cache
+      id: get-relacs-from-cache
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/restore@v6
+      with:
+        path: ${{ steps.relacs-install-path.outputs.path }}
+        key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
+
+    # Only install if cache missed
+    - name: Download and install relacs
+      id: install-relacs
+      if: steps.get-relacs-from-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        RELACS_INSTALL_PATH: ${{ steps.relacs-install-path.outputs.path }}
+        GH_TOKEN: ${{ inputs.token }}
+        VERSION: ${{ steps.relacs-version.outputs.version }}
       run: |
         set -euo pipefail
 
@@ -31,3 +85,21 @@ runs:
 
         # Execute installer with version from environment
         bash "${INSTALLER}" "${VERSION}"
+
+    - name: Add relacs install path to PATH
+      shell: bash
+      env:
+        RELACS_INSTALL_PATH: ${{ steps.relacs-install-path.outputs.path }}
+      run: |
+        set -euo pipefail
+        relacs_path="$(dirname "${RELACS_INSTALL_PATH}")"
+        # Use printf to prevent command injection from the relacs_path variable
+        printf '%s\n' "${relacs_path}" | tee -a "${GITHUB_PATH}"
+
+    # Save cache only if install succeeded (prevents caching wrong version on install failure)
+    - name: Save relacs binary to cache
+      if: always() && steps.get-relacs-from-cache.outputs.cache-hit != 'true' && steps.install-relacs.outcome == 'success'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # ratchet:actions/cache/save@v6
+      with:
+        path: ${{ steps.relacs-install-path.outputs.path }}
+        key: relacs-${{ runner.os }}-${{ runner.arch }}-${{ steps.relacs-version.outputs.version }}
