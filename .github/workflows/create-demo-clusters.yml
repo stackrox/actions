@@ -343,9 +343,6 @@ jobs:
         id: artifacts
         run: |
           infractl artifacts "${NAME//./-}" -d artifacts >> "$GITHUB_STEP_SUMMARY"
-      - uses: ./.actions/roxie/install-cli
-        with:
-          version: v0.4.5
       - name: Launch central
         id: launch-central
         uses: ./.actions/release/start-acs
@@ -357,6 +354,7 @@ jobs:
           registry-password: ${{ secrets.QUAY_RHACS_ENG_RO_PASSWORD }}
           stackrox-dir: ${{ github.workspace }}
           name: ${{ env.NAME }}
+          gh-token: ${{ env.GH_TOKEN }}
 
       - name: Post to Slack
         env:
@@ -447,6 +445,7 @@ jobs:
       - uses: ./.actions/roxie/install-cli
         with:
           version: v0.4.5
+          gh-token: ${{ env.GH_TOKEN }}
       - name: Launch secured cluster
         id: launch-secured-cluster
         uses: ./.actions/release/start-secured-cluster
