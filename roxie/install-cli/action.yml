@@ -5,6 +5,9 @@ inputs:
   version:
     description: "Release version tag to install (e.g. v0.4.2). Omit to install the latest release."
     required: false
+  gh-token:
+    description: "GitHub token for API requests to avoid rate limiting. Optional."
+    required: false
 
 runs:
   using: composite
@@ -13,4 +16,5 @@ runs:
       shell: bash
       env:
         ROXIE_VERSION: ${{ inputs.version }}
+        GH_TOKEN: ${{ inputs.gh-token }}
       run: "${GITHUB_ACTION_PATH}/install-roxie.sh"

@@ -18,8 +18,15 @@ case "$arch" in
         ;;
 esac
 
+curl_auth_args=()
+if [[ -n "${GH_TOKEN:-}" ]]; then
+    curl_auth_args=(-H "Authorization: token ${GH_TOKEN}")
+else
+    echo "::warning::No GitHub token provided. GitHub API requests may be rate-limited. Consider passing 'gh-token: \${{ secrets.GITHUB_TOKEN }}' to avoid rate limiting."
+fi
+
 if [[ -z "${ROXIE_VERSION:-}" ]]; then
-    ROXIE_VERSION=$(curl -fsSL --retry 5 --retry-all-errors \
+    ROXIE_VERSION=$(curl -fsSL --retry 5 --retry-all-errors "${curl_auth_args[@]}" \
         https://api.github.com/repos/stackrox/roxie/releases/latest | jq -r '.tag_name')
     echo "::notice::Resolved latest roxie version: ${ROXIE_VERSION}"
 fi
@@ -31,8 +38,8 @@ echo "::notice::Downloading roxie ${ROXIE_VERSION} (linux/${arch}) from ${base_u
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
-curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/roxie" "${base_url}/${binary}"
-curl -fsSL --retry 5 --retry-all-errors -o "$tmpdir/checksums.txt" "${base_url}/checksums.txt"
+curl -fsSL --retry 5 --retry-all-errors "${curl_auth_args[@]}" -o "$tmpdir/roxie" "${base_url}/${binary}"
+curl -fsSL --retry 5 --retry-all-errors "${curl_auth_args[@]}" -o "$tmpdir/checksums.txt" "${base_url}/checksums.txt"
 
 expected=$(awk "/  ${binary}\$/ {print \$1}" "$tmpdir/checksums.txt")
 actual=$(sha256sum "$tmpdir/roxie" | awk '{print $1}')
