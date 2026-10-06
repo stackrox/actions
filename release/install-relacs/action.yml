@@ -30,9 +30,9 @@ runs:
           RELACS_INSTALL_PATH="${HOME}/.local/bin/relacs"
         else
           # With user provided input, only expand $HOME and ${HOME}.
-          path="$(printf '%s' "$RELACS_INSTALL_PATH" | envsubst '$HOME')"
-          echo "path=${path}" | tee -a "${GITHUB_OUTPUT}"
+          RELACS_INSTALL_PATH="$(printf '%s' "$RELACS_INSTALL_PATH" | envsubst '$HOME')"
         fi
+        echo "path=${RELACS_INSTALL_PATH}" | tee -a "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version
     - name: Get desired relacs version
