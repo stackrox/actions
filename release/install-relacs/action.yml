@@ -29,15 +29,10 @@ runs:
         if [[ -z "${RELACS_INSTALL_PATH:-}" ]]; then
           RELACS_INSTALL_PATH="${HOME}/.local/bin/relacs"
         else
-          # Expand $HOME and ${HOME} while preserving variables like $HOME_SWEET_HOME.
-          # Note: \$ in double quotes becomes $ (end-of-line anchor) in sed, not a literal $.
-          RELACS_INSTALL_PATH="$(printf '%s' "${RELACS_INSTALL_PATH}" | sed \
-            -e "s|\${HOME}/|$HOME/|g" \
-            -e "s|\${HOME}\$|$HOME|g" \
-            -e "s|\$HOME/|$HOME/|g" \
-            -e "s|\$HOME\$|$HOME|g")"
+          # With user provided input, only expand $HOME and ${HOME}.
+          path="$(printf '%s' "$RELACS_INSTALL_PATH" | envsubst '$HOME')"
+          echo "path=${path}" | tee -a "${GITHUB_OUTPUT}"
         fi
-        echo "path=${RELACS_INSTALL_PATH}" | tee -a "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version
     - name: Get desired relacs version
