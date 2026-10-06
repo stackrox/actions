@@ -1,7 +1,7 @@
 # Install relacs CLI
 
 Downloads a [relacs](https://github.com/stackrox/relacs) release binary and
-makes it available in a specified directory for subsequent workflow steps.
+makes it available in a specified path for subsequent workflow steps.
 
 The binary is verified against the SHA-256 checksums published with each
 release.

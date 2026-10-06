@@ -1,5 +1,5 @@
 name: Install relacs CLI
-description: Download relacs CLI from GitHub releases to a specified directory
+description: Download relacs CLI from GitHub releases to a specified path
 
 inputs:
   relacs_install_path:
@@ -17,8 +17,6 @@ inputs:
 runs:
   using: composite
   steps:
-    # Input defaults are literal strings; resolve $HOME in bash when unset.
-    # All other environment variables are intentionally not resolved due to security considerations.
     - name: Resolve relacs install path
       id: relacs-install-path
       shell: bash
@@ -35,7 +33,7 @@ runs:
         echo "path=${RELACS_INSTALL_PATH}" | tee -a "${GITHUB_OUTPUT}"
 
     # Detect desired or latest relacs version
-    - name: Get desired relacs version
+    - name: Resolve desired relacs version
       id: relacs-version
       shell: bash
       env:
@@ -80,6 +78,12 @@ runs:
 
         # Execute installer with version from environment
         bash "${INSTALLER}" "${VERSION}"
+
+        INSTALLED_VERSION="$(relacs version -o json | jq -r .version)"
+        echo "Installed relacs ${INSTALLED_VERSION}"
+        [[ "${INSTALLED_VERSION}" == "${VERSION}" ]]
+
+        rm -f "${INSTALLER}"
 
     - name: Add relacs install path to PATH
       shell: bash
