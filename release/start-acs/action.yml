@@ -29,6 +29,9 @@ inputs:
     description: The name of the cluster where ACS will run
     required: true
     default: ""
+  gh-token:
+    description: "GitHub token for API requests to avoid rate limiting. Optional."
+    required: false
 
 runs:
   using: composite
@@ -43,6 +46,7 @@ runs:
     - uses: ./.actions/roxie/install-cli
       with:
         version: v0.4.5
+        gh-token: ${{ inputs.gh-token }}
 
     - id: launch-central
       env:
