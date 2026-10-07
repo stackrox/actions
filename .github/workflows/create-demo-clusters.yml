@@ -204,7 +204,7 @@ jobs:
         with:
           token: ${{ secrets.INFRA_TOKEN }}
           flavor: openshift-4-demo
-          name: openshift-4-demo-${{ inputs.version }}
+          name: ocp-4-demo-${{ inputs.version }}
           args: central-services-helm-chart-version=${{ inputs.version }},secured-cluster-services-helm-chart-version=${{ inputs.version }},image-registry=quay.io/rhacs-eng
           lifespan: 48h
 
@@ -213,7 +213,7 @@ jobs:
     needs: [properties, create-os4-cluster]
     runs-on: ubuntu-latest
     env:
-      NAME: openshift-4-demo-${{ inputs.version }}
+      NAME: ocp-4-demo-${{ inputs.version }}
     steps:
       - name: Determine demo url and cluster name
         id: get_demo_artifacts
