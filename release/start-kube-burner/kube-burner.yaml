@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: kube-burner
-        image: quay.io/kube-burner/kube-burner:v1.4.3
+        image: quay.io/kube-burner/kube-burner:v2.6.2
         command: ["/bin/sh", "-c"]
         args:
           - |
@@ -23,15 +23,39 @@ spec:
               curl -G --silent http://monitoring.stackrox.svc.cluster.local:9090/api/v1/query --data-urlencode 'query=time()' | sed 's|.*\[||' | sed 's|\..*||'
             }
             cd /etc/kube-burner
-            config=config.yml
+            config=berserker-load.yml
             metrics_profile=/etc/kube-burner-metrics/metrics.yml
             prometheus_url="http://monitoring.stackrox.svc.cluster.local:9090"
-            (kube-burner init --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --timeout=1000h || true) &
+            cat > /tmp/vars.yml <<VARSEOF
+            GC: $GC
+            GC_METRICS: $GC_METRICS
+            DELETION_STRATEGY: $DELETION_STRATEGY
+            POD_READY_THRESHOLD: $POD_READY_THRESHOLD
+            ES_SERVER: "$ES_SERVER"
+            ES_INDEX: "$ES_INDEX"
+            LOCAL_INDEXING: $LOCAL_INDEXING
+            METRICS: $METRICS
+            ALERTS: "$ALERTS"
+            UUID: $UUID
+            JOB_ITERATIONS: $JOB_ITERATIONS
+            JOB_PAUSE: $JOB_PAUSE
+            QPS: $QPS
+            BURST: $BURST
+            CHURN_CYCLES: $CHURN_CYCLES
+            CHURN_DURATION: $CHURN_DURATION
+            CHURN_DELAY: $CHURN_DELAY
+            CHURN_PERCENT: $CHURN_PERCENT
+            CHURN_MODE: $CHURN_MODE
+            MAX_WAIT_TIMEOUT: $MAX_WAIT_TIMEOUT
+            DAEMONSET_REPLICAS: $DAEMONSET_REPLICAS
+            SERVICE_REPLICAS: $SERVICE_REPLICAS
+            VARSEOF
+            (kube-burner init --config="$config" --user-data=/tmp/vars.yml --skip-log-file --timeout=1000h || true) &
             while true; do
               start="$(get_epoch_time)"
               sleep "$METRICS_COLLECTION_TIME"
               end="$(get_epoch_time)"
-              kube-burner index --config="$config" --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID"
+              kube-burner index --metrics-profile="$metrics_profile" --prometheus-url="$prometheus_url" --start "$start" --end "$end" --step "$METRICS_TIME_STEP" --uuid="$UUID" --es-server "$ELASTICSEARCH_URL" --es-index kube-burner-long-running-test
             done
         volumeMounts:
         - name: config
@@ -60,6 +84,63 @@ spec:
             secretKeyRef:
               name: kube-burner-secret
               key: METRICS_TIME_STEP
+        - name: GC
+          value: "true"
+        - name: GC_METRICS
+          value: "false"
+        - name: DELETION_STRATEGY
+          value: "gvr"
+        - name: POD_READY_THRESHOLD
+          value: "0"
+        - name: ES_SERVER
+          value: ""
+        - name: ES_INDEX
+          value: ""
+        - name: LOCAL_INDEXING
+          value: "false"
+        - name: METRICS
+          value: "metrics.yml"
+        - name: ALERTS
+          value: ""
+        - name: JOB_ITERATIONS
+          value: "5"
+        - name: JOB_PAUSE
+          value: "0s"
+        - name: QPS
+          value: "20"
+        - name: BURST
+          value: "20"
+        - name: CHURN_CYCLES
+          value: "0"
+        - name: CHURN_DURATION
+          value: "1000h"
+        - name: CHURN_DELAY
+          value: "10m0s"
+        - name: CHURN_PERCENT
+          value: "80"
+        - name: CHURN_MODE
+          value: "namespaces"
+        - name: MAX_WAIT_TIMEOUT
+          value: "12m0s"
+        - name: DAEMONSET_REPLICAS
+          value: "6"
+        - name: SERVICE_REPLICAS
+          value: "6"
+        - name: BERSERKER_CONFIGMAP_TEMPLATE
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_CONFIGMAP_TEMPLATE
+        - name: BERSERKER_SERVICE_TEMPLATE
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_SERVICE_TEMPLATE
+        - name: BERSERKER_CONTAINERS_FILE
+          valueFrom:
+            secretKeyRef:
+              name: kube-burner-secret
+              key: BERSERKER_CONTAINERS_FILE
       volumes:
       - name: config
         configMap:
