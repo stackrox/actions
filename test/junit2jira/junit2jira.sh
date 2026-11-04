@@ -54,14 +54,20 @@ save_junit_failure() {
   junit_dir="$(get_junit_misc_dir)"
   mkdir -p "${junit_dir}"
 
-  # XML escape description.
+  # XML escape suite/classname and description.
+  class="${class//&/\&amp;}"
+  class="${class//\"/\&quot;}"
+  class="${class//\'/\&#39;}"
+  class="${class//</\&lt;}"
+  class="${class//>/\&gt;}"
   description="${description//&/\&amp;}"
   description="${description//\"/\&quot;}"
   description="${description//\'/\&#39;}"
   description="${description//</\&lt;}"
   description="${description//>/\&gt;}"
 
-  local junit_file="${junit_dir}/junit-${class}.xml"
+  # Suite names contain slashes and must not be used as file paths.
+  local junit_file="${junit_dir}/junit-job-failure.xml"
   {
     echo "<testsuite name=\"${class}\" tests=\"1\" skipped=\"0\" failures=\"1\" errors=\"0\">"
     echo "  <testcase name=\"${description}\" classname=\"${class}\">"
