@@ -165,6 +165,7 @@ runs:
         echo "CSV_OUTPUT=${csv_output}" >> "$GITHUB_ENV"
 
     - name: Authenticate with GCP
+      id: gcp-auth
       if: inputs.gcp-metrics == 'true' && inputs.gcp-account != ''
       uses: google-github-actions/auth@v2
       with:
@@ -174,6 +175,21 @@ runs:
     - name: Set up Cloud SDK
       if: inputs.gcp-metrics == 'true' && inputs.gcp-account != ''
       uses: google-github-actions/setup-gcloud@v2
+
+    - name: Use stored gcloud credentials
+      if: steps.gcp-auth.outcome == 'success'
+      shell: bash
+      env:
+        GCP_CREDENTIALS_JSON: ${{ inputs.gcp-account }}
+      run: |
+        expected_account="$(jq -er '.client_email' <<< "$GCP_CREDENTIALS_JSON")"
+        if [[ "$(gcloud config get-value core/account)" != "$expected_account" ]]; then
+          echo "::error::gcloud's active account does not match the CI service account"
+          exit 1
+        fi
+        # setup-gcloud already stored these credentials. Avoid the file-override crash:
+        # https://github.com/google-github-actions/auth/issues/535
+        echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=" >> "$GITHUB_ENV"
 
     - name: Upload test metrics to GCS
       if: inputs.gcp-metrics == 'true' && steps.run.outcome == 'success'
