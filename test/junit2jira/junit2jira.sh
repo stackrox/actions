@@ -6,7 +6,7 @@
 # the action wrapper) and standard CLI tools. It is dispatched by subcommand,
 # e.g.:
 #
-#   junit2jira.sh capture_job_failure_as_junit <directory> <job_name> ...
+#   junit2jira.sh capture_job_failure_as_junit <directory> <suite_name> ...
 #   junit2jira.sh save_test_metrics <csv> <bucket> <subdir>
 #
 # Local run:
@@ -68,25 +68,31 @@ save_junit_failure() {
 
   # Suite names contain slashes and must not be used as file paths.
   local junit_file="${junit_dir}/junit-job-failure.xml"
-  {
-    echo "<testsuite name=\"${class}\" tests=\"1\" skipped=\"0\" failures=\"1\" errors=\"0\">"
-    echo "  <testcase name=\"${description}\" classname=\"${class}\">"
-    echo "    <failure><![CDATA[${details}]]></failure>"
-    echo "  </testcase>"
-    echo "</testsuite>"
-  } > "${junit_file}"
+  (
+    set -o noclobber
+    {
+      echo "<testsuite name=\"${class}\" tests=\"1\" skipped=\"0\" failures=\"1\" errors=\"0\">"
+      echo "  <testcase name=\"${description}\" classname=\"${class}\">"
+      echo "    <failure><![CDATA[${details}]]></failure>"
+      echo "  </testcase>"
+      echo "</testsuite>"
+    } > "${junit_file}"
+  ) || {
+    gh_log error "Could not create JUnit report: ${junit_file}"
+    return 1
+  }
 }
 
 # If the GitHub job failed but produced no JUnit <failure> records, synthesise a
 # JUnit failure so infrastructure/setup failures still get reported to Jira.
 capture_job_failure_as_junit() {
   if [[ "$#" -ne 5 ]]; then
-    gh_log error "missing args. usage: capture_job_failure_as_junit <directory> <job_name> <job_status> <steps_json> <workflow_run_url>"
+    gh_log error "missing args. usage: capture_job_failure_as_junit <directory> <suite_name> <job_status> <steps_json> <workflow_run_url>"
     exit 1
   fi
 
   local directory="$1"
-  local job_name="$2"
+  local suite_name="$2"
   local job_status="$3"
   local steps_json="$4"
   local workflow_run_url="$5"
@@ -129,7 +135,7 @@ Check workflow logs for details: ${workflow_run_url}
 EOF
     )
 
-    save_junit_failure "$job_name" "$failed_step" "$failure_details"
+    save_junit_failure "$suite_name" "$failed_step" "$failure_details" || return 1
     gh_log debug "Created JUnit failure record for step: $failed_step"
     return 0
   fi
@@ -142,8 +148,8 @@ Check workflow logs: ${workflow_run_url}
 EOF
   )
 
-  save_junit_failure "$job_name" "error" "$generic_failure"
-  gh_log debug "Created generic JUnit failure record for job: $job_name"
+  save_junit_failure "$suite_name" "error" "$generic_failure" || return 1
+  gh_log debug "Created generic JUnit failure record for suite: $suite_name"
   return 0
 }
 
