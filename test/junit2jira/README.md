@@ -39,7 +39,7 @@ permissions: {}
 | [gcp-metrics](#gcp-metrics)    | Whether to upload test metrics to GCS for BigQuery                                       | `true`                         |
 | [gcs-bucket](#gcs-bucket)      | GCS bucket root used to store test metrics                                               | `gs://stackrox-ci-artifacts`   |
 | [gcs-subdir](#gcs-subdir)      | Subdirectory (relative to the bucket root) used to store test metrics                    | `test-metrics/upload`          |
-| [version](#version)            | `junit2jira` release version to download                                                 | `v0.0.29`                      |
+| [version](#version)            | `junit2jira` release version to download                                                 | `v0.0.30`                      |
 
 ## Outputs
 
@@ -131,7 +131,7 @@ Default value: `test-metrics/upload`
 
 `junit2jira` release version to download.
 
-Default value: `v0.0.29`
+Default value: `v0.0.30`
 
 ## Usage
 
