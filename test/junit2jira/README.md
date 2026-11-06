@@ -6,7 +6,11 @@ Optionally uploads a CSV of test metrics to GCS for BigQuery ingestion.
 
 If the GitHub job failed but produced no test-level `<failure>` records, the
 action synthesises a JUnit failure so infrastructure/setup failures are still
-reported.
+reported. The synthetic suite name and testcase classname use
+`repo / workflow / job ID`, for example `collector / Integration tests / tests`.
+The job ID comes from `github.job`, not the job display name. Existing JUnit
+reports and the metrics job name are unchanged. New suite names start separate
+issue/metrics histories from the previous job-ID-only names.
 
 The action is self-contained: it bundles its own helper scripts and does not
 require the calling repository to provide any `scripts/ci` helpers.
@@ -23,6 +27,7 @@ permissions: {}
 
 | Input                          | Description                                                                             | Default                        |
 | ------------------------------ | --------------------------------------------------------------------------------------- | ------------------------------ |
+| [enable-auto-priority](#enable-auto-priority) | Enable automatic Jira priority escalation based on recent failure comments | `false` |
 | [dry-run](#dry-run)            | When true, runs junit2jira with `--dry-run` and does not create Jira issues              | `false`                        |
 | [jira-user](#jira-user)        | User used to authenticate with Jira                                                      |                                |
 | [jira-token](#jira-token)      | Token used to authenticate with Jira                                                     |                                |
@@ -34,7 +39,7 @@ permissions: {}
 | [gcp-metrics](#gcp-metrics)    | Whether to upload test metrics to GCS for BigQuery                                       | `true`                         |
 | [gcs-bucket](#gcs-bucket)      | GCS bucket root used to store test metrics                                               | `gs://stackrox-ci-artifacts`   |
 | [gcs-subdir](#gcs-subdir)      | Subdirectory (relative to the bucket root) used to store test metrics                    | `test-metrics/upload`          |
-| [version](#version)            | `junit2jira` release version to download                                                 | `v0.0.28`                      |
+| [version](#version)            | `junit2jira` release version to download                                                 | `v0.0.30`                      |
 
 ## Outputs
 
@@ -43,6 +48,14 @@ permissions: {}
 | `new-jiras` | `"true"`/`"false"` — whether new issues were created |
 
 ### Detailed options
+
+#### enable-auto-priority
+
+When `true`, passes `--enable-auto-priority` to junit2jira to escalate existing
+issue priorities based on recent failure comments. Requires v0.0.29 or later.
+With `dry-run: true`, priority evaluation is skipped.
+
+Default value: `false`
 
 #### dry-run
 
@@ -118,7 +131,7 @@ Default value: `test-metrics/upload`
 
 `junit2jira` release version to download.
 
-Default value: `v0.0.27`
+Default value: `v0.0.30`
 
 ## Usage
 
@@ -138,6 +151,7 @@ jobs:
         uses: stackrox/actions/test/junit2jira@main
         with:
           dry-run: ${{ github.event_name != 'push' }}
+          enable-auto-priority: 'true'
           jira-user: ${{ secrets.JIRA_USER }}
           jira-token: ${{ secrets.JIRA_TOKEN }}
           directory: junit-reports

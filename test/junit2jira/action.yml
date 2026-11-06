@@ -2,6 +2,10 @@ name: junit2jira
 description: Convert JUnit test failures into Jira tickets and upload test metrics
 
 inputs:
+  enable-auto-priority:
+    description: Enable automatic Jira priority escalation based on recent failure comments.
+    required: false
+    default: "false"
   dry-run:
     description: When true, junit2jira runs with --dry-run and does not create Jira issues.
     required: false
@@ -49,7 +53,7 @@ inputs:
   version:
     description: junit2jira release version to download.
     required: false
-    default: v0.0.28
+    default: v0.0.30
 
 outputs:
   new-jiras:
@@ -106,7 +110,7 @@ runs:
       env:
         STEPS_JSON: ${{ toJSON(steps) }}
         ARTIFACT_DIR: ${{ inputs.directory }}
-        JOB_NAME: ${{ github.job }}
+        JOB_NAME: ${{ github.event.repository.name }} / ${{ github.workflow }} / ${{ github.job }}
         JOB_STATUS: ${{ job.status }}
         WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
@@ -130,6 +134,7 @@ runs:
         DIRECTORY: ${{ inputs.directory }}
         THRESHOLD: ${{ inputs.threshold }}
         DRY_RUN: ${{ inputs.dry-run }}
+        ENABLE_AUTO_PRIORITY: ${{ inputs.enable-auto-priority }}
         BASE_LINK: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
         BUILD_ID: ${{ github.run_id }}
         BUILD_LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -144,6 +149,9 @@ runs:
           extra_args=(--dry-run)
         else
           echo "Will create Jira issues for JUnit failures found in ${DIRECTORY}"
+        fi
+        if [[ "$ENABLE_AUTO_PRIORITY" == "true" ]]; then
+          extra_args+=(--enable-auto-priority)
         fi
         csv_output="$(mktemp --suffix=.csv)"
         summary_file="$(mktemp --suffix=.json)"
