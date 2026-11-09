@@ -36,6 +36,7 @@ junit_contains_failure() {
 }
 
 # Writes a synthetic JUnit failure record into ${ARTIFACT_DIR}/junit-misc.
+# Each call creates a unique XML file, preserving reports from earlier calls.
 save_junit_failure() {
   if [[ "$#" -ne 3 ]]; then
     gh_log error "missing args. usage: save_junit_failure <class> <description> <details>"
@@ -54,14 +55,21 @@ save_junit_failure() {
   junit_dir="$(get_junit_misc_dir)"
   mkdir -p "${junit_dir}"
 
-  # XML escape description.
+  # XML escape suite/classname and description.
+  class="${class//&/\&amp;}"
+  class="${class//\"/\&quot;}"
+  class="${class//\'/\&#39;}"
+  class="${class//</\&lt;}"
+  class="${class//>/\&gt;}"
   description="${description//&/\&amp;}"
   description="${description//\"/\&quot;}"
   description="${description//\'/\&#39;}"
   description="${description//</\&lt;}"
   description="${description//>/\&gt;}"
 
-  local junit_file="${junit_dir}/junit-${class}.xml"
+  # Suite names contain slashes and must not be used as file paths.
+  local junit_file
+  junit_file="$(mktemp "${junit_dir}/junit-job-failure-XXXXXX.xml")" || return 1
   {
     echo "<testsuite name=\"${class}\" tests=\"1\" skipped=\"0\" failures=\"1\" errors=\"0\">"
     echo "  <testcase name=\"${description}\" classname=\"${class}\">"
@@ -123,7 +131,7 @@ Check workflow logs for details: ${workflow_run_url}
 EOF
     )
 
-    save_junit_failure "$job_name" "$failed_step" "$failure_details"
+    save_junit_failure "$job_name" "$failed_step" "$failure_details" || return 1
     gh_log debug "Created JUnit failure record for step: $failed_step"
     return 0
   fi
@@ -136,7 +144,7 @@ Check workflow logs: ${workflow_run_url}
 EOF
   )
 
-  save_junit_failure "$job_name" "error" "$generic_failure"
+  save_junit_failure "$job_name" "error" "$generic_failure" || return 1
   gh_log debug "Created generic JUnit failure record for job: $job_name"
   return 0
 }
