@@ -6,13 +6,9 @@ Optionally uploads a CSV of test metrics to GCS for BigQuery ingestion.
 
 If the GitHub job failed but produced no test-level `<failure>` records, the
 action synthesises a JUnit failure so infrastructure/setup failures are still
-reported. The synthetic suite name and testcase classname use
-`repo / workflow / job name`, for example `collector / Integration tests / tests`.
-The job name comes from the optional `job-name` input, falling back to the YAML
-job ID (`github.job`) when omitted or empty. The display name is not discovered
-automatically. Existing JUnit
-reports and the metrics job name are unchanged. New suite names start separate
-issue/metrics histories from the previous job-ID-only names.
+reported. Synthetic suite names and classnames use `repo / workflow / job name`.
+Existing JUnit reports and the metrics job name are unchanged; new synthetic
+identities start separate Jira issue/metrics histories.
 
 The action is self-contained: it bundles its own helper scripts and does not
 require the calling repository to provide any `scripts/ci` helpers.
@@ -62,11 +58,8 @@ Default value: `false`
 
 #### job-name
 
-Optional job name used in synthetic suite names and testcase classnames. Pass
-the same expression used for the workflow job display name. Omitted or empty
-values fall back to the YAML job ID (`github.job`). The reporting job name in
-BigQuery remains unchanged. Changing this input starts a separate synthetic
-Jira issue/metrics identity.
+Job name for synthetic failures. Pass the job display name explicitly; omitted
+or empty values fall back to the YAML job ID (`github.job`).
 
 #### dry-run
 
@@ -152,10 +145,7 @@ The action assumes gcloud is already authenticated (e.g. via
 ```yaml
 jobs:
   test:
-    name: Testing ${{ matrix.platform }}
-    strategy:
-      matrix:
-        platform: [amd64, arm64]
+    name: Integration tests
     runs-on: ubuntu-latest
     steps:
       # ... run tests, producing JUnit XML under junit-reports/ ...
@@ -165,7 +155,7 @@ jobs:
         id: junit2jira
         uses: stackrox/actions/test/junit2jira@main
         with:
-          job-name: Testing ${{ matrix.platform }}
+          job-name: Integration tests
           dry-run: ${{ github.event_name != 'push' }}
           enable-auto-priority: 'true'
           jira-user: ${{ secrets.JIRA_USER }}
