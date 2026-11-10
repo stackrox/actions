@@ -21,7 +21,7 @@ permissions: {}
 | Name | Required | Default | Description |
 | --- | --- | --- | --- |
 | `relacs_install_path` | no | `$HOME/.local/bin/relacs` | Path where to install `relacs` binary. Supports expansion of `$HOME` and `${HOME}` in custom paths (other environment variables are not expanded). |
-| `token` | yes |  | GH token to use for authentication for the `relacs` repository. |
+| `token` | no | `${{ github.token }}` | GH token to use for authentication for the `relacs` repository. Provide to use GH API rate limit for specific user. |
 | `version` | no | "" | Release version tag to install (e.g. `v0.4.2`). Omit to install the latest release. |
 
 ## Usage

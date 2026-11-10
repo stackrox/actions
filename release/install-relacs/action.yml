@@ -9,6 +9,7 @@ inputs:
   token:
     description: "GitHub token to use for authentication"
     required: true
+    default: ${{ github.token }}
   version:
     description: "Release version tag to install (e.g. v0.4.2). Omit to install the latest release."
     required: false
