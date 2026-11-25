@@ -116,6 +116,13 @@ for arg in "${args[@]}"; do
     OPTIONS+=("$arg")
 done
 
+if [[ -n "${OPENSHIFT_FEATURE_GATES:-}" ]]; then
+    OPTIONS+=(--arg "feature-gates=$OPENSHIFT_FEATURE_GATES")
+fi
+if [[ -n "${OPENSHIFT_EXTRA_MANIFEST:-}" ]]; then
+    OPTIONS+=(--arg "extra-manifest=$OPENSHIFT_EXTRA_MANIFEST")
+fi
+
 infractl_call create "$FLAVOR" "$CNAME" \
     --lifespan "$LIFESPAN" \
     --description "$DESCRIPTION" \

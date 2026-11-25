@@ -18,6 +18,14 @@ inputs:
     description: Comma separated flavor arguments. Ex. nodes=5,main-image=main:tag
     required: false
     default: ""
+  openshift-feature-gates:
+    description: Feature gates for the OpenShift flavor, as a YAML flow list.
+    required: false
+    default: ""
+  openshift-extra-manifest:
+    description: Contents of an extra installation manifest for the OpenShift flavor.
+    required: false
+    default: ""
   wait:
     description: Whether to wait for the cluster readiness
     required: false
@@ -57,6 +65,8 @@ runs:
       shell: bash
       env:
         INFRA_TOKEN: "${{ inputs.token }}"
+        OPENSHIFT_FEATURE_GATES: "${{ inputs.openshift-feature-gates }}"
+        OPENSHIFT_EXTRA_MANIFEST: "${{ inputs.openshift-extra-manifest }}"
       run: |
         echo "::add-mask::$INFRA_TOKEN"
         set -uo pipefail
