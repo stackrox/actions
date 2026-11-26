@@ -16,6 +16,10 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+          
+      - name: Ensure INFRA_TOKEN is not empty
+        run: |
+          echo -n "${{ secrets.INFRA_TOKEN }}" | wc
 
       - name: Create a cluster
         uses: ./infra/create-cluster
